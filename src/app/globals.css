@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+/*
+  StockedUp Africa — design tokens
+  Subject: a Nigerian foodstuff/grocery marketplace (Awka).
+  Palette pulls from open-air market signage rather than generic AI-app
+  defaults: warm canvas paper, deep espresso ink, the existing brand
+  orange (#FF7C09, carried over from the mobile app for consistency),
+  a fresh-produce green for stock/availability states, and a night-market
+  indigo used sparingly for vendor/premium accents.
+*/
+:root {
+  --bg: #fbf7f0;
+  --bg-raised: #ffffff;
+  --ink: #211a14;
+  --ink-soft: #6b6053;
+  --line: #e8dfd0;
+
+  --brand: #ff7c09;
+  --brand-deep: #c75d00;
+  --brand-tint: #fff1e2;
+
+  --leaf: #1f6e43;
+  --leaf-tint: #e7f3ec;
+
+  --indigo: #2e1a47;
+  --indigo-tint: #ece7f2;
+
+  --clay: #b23a2e;
+  --clay-tint: #fbe9e7;
+
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-inter);
+  --font-data: var(--font-space-grotesk);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-tint: var(--brand-tint);
+
+  --color-leaf: var(--leaf);
+  --color-leaf-tint: var(--leaf-tint);
+
+  --color-indigo: var(--indigo);
+  --color-indigo-tint: var(--indigo-tint);
+
+  --color-clay: var(--clay);
+  --color-clay-tint: var(--clay-tint);
+
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+  --font-data: var(--font-data);
+}
+
+* {
+  border-color: var(--line);
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+/* Signature element: the "market stamp" — a hand-stamped seal used for
+   vendor open/closed status, category tags and freshness badges. A dashed
+   ring with a slight rotation, evoking an ink stamp on a market receipt. */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border: 1.5px dashed currentColor;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-family: var(--font-data), monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  transform: rotate(-1.2deg);
+}
+
+.input {
+  border: 1px solid var(--line);
+  background: var(--bg-raised);
+  border-radius: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.input:focus {
+  border-color: var(--brand);
+}
+
+.tabular {
+  font-family: var(--font-data), monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
