@@ -1,6 +1,8 @@
-import { apiRequest } from "./client";
+import { apiGet } from "./client";
 import type { Order } from "./types";
 
+export type { Order };
+
 export function getOrders(): Promise<{ orders: Order[] }> {
-  return apiRequest("/get-orders.php", { method: "GET" });
+  return apiGet("/get-orders.php");
 }

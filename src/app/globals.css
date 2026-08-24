@@ -104,6 +104,21 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
+/* Chrome/Edge paint autofilled fields with their own blue/yellow tint via
+   an internal box-shadow layer, overriding our background and — because
+   of how that layer composites — visually washing out any icon
+   positioned inside the field. Forcing the shadow to our own background
+   color keeps autofilled inputs looking like every other input instead
+   of a different color, and stops it from fighting with the icons. */
+.input:-webkit-autofill,
+.input:-webkit-autofill:hover,
+.input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0px 1000px var(--bg-raised) inset;
+  box-shadow: 0 0 0px 1000px var(--bg-raised) inset;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.01ms !important;

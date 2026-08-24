@@ -1,78 +1,124 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { getOrders } from "@/lib/api/orders";
-import { StampBadge } from "@/components/StampBadge";
-import { statusTone } from "@/lib/checkout/orderStatus";
+import { getOrders, type Order } from "@/lib/api/orders";
+import { ApiError } from "@/lib/api/client";
+import { useAuthModalStore } from "@/store/authModalStore";
+
+const STATUS_STYLES: Record<string, string> = {
+  Delivered: "bg-leaf/10 text-leaf",
+  Pending: "bg-brand-warm text-brand-deep",
+  Processing: "bg-brand-warm text-brand-deep",
+  Cancelled: "bg-clay/10 text-clay",
+};
 
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
+  const [orders, setOrders] = useState<Order[] | null>(null);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const openLogin = useAuthModalStore((s) => s.openLogin);
   useEffect(() => {
-    if (!authLoading && !user) router.replace("/login?next=/account/orders");
-  }, [authLoading, user, router]);
+  if (!authLoading && !user) {
+    openLogin("/account/orders");
+    router.replace("/");
+  }
+}, [authLoading, user, router, openLogin]);
 
-  const { data, isLoading } = useQuery({
-    queryKey: ["orders"],
-    queryFn: getOrders,
-    enabled: !!user,
-  });
+  useEffect(() => {
+    if (!user) return;
+    getOrders()
+      .then((data) => setOrders(data.orders))
+      .catch((e) => setOrdersError(e instanceof ApiError ? e.message : "Failed to load orders"))
+      .finally(() => setOrdersLoading(false));
+  }, [user]);
 
-  if (authLoading || !user) return null;
-
-  const orders = data?.orders ?? [];
+  if (authLoading || !user) {
+    return <div className="mx-auto max-w-lg px-4 py-16 text-ink-soft">Loading…</div>;
+  }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-10">
-      <Link href="/account" className="flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
-        <ArrowLeft size={16} /> Back to account
+    <div className="mx-auto max-w-lg px-4 py-10">
+      <Link href="/account" className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
+        <ArrowLeft size={16} />
+        Back to profile
       </Link>
-      <h1 className="mt-4 font-display text-3xl font-semibold text-ink">Order history</h1>
 
-      {isLoading && <p className="mt-6 text-sm text-ink-soft">Loading your orders…</p>}
+      <h1 className="font-display text-2xl font-semibold text-ink">Order history</h1>
 
-      {!isLoading && orders.length === 0 && (
-        <div className="mt-8 text-center">
-          <p className="text-ink-soft">You haven&apos;t placed any orders yet.</p>
-          <Link href="/vendors" className="mt-3 inline-block text-sm font-medium text-brand-deep">
+      {ordersLoading ? (
+        <p className="mt-8 text-sm text-ink-soft">Loading orders…</p>
+      ) : ordersError ? (
+        <p className="mt-8 text-sm text-clay">{ordersError}</p>
+      ) : !orders || orders.length === 0 ? (
+        <div className="mt-10 flex flex-col items-center rounded-2xl border border-line bg-bg-raised p-10 text-center">
+          <Package size={32} className="text-ink-soft" />
+          <p className="mt-3 text-sm font-medium text-ink">No orders yet</p>
+          <p className="mt-1 text-sm text-ink-soft">Your past orders will show up here.</p>
+          <Link
+            href="/"
+            className="mt-4 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+          >
             Start shopping
           </Link>
         </div>
+      ) : (
+        <div className="mt-6 flex flex-col gap-4">
+          {orders.map((order) => (
+            <OrderCard key={order.order_id} order={order} />
+          ))}
+        </div>
       )}
+    </div>
+  );
+}
 
-      <div className="mt-6 flex flex-col gap-3">
-        {orders.map((order) => (
-          <Link
-            key={order.order_uid}
-            href={`/account/orders/${order.order_uid}`}
-            className="flex items-center gap-3 rounded-2xl border border-line bg-bg-raised p-4"
-          >
-            <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-brand-tint">
-              {order.shop_logo && (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={order.shop_logo} alt={order.store_name} className="h-full w-full object-cover" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="line-clamp-1 text-sm font-medium text-ink">{order.store_name}</p>
-              <p className="tabular text-xs text-ink-soft">
-                {order.order_uid} · {order.date}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-1">
-              <span className="tabular text-sm font-semibold text-ink">
-                ₦{order.total.toLocaleString()}
-              </span>
-              <StampBadge tone={statusTone(order.status)}>{order.status}</StampBadge>
-            </div>
-          </Link>
-        ))}
+function OrderCard({ order }: { order: Order }) {
+  const statusClass = STATUS_STYLES[order.status] ?? "bg-ink/5 text-ink-soft";
+  const itemsPreview = order.items.slice(0, 2).map((i) => i.name).join(", ");
+  const moreCount = order.items.length - 2;
+
+  return (
+    <div className="rounded-2xl border border-line bg-bg-raised p-4">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {order.shop_logo ? (
+            <img
+              src={order.shop_logo}
+              alt={order.store_name}
+              className="h-10 w-10 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink/5 text-ink-soft">
+              <Package size={18} />
+            </span>
+          )}
+          <div>
+            <p className="text-sm font-medium text-ink">{order.store_name}</p>
+            <p className="text-xs text-ink-soft">{order.date}</p>
+          </div>
+        </div>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusClass}`}>
+          {order.status}
+        </span>
+      </div>
+
+      <p className="mt-3 text-sm text-ink-soft">
+        {itemsPreview}
+        {moreCount > 0 ? ` +${moreCount} more` : ""}
+      </p>
+
+      <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+        <p className="text-xs text-ink-soft">Order #{order.order_uid}</p>
+        <p className="text-sm font-semibold text-ink">
+          ₦{order.total.toLocaleString("en-NG")}
+        </p>
       </div>
     </div>
   );

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { login } from "@/lib/api/auth";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -17,8 +18,10 @@ export function LoginModalView() {
 
   const { setUser } = useAuth();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const close = useAuthModalStore((s) => s.close);
   const setView = useAuthModalStore((s) => s.setView);
+  const redirectTo = useAuthModalStore((s) => s.redirectTo);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,7 +31,9 @@ export function LoginModalView() {
       const user = await login(email, password);
       setUser(user);
       queryClient.invalidateQueries({ queryKey: ["cart"] });
+      const target = redirectTo;
       close();
+      if (target) router.push(target);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
     } finally {
@@ -42,22 +47,18 @@ export function LoginModalView() {
       <p className="mt-1 text-sm text-ink-soft">Welcome back to StockedUp.</p>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
-        <div className="relative">
-          <Mail size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-soft" />
-          <input
-            type="email"
-            required
-            autoFocus
-            value={email}
-            onChange={(e) => setEmail(e.target.value.toLowerCase())}
-            placeholder="Email address"
-            autoComplete="email"
-            className="input w-full pl-10"
-          />
-        </div>
+        <input
+          type="email"
+          required
+          autoFocus
+          value={email}
+          onChange={(e) => setEmail(e.target.value.toLowerCase())}
+          placeholder="Email address"
+          autoComplete="email"
+          className="input w-full"
+        />
 
         <div className="relative">
-          <Lock size={16} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-ink-soft" />
           <input
             type={showPassword ? "text" : "password"}
             required
@@ -65,7 +66,7 @@ export function LoginModalView() {
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
             autoComplete="current-password"
-            className="input w-full pl-10 pr-10"
+            className="input w-full pr-10"
           />
           <button
             type="button"

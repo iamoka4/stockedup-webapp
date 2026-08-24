@@ -74,7 +74,7 @@ export function TestimonialsSection() {
           Early voices
         </span>
         <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
-          What early users<br /><em className="italic text-leaf">are saying</em>
+          What our early users<br /><em className="italic text-leaf">are saying</em>
         </h2>
       </div>
 

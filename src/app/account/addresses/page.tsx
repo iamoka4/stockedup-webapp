@@ -7,12 +7,14 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { getUserAddresses, saveUserAddress } from "@/lib/api/addresses";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { useAuthModalStore } from "@/store/authModalStore";
 
 export default function AddressesPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
+  const openLogin = useAuthModalStore((s) => s.openLogin);
   const [form, setForm] = useState({
     line1: "",
     line2: "",
@@ -23,8 +25,11 @@ export default function AddressesPage() {
   });
 
   useEffect(() => {
-    if (!authLoading && !user) router.replace("/login?next=/account/addresses");
-  }, [authLoading, user, router]);
+  if (!authLoading && !user) {
+    openLogin("/account/addresses");
+    router.replace("/");
+  }
+}, [authLoading, user, router, openLogin]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["addresses"],

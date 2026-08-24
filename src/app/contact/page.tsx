@@ -57,7 +57,7 @@ export default function ContactPage() {
           </span>
           <p className="font-semibold text-ink">Get In Touch</p>
           <p className="mt-1 text-sm text-ink-soft">Email: hello@stockedup.africa</p>
-          <p className="text-sm text-ink-soft">Call / WhatsApp: 081-0443-6235</p>
+          <p className="text-sm text-ink-soft">Hot-line: 081-0443-6235</p>
         </div>
 
         <div>

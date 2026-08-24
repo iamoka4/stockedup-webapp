@@ -18,6 +18,7 @@ export function RegisterModalView() {
     phone: "",
     password: "",
     confirmPassword: "",
+    referralCode: "",
   });
   const [otp, setOtp] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -72,6 +73,7 @@ export function RegisterModalView() {
         password: form.password,
         confirmPassword: form.confirmPassword,
         otp_verified: true,
+        referralCode: form.referralCode || undefined,
       });
       const user = await login(form.email, form.password);
       setUser(user);
@@ -215,6 +217,13 @@ export function RegisterModalView() {
           onChange={(e) => update("confirmPassword", e.target.value)}
           placeholder="Confirm password"
           className="input w-full"
+        />
+
+        <input
+          value={form.referralCode}
+          onChange={(e) => update("referralCode", e.target.value.toUpperCase())}
+          placeholder="Referral code (optional)"
+          className="input w-full uppercase placeholder:normal-case"
         />
 
         {error && <p className="text-sm text-clay">{error}</p>}
