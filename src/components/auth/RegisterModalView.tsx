@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { sendOtp, verifyOtp, register, login } from "@/lib/api/auth";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -27,8 +28,10 @@ export function RegisterModalView() {
   const [resending, setResending] = useState(false);
 
   const { setUser } = useAuth();
+  const router = useRouter();
   const close = useAuthModalStore((s) => s.close);
   const setView = useAuthModalStore((s) => s.setView);
+  const redirectTo = useAuthModalStore((s) => s.redirectTo);
 
   function update<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -77,7 +80,9 @@ export function RegisterModalView() {
       });
       const user = await login(form.email, form.password);
       setUser(user);
+      const target = redirectTo ?? "/account";
       close();
+      router.push(target);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
       setStep("otp");

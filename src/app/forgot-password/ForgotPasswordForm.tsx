@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { sendOtp, resetPassword } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
 import { OtpStep } from "@/components/auth/OtpStep";
 import { AuthHeader } from "@/components/auth/AuthHeader";
+import { useAuthModalStore } from "@/store/authModalStore";
 
 type Step = "email" | "otp" | "reset" | "done";
 
@@ -21,6 +21,7 @@ export function ForgotPasswordForm() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const router = useRouter();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
   async function handleSendOtp(e: React.FormEvent) {
     e.preventDefault();
@@ -141,7 +142,10 @@ export function ForgotPasswordForm() {
         <p className="mt-2 text-sm text-ink-soft">You can now sign in with your new password.</p>
         <button
           type="button"
-          onClick={() => router.push("/login")}
+          onClick={() => {
+            router.push("/");
+            openLogin();
+          }}
           className="mt-6 rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-deep"
         >
           Go to sign in
@@ -173,9 +177,16 @@ export function ForgotPasswordForm() {
         >
           {submitting ? "Sending code…" : "Send reset code"}
         </button>
-        <Link href="/login" className="text-center text-sm text-ink-soft">
+        <button
+          type="button"
+          onClick={() => {
+            router.push("/");
+            openLogin();
+          }}
+          className="text-center text-sm text-ink-soft hover:text-ink"
+        >
           ← Back to sign in
-        </Link>
+        </button>
       </form>
     </div>
   );

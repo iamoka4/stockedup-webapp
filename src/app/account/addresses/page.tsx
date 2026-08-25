@@ -8,6 +8,7 @@ import Link from "next/link";
 import { getUserAddresses, saveUserAddress } from "@/lib/api/addresses";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
+import { ApiError } from "@/lib/api/client";
 
 export default function AddressesPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -31,7 +32,7 @@ export default function AddressesPage() {
   }
 }, [authLoading, user, router, openLogin]);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["addresses"],
     queryFn: getUserAddresses,
     enabled: !!user,
@@ -57,6 +58,17 @@ export default function AddressesPage() {
 
       <div className="mt-6 flex flex-col gap-3">
         {isLoading && <p className="text-sm text-ink-soft">Loading…</p>}
+
+        {isError && (
+          <p className="text-sm text-clay">
+            {error instanceof ApiError ? error.message : "Couldn't load your saved addresses. Please try again."}
+          </p>
+        )}
+
+        {!isLoading && !isError && data?.address.length === 0 && (
+          <p className="text-sm text-ink-soft">You have no saved addresses yet.</p>
+        )}
+
         {data?.address.map((addr) => (
           <div key={addr.id} className="rounded-2xl border border-line bg-bg-raised p-4 text-sm">
             <div className="flex items-start justify-between">

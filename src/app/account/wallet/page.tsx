@@ -9,11 +9,10 @@ import { ApiError } from "@/lib/api/client";
 import Link from "next/link";
 import { useAuthModalStore } from "@/store/authModalStore";
 
-const openLogin = useAuthModalStore((s) => s.openLogin);
-
 export default function WalletPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [walletLoading, setWalletLoading] = useState(true);

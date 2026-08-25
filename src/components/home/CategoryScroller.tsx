@@ -4,6 +4,7 @@ import { useRef } from "react";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Category } from "@/lib/api/types";
+import { slugify } from "@/lib/utils/slug";
 
 const PALETTE = [
   { bg: "var(--brand-tint)", border: "var(--brand)" },
@@ -30,7 +31,7 @@ export function CategoryScroller({ categories }: { categories: Category[] }) {
           return (
             <Link
               key={cat.id}
-              href={`/categories/${cat.id}`}
+              href={`/categories/${slugify(cat.name)}`}
               className="flex w-40 shrink-0 flex-col gap-3 rounded-2xl border p-4 transition-transform hover:-translate-y-0.5"
               style={{ backgroundColor: color.bg, borderColor: color.border }}
             >

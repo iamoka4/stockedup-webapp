@@ -33,7 +33,7 @@ export function HowItWorksSection() {
     <section className="relative overflow-hidden py-16">
       <div
         aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 -z-10 h-[28rem] w-[28rem] -translate-x-1/2 -translate-y-1/3 rounded-full bg-brand-deep/10 blur-3xl"
+        className="pointer-events-none absolute left-1/2 top-0 -z-10 h-112 w-md -translate-x-1/2 -translate-y-1/3 rounded-full bg-brand-deep/10 blur-3xl"
       />
       <div
         aria-hidden
@@ -61,13 +61,13 @@ export function HowItWorksSection() {
           return (
             <div key={step.num} className="flex items-stretch gap-4">
               <div className="group relative flex-1 overflow-hidden rounded-3xl border-2 border-brand-deep/15 bg-white p-6 text-center shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-brand-deep/40 hover:shadow-xl">
-                <div className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-brand-deep via-leaf to-brand-deep" />
+                <div className="absolute inset-x-0 top-0 h-1.5 bg-linear-to-r from-brand-deep via-leaf to-brand-deep" />
 
                 <span className="absolute right-4 top-6 font-display text-xs font-bold text-brand-deep/30">
                   {String(step.num).padStart(2, "0")}
                 </span>
 
-                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-brand-deep to-brand-deep/70 text-white shadow-md shadow-brand-deep/30 transition-transform duration-200 group-hover:scale-105">
+                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br from-brand-deep to-brand-deep/70 text-white shadow-md shadow-brand-deep/30 transition-transform duration-200 group-hover:scale-105">
                   <Icon size={24} strokeWidth={1.75} />
                 </div>
 

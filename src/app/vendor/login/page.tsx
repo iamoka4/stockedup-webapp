@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Store, ArrowLeft } from "lucide-react";
 import { vendorLogin } from "@/lib/api/auth";
 import { ApiError } from "@/lib/api/client";
+import { useAuthModalStore } from "@/store/authModalStore";
 
 export default function VendorLoginPage() {
   const [email, setEmail] = useState("");
@@ -12,6 +13,7 @@ export default function VendorLoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [signedInAs, setSignedInAs] = useState<string | null>(null);
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -48,9 +50,13 @@ export default function VendorLoginPage() {
 
   return (
     <div className="mx-auto max-w-sm px-4 py-16">
-      <Link href="/login" className="flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
+      <button
+        type="button"
+        onClick={() => openLogin()}
+        className="flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink"
+      >
         <ArrowLeft size={16} /> Back to buyer sign in
-      </Link>
+      </button>
 
       <div className="mt-6 flex flex-col items-center text-center">
         <div className="flex h-20 w-20 items-center justify-center rounded-full bg-indigo-tint">

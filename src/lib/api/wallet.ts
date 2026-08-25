@@ -19,7 +19,7 @@ export interface WalletData {
 }
 
 export function getWallet(): Promise<WalletData> {
-  return apiGet("/get-wallet.php");
+  return apiGet("/wallet.php");
 }
 
 export interface TransferWalletInput {

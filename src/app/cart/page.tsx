@@ -7,12 +7,14 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCart } from "@/lib/hooks/useCart";
 import { updateCartItem } from "@/lib/api/cart";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { useAuthModalStore } from "@/store/authModalStore";
 import type { CartItem } from "@/lib/api/types";
 
 export default function CartPage() {
   const { data: cart, isLoading } = useCart();
   const { user } = useAuth();
   const router = useRouter();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
   if (isLoading) {
     return <div className="mx-auto max-w-3xl px-4 py-16 text-ink-soft">Loading your cart…</div>;
@@ -38,7 +40,11 @@ export default function CartPage() {
     // guests can browse and cart, but must register/login to place an
     // order. Cart is preserved: login.php/register.php merge the guest
     // cart into the account automatically once they sign in.
-    router.push(user ? "/checkout" : "/login?next=/checkout");
+    if (user) {
+      router.push("/checkout");
+    } else {
+      openLogin("/checkout");
+    }
   }
 
   return (

@@ -5,6 +5,7 @@ import { getVendorDetails } from "@/lib/api/vendors";
 import { StampBadge } from "@/components/StampBadge";
 import { VendorProductGrid } from "./VendorProductGrid";
 import { DEFAULT_CITY } from "@/lib/config";
+import { extractVendorId } from "@/lib/utils/slug";
 
 export const revalidate = 60;
 
@@ -13,8 +14,8 @@ interface Props {
 }
 
 async function fetchVendor(id: string) {
-  const vendorId = Number(id);
-  if (!Number.isFinite(vendorId) || vendorId <= 0) return null;
+  const vendorId = extractVendorId(id);
+  if (vendorId === null || vendorId <= 0) return null;
   try {
     return await getVendorDetails(vendorId);
   } catch (err) {

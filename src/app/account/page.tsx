@@ -10,6 +10,7 @@ import {
   Gift,
   Headset,
   MapPin,
+  LockKeyhole,
   LogOut,
   ChevronRight,
 } from "lucide-react";
@@ -71,6 +72,13 @@ export default function AccountPage() {
       subtitle: "Invite friends and earn rewards",
       href: "/account/referrals",
     },
+    {
+  id: "change-password",
+  icon: <LockKeyhole size={20} />,
+  title: "Change Password",
+  subtitle: "Update your account password",
+  href: "/account/change-password",
+},
     {
       id: "support",
       icon: <Headset size={20} />,

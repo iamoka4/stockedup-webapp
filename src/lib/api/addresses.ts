@@ -1,4 +1,6 @@
 import { apiRequest } from "./client";
+import { API_BASE_URL } from "@/lib/config";
+import type { UserAddress, DeliveryFeeResult } from "./types";
 import type { UserAddress, DeliveryFeeResult } from "./types";
 
 export function getUserAddresses(): Promise<{ address: UserAddress[] }> {
@@ -24,13 +26,29 @@ export function saveUserAddress(input: {
  * user_addresses has no lat/lng. See useDeliveryFee() for the geolocation
  * + manual-pin fallback flow.
  */
-export function getDeliveryFee(
+export async function getDeliveryFee(
   vendor_id: number,
   customer_latitude: number,
   customer_longitude: number
 ): Promise<DeliveryFeeResult> {
-  return apiRequest("/delivery-fee.php", {
+  const res = await fetch(`${API_BASE_URL}/delivery-fee.php`, {
     method: "POST",
-    body: { vendor_id, customer_latitude, customer_longitude },
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      vendor_id,
+      customer_latitude,
+      customer_longitude,
+    }),
+    cache: "no-store",
   });
+
+  const json = await res.json();
+
+  if (!res.ok || json.error) {
+    throw new Error(json.error || "Couldn't calculate delivery fee");
+  }
+
+  return json as DeliveryFeeResult;
 }

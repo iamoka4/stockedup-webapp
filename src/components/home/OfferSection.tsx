@@ -45,10 +45,10 @@ const OFFERS = [
 
 export function OfferSection() {
   return (
-    <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-deep via-brand-deep to-brand-deep/85 px-6 py-16 sm:px-10">
+    <section className="relative overflow-hidden rounded-3xl bg-linear-to-br from-brand-deep via-brand-deep to-brand-deep/85 px-6 py-16 sm:px-10">
       <div
         aria-hidden
-        className="pointer-events-none absolute right-0 top-0 h-[26rem] w-[26rem] translate-x-1/3 -translate-y-1/3 rounded-full bg-white/15 blur-3xl"
+        className="pointer-events-none absolute right-0 top-0 h-104 w-104 translate-x-1/3 -translate-y-1/3 rounded-full bg-white/15 blur-3xl"
       />
       <div
         aria-hidden

@@ -11,7 +11,7 @@ function ColumnLabel({ children }: { children: React.ReactNode }) {
 export function Footer() {
   return (
     <footer className="mt-16 bg-brand-deep">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 lg:grid-cols-6">
+      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 lg:grid-cols-7">
         <div className="sm:col-span-2 lg:col-span-2">
           <span className="font-display text-lg font-semibold text-white">
             StockedUp Africa
@@ -116,6 +116,19 @@ export function Footer() {
           </Link>
           <Link href="/faq" className="transition-colors hover:text-white">
             FAQ
+          </Link>
+        </div>
+
+        <div className="flex flex-col gap-3 text-sm text-white/85">
+          <ColumnLabel>Affiliate</ColumnLabel>
+          <p className="text-xs leading-relaxed text-white/80">
+            Refer a friend — you earn, they get a discount on their first order.
+          </p>
+          <Link
+            href="/referral"
+            className="inline-flex items-center gap-1 font-medium text-white transition-colors hover:text-white/80"
+          >
+            Start referring →
           </Link>
         </div>
       </div>

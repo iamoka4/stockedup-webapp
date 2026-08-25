@@ -1,17 +1,25 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { MapPin } from "lucide-react";
 import { useCart } from "@/lib/hooks/useCart";
 import { useAuth } from "@/lib/auth/AuthContext";
+import { useAuthModalStore } from "@/store/authModalStore";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { useDeliveryFees } from "./useDeliveryFees";
 import { AddressPanel } from "./AddressPanel";
+import { PaymentMethodPanel, type PaymentMethod } from "./PaymentMethodPanel";
+import { VoucherPanel } from "./VoucherPanel";
+import { SchedulingPanel } from "./SchedulingPanel";
+import { ConfirmModal } from "./ConfirmModal";
 import { calculateOrderTotal } from "@/lib/checkout/fees";
 import { initializePayment, verifyPayment } from "@/lib/api/payments";
+import { checkFirstOrderDiscount } from "@/lib/api/discounts";
+import { getWallet } from "@/lib/api/wallet";
 import type { UserAddress } from "@/lib/api/types";
+import type { DeliverySlot } from "@/lib/api/scheduling";
 
 function generateIdempotencyKey(): string {
   return `web_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -21,11 +29,26 @@ export default function CheckoutPage() {
   const { user, isLoading: authLoading } = useAuth();
   const { data: cart, isLoading: cartLoading } = useCart();
   const router = useRouter();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
   const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null);
   const [notes, setNotes] = useState("");
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  const [voucherCode, setVoucherCode] = useState<string | null>(null);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+
+  const [firstOrderEligible, setFirstOrderEligible] = useState(false);
+  const [firstOrderDiscount, setFirstOrderDiscount] = useState(0);
+  const [firstOrderMinimum, setFirstOrderMinimum] = useState(0);
+
+  const [selectedSlot, setSelectedSlot] = useState<DeliverySlot | null>(null);
+  const [isVendorClosed, setIsVendorClosed] = useState(false);
 
   const geo = useGeolocation();
 
@@ -33,34 +56,72 @@ export default function CheckoutPage() {
     () => Array.from(new Set((cart?.items ?? []).map((i) => i.vendor_id))),
     [cart?.items]
   );
+  const primaryVendorId = vendorIds[0] ?? null;
+
   const { total: deliveryFee, loading: feeLoading, error: feeError } = useDeliveryFees(
     vendorIds,
     geo.coords
   );
 
   const subtotal = cart?.subtotal ?? 0;
-  const { processingFee, total } = calculateOrderTotal(subtotal, deliveryFee, 0);
 
-  if (authLoading || cartLoading) {
+  const firstOrderApplied = firstOrderEligible && subtotal >= firstOrderMinimum ? firstOrderDiscount : 0;
+  const combinedDiscount = voucherDiscount + firstOrderApplied;
+
+  const { processingFee, total } = calculateOrderTotal(subtotal, deliveryFee, combinedDiscount);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      openLogin("/checkout");
+      router.replace("/cart");
+    }
+  }, [authLoading, user, router, openLogin]);
+
+  useEffect(() => {
+    if (!cartLoading && cart && cart.items.length === 0) {
+      router.replace("/cart");
+    }
+  }, [cartLoading, cart, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    getWallet()
+      .then((w) => setWalletBalance(w.balance))
+      .catch(() => {});
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    checkFirstOrderDiscount()
+      .then((d) => {
+        setFirstOrderEligible(d.eligible);
+        setFirstOrderDiscount(d.discount_amount);
+        setFirstOrderMinimum(d.minimum_subtotal);
+      })
+      .catch(() => {});
+  }, [user]);
+
+  const handleVendorClosedChange = useCallback((closed: boolean) => {
+    setIsVendorClosed(closed);
+  }, []);
+
+  if (authLoading || cartLoading || !user || !cart || cart.items.length === 0) {
     return <div className="mx-auto max-w-2xl px-4 py-16 text-ink-soft">Loading checkout…</div>;
   }
 
-  if (!user) {
-    router.replace("/login?next=/checkout");
-    return null;
-  }
-
-  if (!cart || cart.items.length === 0) {
-    router.replace("/cart");
-    return null;
-  }
-
-  const readyToPay = !!selectedAddress && !!geo.coords && !feeLoading && !paying;
+  const readyToPay =
+    !!selectedAddress &&
+    !!geo.coords &&
+    !feeLoading &&
+    !paying &&
+    (!isVendorClosed || !!selectedSlot) &&
+    !(paymentMethod === "wallet" && walletBalance <= 0);
 
   async function handlePay() {
     if (!selectedAddress || !geo.coords || !cart) return;
     setPayError(null);
     setPaying(true);
+    setShowConfirm(false);
 
     const shipping_address = [selectedAddress.line1, selectedAddress.line2, selectedAddress.city, selectedAddress.state]
       .filter(Boolean)
@@ -75,6 +136,12 @@ export default function CheckoutPage() {
         delivery_fee: deliveryFee,
         customer_notes: notes || null,
         idempotency_key,
+        use_wallet_balance: paymentMethod === "wallet",
+        voucher_code: voucherCode,
+        discount_amount: combinedDiscount,
+        order_type: selectedSlot ? "scheduled" : "instant",
+        scheduled_for: selectedSlot?.datetime ?? null,
+        scheduled_slot_id: selectedSlot?.slot_id ?? null,
       });
 
       // Fully covered by wallet balance — verify-payment.php's fallback path
@@ -151,6 +218,41 @@ export default function CheckoutPage() {
       </section>
 
       <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Delivery time</h2>
+        <SchedulingPanel
+          vendorId={primaryVendorId}
+          selectedSlot={selectedSlot}
+          onSelectSlot={setSelectedSlot}
+          onVendorClosedChange={handleVendorClosedChange}
+        />
+        {isVendorClosed && !selectedSlot && (
+          <p className="mt-2 text-sm text-clay">This vendor is currently closed — please pick a delivery slot.</p>
+        )}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Payment method</h2>
+        <PaymentMethodPanel selected={paymentMethod} onSelect={setPaymentMethod} walletBalance={walletBalance} />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Voucher code</h2>
+        <VoucherPanel
+          subtotal={subtotal}
+          appliedCode={voucherCode}
+          discount={voucherDiscount}
+          onApply={(code, discount) => {
+            setVoucherCode(code);
+            setVoucherDiscount(discount);
+          }}
+          onRemove={() => {
+            setVoucherCode(null);
+            setVoucherDiscount(0);
+          }}
+        />
+      </section>
+
+      <section className="mt-8">
         <h2 className="mb-3 font-display text-lg font-semibold text-ink">Notes (optional)</h2>
         <textarea
           value={notes}
@@ -161,10 +263,25 @@ export default function CheckoutPage() {
         />
       </section>
 
+      {firstOrderEligible && subtotal >= firstOrderMinimum && (
+        <div className="mt-8 rounded-2xl border border-brand-deep/20 bg-brand-warm/40 p-4">
+          <p className="text-sm font-medium text-brand-deep">
+            🎉 Welcome to StockedUp! ₦{firstOrderDiscount.toLocaleString("en-NG")} has been applied to your first order.
+          </p>
+        </div>
+      )}
+      {firstOrderEligible && subtotal < firstOrderMinimum && (
+        <p className="mt-4 text-xs text-ink-soft">
+          Add ₦{(firstOrderMinimum - subtotal).toLocaleString("en-NG")} more to unlock your first-order discount.
+        </p>
+      )}
+
       <section className="mt-8 rounded-2xl border border-line bg-bg-raised p-4">
         <Row label="Subtotal" value={subtotal} />
         <Row label="Processing fee" value={processingFee} />
         <Row label="Delivery fee" value={feeLoading ? null : deliveryFee} />
+        {voucherDiscount > 0 && <Row label="Voucher discount" value={-voucherDiscount} />}
+        {firstOrderApplied > 0 && <Row label="First order discount" value={-firstOrderApplied} />}
         <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
           <span className="font-semibold text-ink">Total</span>
           <span className="tabular font-display text-xl font-semibold text-ink">
@@ -178,11 +295,25 @@ export default function CheckoutPage() {
       <button
         type="button"
         disabled={!readyToPay}
-        onClick={handlePay}
+        onClick={() => setShowConfirm(true)}
         className="mt-6 w-full rounded-full bg-brand py-3.5 text-sm font-semibold text-white hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
       >
-        {paying ? "Redirecting to payment…" : `Pay ₦${total.toLocaleString()}`}
+        {paying ? "Redirecting to payment…" : isVendorClosed ? "Schedule order" : `Pay ₦${total.toLocaleString()}`}
       </button>
+
+      <ConfirmModal
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handlePay}
+        address={selectedAddress}
+        slot={selectedSlot}
+        notes={notes}
+        deliveryFee={deliveryFee}
+        total={total}
+        firstOrderDiscount={firstOrderApplied}
+        paying={paying}
+        isScheduled={!!selectedSlot}
+      />
     </div>
   );
 }

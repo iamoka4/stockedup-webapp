@@ -2,11 +2,12 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { StampBadge } from "./StampBadge";
 import type { Vendor } from "@/lib/api/types";
+import { vendorSlug } from "@/lib/utils/slug";
 
 export function VendorCard({ vendor }: { vendor: Vendor }) {
   return (
     <Link
-      href={`/vendors/${vendor.id}`}
+      href={`/vendors/${vendorSlug(vendor)}`}
       className="group flex w-64 shrink-0 flex-col overflow-hidden rounded-2xl border border-line bg-bg-raised sm:w-auto"
     >
       <div className="aspect-[16/10] w-full overflow-hidden bg-indigo-tint">

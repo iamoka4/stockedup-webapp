@@ -124,7 +124,7 @@ export default function AboutPage() {
 
       {/* Mission + Vision */}
       <section className="mt-20 grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="rounded-2xl border border-ink/10 bg-ink/[0.02] p-8">
+        <div className="rounded-2xl border border-ink/10 bg-ink/2 p-8">
           <SectionEyebrow>Our Mission</SectionEyebrow>
           <p className="mt-4 text-ink">
             To transform how people buy and sell foodstuff in Africa by
@@ -136,7 +136,7 @@ export default function AboutPage() {
             the digital tools and visibility they need to grow.
           </p>
         </div>
-        <div className="rounded-2xl border border-ink/10 bg-ink/[0.02] p-8">
+        <div className="rounded-2xl border border-ink/10 bg-ink/2 p-8">
           <SectionEyebrow>Our Vision</SectionEyebrow>
           <p className="mt-4 text-ink">
             To become Africa&apos;s most trusted digital marketplace for
@@ -227,8 +227,8 @@ export default function AboutPage() {
                   aria-hidden
                   className={`absolute top-1.5 h-2.5 w-2.5 rounded-full bg-brand-deep ${
                     i % 2 === 1
-                      ? "left-4 -translate-x-1/2 sm:-left-[1.5rem] sm:translate-x-0"
-                      : "left-4 -translate-x-1/2 sm:-right-[1.5rem] sm:left-auto sm:translate-x-0"
+                      ? "left-4 -translate-x-1/2 sm:-left-6 sm:translate-x-0"
+                      : "left-4 -translate-x-1/2 sm:-right-6 sm:left-auto sm:translate-x-0"
                   }`}
                 />
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep">

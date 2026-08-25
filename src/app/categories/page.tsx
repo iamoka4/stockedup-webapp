@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getCategories } from "@/lib/api/categories";
 import { DEFAULT_CITY } from "@/lib/config";
+import { slugify } from "@/lib/utils/slug";
 
 export const revalidate = 300;
 
@@ -20,7 +21,7 @@ export default async function CategoriesPage() {
         {categories.map((cat) => (
           <Link
             key={cat.id}
-            href={`/categories/${cat.id}`}
+            href={`/categories/${slugify(cat.name)}`}
             className="group overflow-hidden rounded-2xl border border-line bg-bg-raised"
           >
             <div className="aspect-video overflow-hidden">
