@@ -197,30 +197,43 @@ export default function CheckoutPage() {
       .join(", ");
 
     const idempotency_key = generateIdempotencyKey();
-
+      
     try {
-      const result = await initializePayment(total, {
-        items: cart.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
-        shipping_address,
-        delivery_fee: deliveryFee,
-        customer_latitude: customerLatitude,
-        customer_longitude: customerLongitude,
-        customer_notes: notes || null,
-        idempotency_key,
-        use_wallet_balance: paymentMethod === "wallet",
-        voucher_code: voucherCode,
-        discount_amount: combinedDiscount,
-        order_type: selectedSlot ? "scheduled" : "instant",
-        scheduled_for: selectedSlot?.datetime ?? null,
-        scheduled_slot_id: selectedSlot?.slot_id ?? null,
-      });
+     console.log("[CHECKOUT] Payment coordinates and metadata:", {
+  customerLatitude,
+  customerLongitude,
+  latitudeType: typeof customerLatitude,
+  longitudeType: typeof customerLongitude,
+  shipping_address,
+  delivery_fee: deliveryFee,
+});
 
-      // Fully covered by wallet balance — verify-payment.php's fallback path
-      // isn't needed since initialize-payment.php already created the order.
-      if (result.order_id) {
-        router.push(`/checkout/success?order=${result.order_id}`);
-        return;
-      }
+const result = await initializePayment(total, {
+  items: cart.items.map((i) => ({
+    product_id: i.product_id,
+    quantity: i.quantity,
+  })),
+  shipping_address,
+  delivery_fee: deliveryFee,
+  customer_latitude: customerLatitude,
+  customer_longitude: customerLongitude,
+  customer_notes: notes || null,
+  idempotency_key,
+  use_wallet_balance: paymentMethod === "wallet",
+  voucher_code: voucherCode,
+  discount_amount: combinedDiscount,
+  order_type: selectedSlot ? "scheduled" : "instant",
+  scheduled_for: selectedSlot?.datetime ?? null,
+  scheduled_slot_id: selectedSlot?.slot_id ?? null,
+});
+
+
+// Fully covered by wallet balance — verify-payment.php's fallback path
+// isn't needed since initialize-payment.php already created the order.
+if (result.order_id) {
+  router.push(`/checkout/success?order=${result.order_id}`);
+  return;
+}
 
       if (!result.access_code || !window.PaystackPop) {
         throw new Error("Payment could not be started. Please try again.");

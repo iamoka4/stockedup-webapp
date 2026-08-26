@@ -30,22 +30,21 @@ export function CategoryScroller({ categories }: { categories: Category[] }) {
           const color = PALETTE[i % PALETTE.length];
           return (
             <Link
-              key={cat.id}
-              href={`/categories/${slugify(cat.name)}`}
-              className="flex w-40 shrink-0 flex-col gap-3 rounded-2xl border p-4 transition-transform hover:-translate-y-0.5"
-              style={{ backgroundColor: color.bg, borderColor: color.border }}
-            >
-              <div className="h-16 w-16 overflow-hidden rounded-xl border border-white/60 bg-white/60">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={cat.image} alt={cat.name} className="h-full w-full object-cover" />
-              </div>
-              <div>
-                <p className="font-display text-sm font-semibold text-ink">{cat.name}</p>
-                {cat.sub_categories && (
-                  <p className="mt-0.5 line-clamp-1 text-xs text-ink-soft">{cat.sub_categories}</p>
-                )}
-              </div>
-            </Link>
+  key={cat.id}
+  href={`/categories/${slugify(cat.name)}`}
+  className="flex w-40 shrink-0 flex-col gap-3 rounded-2xl border p-5 transition-transform hover:-translate-y-0.5"
+  style={{ backgroundColor: color.bg, borderColor: color.border }}
+>
+  <div className="mx-auto h-27 w-30 overflow-hidden rounded-xl border border-white/60 bg-white/60">
+  <img src={cat.image} alt={cat.name} className="h-full w-full rounded-lg object-cover" />
+</div>
+  <div>
+    <p className="font-display text-sm font-semibold text-ink">{cat.name}</p>
+    {cat.sub_categories && (
+      <p className="mt-0.5 line-clamp-1 text-xs text-ink-soft">{cat.sub_categories}</p>
+    )}
+  </div>
+</Link>
           );
         })}
       </div>

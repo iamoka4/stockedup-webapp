@@ -7,6 +7,8 @@ import {
   TrendingUp,
   Lightbulb,
   Package,
+  Store,
+  MapPin,
 } from "lucide-react";
 
 export const metadata: Metadata = {
@@ -65,7 +67,16 @@ const STORY_STOPS = [
   },
 ];
 
-function SectionEyebrow({ children }: { children: React.ReactNode }) {
+// The same four category colors used on the "Shop by category" cards —
+// reused here as a visual thread that ties this page back to the product.
+const THREAD = [
+  { tint: "var(--brand-tint)", solid: "var(--brand)" },
+  { tint: "var(--leaf-tint)", solid: "var(--leaf)" },
+  { tint: "var(--indigo-tint)", solid: "var(--indigo)" },
+  { tint: "var(--clay-tint)", solid: "var(--clay)" },
+];
+
+function Eyebrow({ children }: { children: React.ReactNode }) {
   return (
     <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep">
       {children}
@@ -73,179 +84,269 @@ function SectionEyebrow({ children }: { children: React.ReactNode }) {
   );
 }
 
+function VendorThread({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex items-center gap-1.5 ${className}`} aria-hidden="true">
+      {THREAD.map((t, i) => (
+        <span
+          key={i}
+          className="h-1.5 w-9 rounded-full"
+          style={{ backgroundColor: t.solid }}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function AboutPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-14">
-      {/* Who We Are */}
-      <section className="text-center">
-        <SectionEyebrow>Who We Are</SectionEyebrow>
-        <h1 className="mt-3 font-display text-3xl font-semibold text-ink sm:text-4xl">
-          A digital foodstuff marketplace, built for how Nigeria actually shops
-        </h1>
-        <p className="mx-auto mt-5 max-w-3xl text-ink-soft">
-          StockedUp Africa connects customers with trusted local food vendors across
-          Nigeria, making it easier to buy foodstuff and everyday groceries online
-          and have them delivered to your doorstep.
-        </p>
-        <p className="mx-auto mt-4 max-w-3xl text-ink-soft">
-          From rice, beans, garri and grains to pasta, beverages, fish and other
-          household essentials, StockedUp brings local food vendors and customers
-          together on one easy-to-use platform — helping vendors take their
-          businesses online, reach more customers and grow beyond their physical
-          locations.
-        </p>
-      </section>
-
-      {/* Our Drive */}
-      <section className="mt-20 grid grid-cols-1 gap-10 sm:grid-cols-5 sm:items-center">
-        <div className="sm:col-span-2">
-          <SectionEyebrow>Our Drive</SectionEyebrow>
-          <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
-            Closing the gap between vendors and customers
-          </h2>
-        </div>
-        <div className="sm:col-span-3">
-          <p className="text-ink-soft">
-            Finding a trusted vendor, comparing products, visiting different
-            markets, negotiating prices and arranging transportation can take
-            valuable time. At the same time, many hardworking foodstuff vendors
-            have great products but limited access to technology, online
-            customers and digital tools.
-          </p>
-          <p className="mt-4 font-semibold text-ink">
-            Our drive is to close this gap.
-          </p>
-          <p className="mt-4 text-ink-soft">
-            We are driven by the opportunity to use technology to make everyday
-            food shopping faster, easier, more convenient and more reliable.
-          </p>
-        </div>
-      </section>
-
-      {/* Mission + Vision */}
-      <section className="mt-20 grid grid-cols-1 gap-6 sm:grid-cols-2">
-        <div className="rounded-2xl border border-ink/10 bg-ink/2 p-8">
-          <SectionEyebrow>Our Mission</SectionEyebrow>
-          <p className="mt-4 text-ink">
-            To transform how people buy and sell foodstuff in Africa by
-            connecting customers with trusted local vendors through technology.
-          </p>
-          <p className="mt-4 text-sm text-ink-soft">
-            We are building a marketplace that makes it simple for customers to
-            discover, order and receive foodstuff, while giving local vendors
-            the digital tools and visibility they need to grow.
-          </p>
-        </div>
-        <div className="rounded-2xl border border-ink/10 bg-ink/2 p-8">
-          <SectionEyebrow>Our Vision</SectionEyebrow>
-          <p className="mt-4 text-ink">
-            To become Africa&apos;s most trusted digital marketplace for
-            foodstuff and everyday essentials.
-          </p>
-          <p className="mt-4 text-sm text-ink-soft">
-            A future where buying foodstuff online is as simple and reliable as
-            ordering any other product, while local vendors grow their
-            businesses beyond the limits of their physical stores.
-          </p>
-        </div>
-      </section>
-
-      {/* Our Values */}
-      <section className="mt-20">
-        <div className="text-center">
-          <SectionEyebrow>Our Values</SectionEyebrow>
-          <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
-            What guides how we build
-          </h2>
-        </div>
-        <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {VALUES.map(({ icon: Icon, title, body }) => (
-            <div
-              key={title}
-              className="rounded-2xl border border-ink/10 p-6 transition-colors hover:border-brand-deep/40"
+    <div>
+      {/* Hero */}
+      <section className="relative overflow-hidden">
+        <div className="mx-auto max-w-5xl px-4 pt-16 pb-10 sm:pt-24">
+          <div className="relative overflow-hidden rounded-3xl bg-bg-raised px-6 py-14 text-center sm:px-14 sm:py-20">
+            {/* dashed arc, echoing the promo banner on the homepage */}
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 200 200"
+              className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 opacity-20 sm:h-64 sm:w-64"
+              style={{ color: "var(--brand)" }}
             >
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-deep/10 text-brand-deep">
-                <Icon size={20} strokeWidth={1.75} />
+              <circle
+                cx="100"
+                cy="100"
+                r="80"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeDasharray="3 7"
+                strokeLinecap="round"
+              />
+            </svg>
+
+            <Eyebrow>Who We Are</Eyebrow>
+            <h1 className="mx-auto mt-4 max-w-3xl font-display text-3xl font-semibold leading-tight text-ink sm:text-5xl">
+              A digital foodstuff marketplace,{" "}
+              <span style={{ color: "var(--brand-deep, var(--brand))" }}>
+                built for how Nigeria actually shops.
               </span>
-              <p className="mt-4 font-display text-lg font-semibold text-ink">
-                {title}
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-ink-soft sm:text-lg">
+              StockedUp Africa connects customers with trusted local food
+              vendors across Nigeria, making it easier to buy foodstuff and
+              everyday groceries online and have them delivered to your
+              doorstep.
+            </p>
+            <p className="mx-auto mt-4 max-w-2xl text-ink-soft">
+              From rice, beans, garri and grains to pasta, beverages, fish and
+              other household essentials, StockedUp brings local food vendors
+              and customers together on one easy-to-use platform — helping
+              vendors take their businesses online, reach more customers and
+              grow beyond their physical locations.
+            </p>
+
+            <div className="mt-9 flex flex-col items-center gap-3">
+              <VendorThread />
+              <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink-soft">
+                Grains · Fish · Tubers · Produce — 21 categories, one marketplace
               </p>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{body}</p>
             </div>
-          ))}
+          </div>
         </div>
       </section>
 
-      {/* Our Promise */}
-      <section className="mt-20 rounded-2xl bg-ink text-center text-white">
-        <div className="mx-auto max-w-2xl px-8 py-14">
-          <SectionEyebrow>Our Promise</SectionEyebrow>
-          <p className="mt-3 font-display text-2xl font-semibold sm:text-3xl">
-            We promise to keep making food shopping easier.
-          </p>
-          <p className="mt-5 text-white/70">
-            To our customers, a marketplace you can trust. To our vendors,
-            opportunities to reach more customers and grow. To everyone who uses
-            StockedUp, we keep building with your needs at the centre of what we
-            do.
-          </p>
-        </div>
-      </section>
+      <div className="mx-auto max-w-5xl px-4 pb-24">
+        {/* Our Drive */}
+        <section className="mt-10 grid grid-cols-1 gap-10 sm:grid-cols-5 sm:items-center">
+          <div className="sm:col-span-2">
+            <Eyebrow>Our Drive</Eyebrow>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
+              Closing the gap between vendors and customers
+            </h2>
+          </div>
+          <div className="sm:col-span-3">
+            <p className="text-ink-soft">
+              Finding a trusted vendor, comparing products, visiting different
+              markets, negotiating prices and arranging transportation can
+              take valuable time. At the same time, many hardworking foodstuff
+              vendors have great products but limited access to technology,
+              online customers and digital tools.
+            </p>
+            <p
+              className="mt-5 border-l-2 pl-4 font-display text-lg font-semibold text-ink"
+              style={{ borderColor: "var(--brand)" }}
+            >
+              Our drive is to close this gap.
+            </p>
+            <p className="mt-4 text-ink-soft">
+              We are driven by the opportunity to use technology to make
+              everyday food shopping faster, easier, more convenient and more
+              reliable.
+            </p>
+          </div>
+        </section>
 
-      {/* Our Story — delivery-route thread */}
-      <section className="mt-20">
-        <div className="text-center">
-          <SectionEyebrow>Our Story</SectionEyebrow>
-          <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
-            Buying foodstuff in Nigeria could be much easier
-          </h2>
-          <p className="mx-auto mt-4 max-w-2xl text-ink-soft">
-            Instead of customers visiting different vendors one by one,
-            StockedUp brings those vendors into one digital marketplace —
-            closer to how an order actually travels, from a vendor&apos;s stall
-            to a customer&apos;s door.
-          </p>
-        </div>
-
-        <div className="relative mt-14">
-          {/* the route line */}
+        {/* Mission + Vision */}
+        <section className="mt-24 grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div
-            aria-hidden
-            className="absolute left-4 top-2 bottom-2 w-px bg-ink/10 sm:left-1/2 sm:-ml-px"
-          />
-          <ol className="space-y-10">
-            {STORY_STOPS.map((stop, i) => (
-              <li
-                key={stop.label}
-                className={`relative pl-12 sm:w-1/2 sm:pl-0 sm:pr-10 ${
-                  i % 2 === 1
-                    ? "sm:ml-auto sm:pl-10 sm:pr-0 sm:text-left"
-                    : "sm:text-right"
-                }`}
-              >
-                <span
-                  aria-hidden
-                  className={`absolute top-1.5 h-2.5 w-2.5 rounded-full bg-brand-deep ${
-                    i % 2 === 1
-                      ? "left-4 -translate-x-1/2 sm:-left-6 sm:translate-x-0"
-                      : "left-4 -translate-x-1/2 sm:-right-6 sm:left-auto sm:translate-x-0"
-                  }`}
-                />
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep">
-                  {stop.label}
-                </p>
-                <p className="mt-1 text-ink-soft">{stop.body}</p>
-              </li>
-            ))}
-          </ol>
-        </div>
+            className="rounded-2xl border p-8"
+            style={{ backgroundColor: THREAD[0].tint, borderColor: THREAD[0].solid }}
+          >
+            <span
+              className="block h-1 w-10 rounded-full"
+              style={{ backgroundColor: THREAD[0].solid }}
+            />
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep">
+              Our Mission
+            </p>
+            <p className="mt-4 font-display text-lg font-semibold text-ink">
+              To transform how people buy and sell foodstuff in Africa by
+              connecting customers with trusted local vendors through
+              technology.
+            </p>
+            <p className="mt-4 text-sm text-ink-soft">
+              We are building a marketplace that makes it simple for customers
+              to discover, order and receive foodstuff, while giving local
+              vendors the digital tools and visibility they need to grow.
+            </p>
+          </div>
+          <div
+            className="rounded-2xl border p-8"
+            style={{ backgroundColor: THREAD[1].tint, borderColor: THREAD[1].solid }}
+          >
+            <span
+              className="block h-1 w-10 rounded-full"
+              style={{ backgroundColor: THREAD[1].solid }}
+            />
+            <p className="mt-5 text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep">
+              Our Vision
+            </p>
+            <p className="mt-4 font-display text-lg font-semibold text-ink">
+              To become Africa&apos;s most trusted digital marketplace for
+              foodstuff and everyday essentials.
+            </p>
+            <p className="mt-4 text-sm text-ink-soft">
+              A future where buying foodstuff online is as simple and reliable
+              as ordering any other product, while local vendors grow their
+              businesses beyond the limits of their physical stores.
+            </p>
+          </div>
+        </section>
 
-        <p className="mx-auto mt-14 max-w-2xl text-center font-display text-lg font-semibold text-ink">
-          StockedUp is more than a marketplace. We are building the digital
-          infrastructure that connects local food businesses to the customers
-          who need them.
-        </p>
-      </section>
+        {/* Our Values */}
+        <section className="mt-24">
+          <div className="text-center">
+            <Eyebrow>Our Values</Eyebrow>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
+              What guides how we build
+            </h2>
+          </div>
+          <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {VALUES.map(({ icon: Icon, title, body }, i) => {
+              const c = THREAD[i % THREAD.length];
+              return (
+                <div
+                  key={title}
+                  className="rounded-2xl border p-6 transition-transform hover:-translate-y-1 hover:shadow-md"
+                  style={{ backgroundColor: c.tint, borderColor: c.solid }}
+                >
+                  <span
+                    className="flex h-11 w-11 items-center justify-center rounded-xl text-white"
+                    style={{ backgroundColor: c.solid }}
+                  >
+                    <Icon size={20} strokeWidth={1.75} />
+                  </span>
+                  <p className="mt-4 font-display text-lg font-semibold text-ink">
+                    {title}
+                  </p>
+                  <p className="mt-2 text-sm leading-relaxed text-ink-soft">
+                    {body}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Our Promise */}
+        <section className="mt-24 overflow-hidden rounded-2xl bg-ink text-center text-white">
+          <VendorThread className="justify-center pt-8" />
+          <div className="mx-auto max-w-2xl px-8 pb-14 pt-6">
+            <Eyebrow>Our Promise</Eyebrow>
+            <p className="mt-3 font-display text-2xl font-semibold sm:text-3xl">
+              We promise to keep making food shopping easier.
+            </p>
+            <p className="mt-5 text-white/70">
+              To our customers, a marketplace you can trust. To our vendors,
+              opportunities to reach more customers and grow. To everyone who
+              uses StockedUp, we keep building with your needs at the centre
+              of what we do.
+            </p>
+          </div>
+        </section>
+
+        {/* Our Story — vendor's stall to customer's door */}
+        <section className="mt-24">
+          <div className="text-center">
+            <Eyebrow>Our Story</Eyebrow>
+            <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
+              Buying foodstuff in Nigeria could be much easier
+            </h2>
+            <p className="mx-auto mt-4 max-w-2xl text-ink-soft">
+              Instead of customers visiting different vendors one by one,
+              StockedUp brings those vendors into one digital marketplace —
+              closer to how an order actually travels, from a vendor&apos;s
+              stall to a customer&apos;s door.
+            </p>
+          </div>
+
+          <div className="relative mt-16">
+            <span
+              className="absolute -top-4 left-4 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full text-white shadow-sm sm:left-1/2"
+              style={{ backgroundColor: "var(--brand)" }}
+            >
+              <Store size={16} strokeWidth={2} />
+            </span>
+            <div
+              aria-hidden="true"
+              className="absolute left-4 top-2 bottom-2 w-px bg-ink/10 sm:left-1/2 sm:-ml-px"
+            />
+            <span className="absolute -bottom-4 left-4 z-10 flex h-9 w-9 -translate-x-1/2 items-center justify-center rounded-full bg-ink text-white shadow-sm sm:left-1/2">
+              <MapPin size={16} strokeWidth={2} />
+            </span>
+
+            <ol className="space-y-10 py-6">
+              {STORY_STOPS.map((stop, i) => {
+                const c = THREAD[i % THREAD.length];
+                return (
+                  <li
+                    key={stop.label}
+                    className={`relative pl-12 sm:w-1/2 sm:pl-0 sm:pr-10 ${
+                      i % 2 === 1
+                        ? "sm:ml-auto sm:pl-10 sm:pr-0 sm:text-left"
+                        : "sm:text-right"
+                    }`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`absolute top-1.5 h-2.5 w-2.5 rounded-full ${
+                        i % 2 === 1
+                          ? "left-4 -translate-x-1/2 sm:-left-6 sm:translate-x-0"
+                          : "left-4 -translate-x-1/2 sm:-right-6 sm:left-auto sm:translate-x-0"
+                      }`}
+                      style={{ backgroundColor: c.solid }}
+                    />
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-brand-deep">
+                      {stop.label}
+                    </p>
+                    <p className="mt-1 text-ink-soft">{stop.body}</p>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </section>
+      </div>
     </div>
   );
 }

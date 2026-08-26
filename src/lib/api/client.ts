@@ -75,6 +75,11 @@ export async function apiRequest<T>(
     if (gt) headers["X-Guest-Token"] = gt;
   }
 
+  console.log("[API REQUEST]", {
+  url: `${API_BASE_URL}${path}`,
+  method,
+  body,
+});
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
