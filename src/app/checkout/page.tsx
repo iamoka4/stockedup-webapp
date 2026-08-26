@@ -8,6 +8,7 @@ import { useCart } from "@/lib/hooks/useCart";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
+import { AREA_GROUPS } from "@/lib/constants/cityCoords";
 import { useDeliveryFees } from "./useDeliveryFees";
 import { AddressPanel } from "./AddressPanel";
 import { PaymentMethodPanel, type PaymentMethod } from "./PaymentMethodPanel";
@@ -52,9 +53,13 @@ export default function CheckoutPage() {
 
   // Manual location fallback — shown when geolocation is denied/unsupported.
   // geo.setManual already existed in useGeolocation but was never wired
-  // into this UI, so denied/unsupported customers had no path to checkout
-  // at all. This is a plain lat/lng entry as a minimum viable fallback;
-  // swap for a map-pin picker component if/when one exists.
+  // into this UI. Originally this was a raw lat/lng form, but that meant
+  // nothing to most customers — an "area" dropdown (same named areas and
+  // coordinates as the mobile app's CITY_COORDS) is the primary fallback
+  // now; raw coordinates are still available but tucked behind an
+  // "advanced" toggle for the rare case an area isn't listed.
+  const [selectedAreaLabel, setSelectedAreaLabel] = useState("");
+  const [showAdvancedManual, setShowAdvancedManual] = useState(false);
   const [manualLat, setManualLat] = useState("");
   const [manualLng, setManualLng] = useState("");
   const [manualError, setManualError] = useState<string | null>(null);
@@ -113,6 +118,17 @@ export default function CheckoutPage() {
   const handleVendorClosedChange = useCallback((closed: boolean) => {
     setIsVendorClosed(closed);
   }, []);
+
+  function handleAreaSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    const label = e.target.value;
+    setSelectedAreaLabel(label);
+    if (!label) return;
+
+    const area = AREA_GROUPS.flatMap((g) => g.areas).find((a) => a.label === label);
+    if (!area) return;
+
+    geo.setManual({ latitude: area.latitude, longitude: area.longitude });
+  }
 
   function handleManualSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -265,35 +281,65 @@ export default function CheckoutPage() {
             {(geo.status === "denied" || geo.status === "unsupported") && (
               <div className="mt-4 rounded-2xl border border-line bg-bg-raised p-4">
                 <p className="text-sm text-clay">
-                  We couldn&apos;t access your location automatically. You can enter your
-                  coordinates manually instead.
+                  We couldn&apos;t access your location automatically. Select the area closest to
+                  your delivery address instead.
                 </p>
-                <form onSubmit={handleManualSubmit} className="mt-3 flex flex-col gap-2">
-                  <div className="grid grid-cols-2 gap-2">
-                    <input
-                      required
-                      inputMode="decimal"
-                      placeholder="Latitude"
-                      value={manualLat}
-                      onChange={(e) => setManualLat(e.target.value)}
-                      className="input"
-                    />
-                    <input
-                      required
-                      inputMode="decimal"
-                      placeholder="Longitude"
-                      value={manualLng}
-                      onChange={(e) => setManualLng(e.target.value)}
-                      className="input"
-                    />
-                  </div>
+
+                <select
+                  value={selectedAreaLabel}
+                  onChange={handleAreaSelect}
+                  className="input mt-3 w-full"
+                >
+                  <option value="" disabled>
+                    Select your area…
+                  </option>
+                  {AREA_GROUPS.map((group) => (
+                    <optgroup key={group.group} label={group.group}>
+                      {group.areas.map((area) => (
+                        <option key={area.label} value={area.label}>
+                          {area.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+
+                {!showAdvancedManual ? (
                   <button
-                    type="submit"
-                    className="rounded-full bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-deep"
+                    type="button"
+                    onClick={() => setShowAdvancedManual(true)}
+                    className="mt-3 text-xs font-medium text-ink-soft underline hover:text-ink"
                   >
-                    Use these coordinates
+                    Don&apos;t see your area? Enter coordinates manually
                   </button>
-                </form>
+                ) : (
+                  <form onSubmit={handleManualSubmit} className="mt-3 flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        required
+                        inputMode="decimal"
+                        placeholder="Latitude"
+                        value={manualLat}
+                        onChange={(e) => setManualLat(e.target.value)}
+                        className="input"
+                      />
+                      <input
+                        required
+                        inputMode="decimal"
+                        placeholder="Longitude"
+                        value={manualLng}
+                        onChange={(e) => setManualLng(e.target.value)}
+                        className="input"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="rounded-full bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-deep"
+                    >
+                      Use these coordinates
+                    </button>
+                  </form>
+                )}
                 {manualError && <p className="mt-2 text-sm text-clay">{manualError}</p>}
               </div>
             )}

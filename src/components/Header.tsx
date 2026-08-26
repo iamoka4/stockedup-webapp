@@ -3,30 +3,46 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ShoppingCart, Search } from "lucide-react";
+import { ShoppingCart, Search, Menu } from "lucide-react";
 import { useCart } from "@/lib/hooks/useCart";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
 import { LocationDropdown } from "@/components/LocationDropdown";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
+import { MobileMenu } from "@/components/MobileMenu";
 import { useState } from "react";
 
 export function Header() {
   const { data: cart } = useCart();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const openLogin = useAuthModalStore((s) => s.openLogin);
   const openRegister = useAuthModalStore((s) => s.openRegister);
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (query.trim()) router.push(`/products?q=${encodeURIComponent(query.trim())}`);
+    if (query.trim())
+      router.push(`/products?q=${encodeURIComponent(query.trim())}`);
   }
 
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 md:gap-4">
+        {/* Hamburger — mobile only. Everything it opens (account/login,
+            location, app links) already exists elsewhere in this header
+            but is hidden below the md breakpoint, so this is the only way
+            in on a phone-width viewport without switching to desktop mode. */}
+        <button
+          type="button"
+          onClick={() => setMenuOpen(true)}
+          aria-label="Open menu"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-ink hover:bg-bg-raised md:hidden"
+        >
+          <Menu size={22} />
+        </button>
+
         <Link href="/" className="flex shrink-0 items-center">
           <Image
             src="/weblogo.png"
@@ -103,6 +119,15 @@ export function Header() {
           </button>
         )}
       </div>
+
+      <MobileMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        user={user}
+        onLogin={openLogin}
+        onRegister={openRegister}
+        onLogout={logout}
+      />
     </header>
   );
 }

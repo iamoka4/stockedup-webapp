@@ -1,22 +1,78 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
+
 const PLAY_STORE_URL = process.env.NEXT_PUBLIC_PLAY_STORE_URL || "#";
-const APP_STORE_URL = process.env.NEXT_PUBLIC_APP_STORE_URL || "#";
 
 /**
  * Store badges
  * Google Play uses its official multi-color Play logo.
  * Apple uses the official Apple logo treatment.
+ *
+ * The Apple badge doesn't link out — there is no iOS app yet — it opens
+ * a small "coming soon" modal instead. This is separate from the
+ * StoreIcon `enabled`/`href === "#"` placeholder logic below, which is
+ * for "link not configured yet"; the Apple case is "platform genuinely
+ * unavailable," a different and more permanent state.
  */
 export function AppStoreBadges() {
+  const [showComingSoon, setShowComingSoon] = useState(false);
+
   return (
     <div className="flex items-center gap-2">
       <StoreIcon href={PLAY_STORE_URL} label="Get it on Google Play">
         <PlayStoreIcon />
       </StoreIcon>
 
-      <StoreIcon href={APP_STORE_URL} label="Download on the App Store">
+      <button
+        type="button"
+        onClick={() => setShowComingSoon(true)}
+        aria-label="iOS app — coming soon"
+        title="iOS app — coming soon"
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-line bg-white transition-all hover:border-brand hover:shadow-sm"
+      >
         <AppleIcon />
-      </StoreIcon>
+      </button>
+
+      <ComingSoonModal open={showComingSoon} onClose={() => setShowComingSoon(false)} />
     </div>
+  );
+}
+
+function ComingSoonModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <button
+        type="button"
+        aria-label="Close"
+        onClick={onClose}
+        className="absolute inset-0 bg-black/40"
+      />
+
+      <div className="relative w-full max-w-xs rounded-2xl bg-white p-6 text-center shadow-xl">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-bg-raised">
+          <AppleIcon />
+        </div>
+        <h3 className="font-display text-base font-semibold text-ink">Not on iOS yet</h3>
+        <p className="mt-1.5 text-sm text-ink-soft">
+          We&apos;re working on it — the StockedUp app is coming soon to the App Store.
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          className="mt-5 w-full rounded-full bg-brand px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-deep"
+        >
+          Got it
+        </button>
+      </div>
+    </div>,
+    document.body
   );
 }
 

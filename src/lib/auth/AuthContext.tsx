@@ -51,6 +51,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         })
         .finally(() => setIsLoading(false));
     } else {
+      // No refresh token means there's no real session to validate — any
+      // cached user shell restored above is stale and must not be trusted.
+      // Previously this branch just set isLoading false and left the
+      // optimistic cache in place untouched, which let a user appear
+      // permanently "logged in" in the header with zero real tokens behind
+      // it once tokenStore.clear() ran elsewhere but this cache didn't.
+      setUser(null);
       setIsLoading(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

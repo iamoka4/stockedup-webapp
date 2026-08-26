@@ -11,13 +11,31 @@ import { useAuthModalStore } from "@/store/authModalStore";
 import type { CartItem } from "@/lib/api/types";
 
 export default function CartPage() {
-  const { data: cart, isLoading } = useCart();
+  const { data: cart, isLoading, isError, refetch } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const openLogin = useAuthModalStore((s) => s.openLogin);
 
   if (isLoading) {
     return <div className="mx-auto max-w-3xl px-4 py-16 text-ink-soft">Loading your cart…</div>;
+  }
+
+  if (isError) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-16 text-center">
+        <h1 className="font-display text-2xl font-semibold text-ink">Couldn&apos;t load your cart</h1>
+        <p className="mt-2 text-ink-soft">
+          Something went wrong fetching your cart. Your items are safe — try again.
+        </p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-6 inline-block rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white hover:bg-brand-deep"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   if (!cart || cart.items.length === 0) {
