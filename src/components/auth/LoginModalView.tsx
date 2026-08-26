@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { login } from "@/lib/api/auth";
@@ -28,15 +29,22 @@ export function LoginModalView() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+
     try {
       const user = await login(email, password);
       setUser(user);
       queryClient.invalidateQueries({ queryKey: ["cart"] });
+
       const target = redirectTo;
       close();
+
       if (target) router.push(target);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Something went wrong. Try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -45,11 +53,22 @@ export function LoginModalView() {
   return (
     <div>
       <div className="mb-4 flex justify-center">
-        <Image src="/weblogo.png" alt="StockedUp Africa" width={128} height={32} style={{ width: "auto", height: "32px" }} />
+        <Image
+          src="/weblogo.png"
+          alt="StockedUp Africa"
+          width={128}
+          height={32}
+          style={{ width: "auto", height: "32px" }}
+        />
       </div>
 
-      <h2 className="font-display text-xl font-semibold text-ink">Sign in</h2>
-      <p className="mt-1 text-sm text-ink-soft">Welcome back to StockedUp.</p>
+      <h2 className="font-display text-xl font-semibold text-ink">
+        Sign in
+      </h2>
+
+      <p className="mt-1 text-sm text-ink-soft">
+        Welcome back to StockedUp.
+      </p>
 
       <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
         <input
@@ -73,6 +92,7 @@ export function LoginModalView() {
             autoComplete="current-password"
             className="input w-full pr-10"
           />
+
           <button
             type="button"
             onClick={() => setShowPassword((s) => !s)}
@@ -84,9 +104,12 @@ export function LoginModalView() {
         </div>
 
         <div className="-mt-2 flex justify-end">
-          <a href="/forgot-password" className="text-xs font-medium text-brand-deep hover:underline">
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-brand-deep hover:underline"
+          >
             Forgot password?
-          </a>
+          </Link>
         </div>
 
         {error && <p className="text-sm text-clay">{error}</p>}
@@ -100,9 +123,32 @@ export function LoginModalView() {
         </button>
       </form>
 
+      {/* Terms and Privacy Notice */}
+      <p className="mt-4 text-center text-xs leading-5 text-ink-soft">
+        By logging in, you agree to our{" "}
+        <Link
+          href="/terms"
+          className="font-medium text-brand-deep hover:underline"
+        >
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link
+          href="/privacy"
+          className="font-medium text-brand-deep hover:underline"
+        >
+          Privacy Policy
+        </Link>
+        .
+      </p>
+
       <p className="mt-5 text-center text-sm text-ink-soft">
         Just browsing?{" "}
-        <button type="button" onClick={close} className="font-semibold text-brand-deep hover:underline">
+        <button
+          type="button"
+          onClick={close}
+          className="font-semibold text-brand-deep hover:underline"
+        >
           Continue as guest
         </button>
       </p>

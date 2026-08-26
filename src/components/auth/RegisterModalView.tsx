@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Eye, EyeOff } from "lucide-react";
 import { sendOtp, verifyOtp, register, login } from "@/lib/api/auth";
 import { useAuth } from "@/lib/auth/AuthContext";
@@ -46,17 +47,28 @@ export function RegisterModalView() {
       setError("Password must be at least 8 characters.");
       return;
     }
+
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
     setSubmitting(true);
+
     try {
-      await sendOtp(form.email, "signup", "buyer", form.phone || undefined);
+      await sendOtp(
+        form.email,
+        "signup",
+        "buyer",
+        form.phone || undefined
+      );
       setStep("otp");
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't send the code. Try again.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Couldn't send the code. Try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -66,9 +78,11 @@ export function RegisterModalView() {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
+
     try {
       await verifyOtp(form.email, otp, "signup");
       setStep("creating");
+
       await register({
         firstName: form.firstName,
         lastName: form.lastName,
@@ -79,13 +93,19 @@ export function RegisterModalView() {
         otp_verified: true,
         referralCode: form.referralCode || undefined,
       });
+
       const user = await login(form.email, form.password);
       setUser(user);
+
       const target = redirectTo ?? "/account";
       close();
       router.push(target);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Something went wrong. Try again.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Something went wrong. Try again."
+      );
       setStep("otp");
     } finally {
       setSubmitting(false);
@@ -95,10 +115,20 @@ export function RegisterModalView() {
   async function handleResend() {
     setResending(true);
     setError(null);
+
     try {
-      await sendOtp(form.email, "signup", "buyer", form.phone || undefined);
+      await sendOtp(
+        form.email,
+        "signup",
+        "buyer",
+        form.phone || undefined
+      );
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't resend the code.");
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Couldn't resend the code."
+      );
     } finally {
       setResending(false);
     }
@@ -108,7 +138,9 @@ export function RegisterModalView() {
     return (
       <div className="flex flex-col items-center justify-center gap-3 py-10">
         <div className="h-7 w-7 animate-spin rounded-full border-2 border-line border-t-brand" />
-        <p className="text-sm text-ink-soft">Creating your account…</p>
+        <p className="text-sm text-ink-soft">
+          Creating your account…
+        </p>
       </div>
     );
   }
@@ -116,33 +148,55 @@ export function RegisterModalView() {
   if (step === "otp") {
     return (
       <div>
-        <h2 className="font-display text-xl font-semibold text-ink">Enter your code</h2>
-        <p className="mt-1 text-sm text-ink-soft">We sent a 6-digit code to {form.email}.</p>
+        <h2 className="font-display text-xl font-semibold text-ink">
+          Enter your code
+        </h2>
 
-        <form onSubmit={handleVerifyAndRegister} className="mt-6 flex flex-col gap-4">
+        <p className="mt-1 text-sm text-ink-soft">
+          We sent a 6-digit code to {form.email}.
+        </p>
+
+        <form
+          onSubmit={handleVerifyAndRegister}
+          className="mt-6 flex flex-col gap-4"
+        >
           <input
             value={otp}
-            onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
+            onChange={(e) =>
+              setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+            }
             inputMode="numeric"
             placeholder="000000"
             autoFocus
             className="input tabular text-center text-2xl tracking-[0.5em]"
             maxLength={6}
           />
-          {error && <p className="text-sm text-clay">{error}</p>}
+
+          {error && (
+            <p className="text-sm text-clay">
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
             disabled={submitting || otp.length !== 6}
             className="rounded-xl bg-brand py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-deep disabled:opacity-60"
           >
-            {submitting ? "Verifying…" : "Verify & create account"}
+            {submitting
+              ? "Verifying…"
+              : "Verify & create account"}
           </button>
 
           <div className="flex items-center justify-between text-sm">
-            <button type="button" onClick={() => setStep("form")} className="text-ink-soft hover:text-ink">
+            <button
+              type="button"
+              onClick={() => setStep("form")}
+              className="text-ink-soft hover:text-ink"
+            >
               ← Back
             </button>
+
             <button
               type="button"
               onClick={handleResend}
@@ -160,25 +214,47 @@ export function RegisterModalView() {
   return (
     <div>
       <div className="mb-4 flex justify-center">
-        <Image src="/weblogo.png" alt="StockedUp Africa" width={128} height={32} style={{ width: "auto", height: "32px" }} />
+        <Image
+          src="/weblogo.png"
+          alt="StockedUp Africa"
+          width={128}
+          height={32}
+          style={{
+            width: "auto",
+            height: "32px",
+          }}
+        />
       </div>
 
-      <h2 className="font-display text-xl font-semibold text-ink">Create account</h2>
-      <p className="mt-1 text-sm text-ink-soft">Join StockedUp to check out faster.</p>
+      <h2 className="font-display text-xl font-semibold text-ink">
+        Create account
+      </h2>
 
-      <form onSubmit={handleSendOtp} className="mt-6 flex flex-col gap-3">
+      <p className="mt-1 text-sm text-ink-soft">
+        Join StockedUp to check out faster.
+      </p>
+
+      <form
+        onSubmit={handleSendOtp}
+        className="mt-6 flex flex-col gap-3"
+      >
         <div className="grid grid-cols-2 gap-3">
           <input
             required
             value={form.firstName}
-            onChange={(e) => update("firstName", e.target.value)}
+            onChange={(e) =>
+              update("firstName", e.target.value)
+            }
             placeholder="First name"
             className="input w-full"
           />
+
           <input
             required
             value={form.lastName}
-            onChange={(e) => update("lastName", e.target.value)}
+            onChange={(e) =>
+              update("lastName", e.target.value)
+            }
             placeholder="Last name"
             className="input w-full"
           />
@@ -188,7 +264,9 @@ export function RegisterModalView() {
           type="email"
           required
           value={form.email}
-          onChange={(e) => update("email", e.target.value.toLowerCase())}
+          onChange={(e) =>
+            update("email", e.target.value.toLowerCase())
+          }
           placeholder="Email address"
           className="input w-full"
         />
@@ -196,7 +274,9 @@ export function RegisterModalView() {
         <input
           type="tel"
           value={form.phone}
-          onChange={(e) => update("phone", e.target.value)}
+          onChange={(e) =>
+            update("phone", e.target.value)
+          }
           placeholder="Phone number (optional)"
           className="input w-full"
         />
@@ -206,17 +286,30 @@ export function RegisterModalView() {
             type={showPassword ? "text" : "password"}
             required
             value={form.password}
-            onChange={(e) => update("password", e.target.value)}
+            onChange={(e) =>
+              update("password", e.target.value)
+            }
             placeholder="Password (min. 8 characters)"
             className="input w-full pr-10"
           />
+
           <button
             type="button"
-            onClick={() => setShowPassword((s) => !s)}
+            onClick={() =>
+              setShowPassword((s) => !s)
+            }
             className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-soft hover:text-ink"
-            aria-label={showPassword ? "Hide password" : "Show password"}
+            aria-label={
+              showPassword
+                ? "Hide password"
+                : "Show password"
+            }
           >
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            {showPassword ? (
+              <EyeOff size={16} />
+            ) : (
+              <Eye size={16} />
+            )}
           </button>
         </div>
 
@@ -224,19 +317,30 @@ export function RegisterModalView() {
           type={showPassword ? "text" : "password"}
           required
           value={form.confirmPassword}
-          onChange={(e) => update("confirmPassword", e.target.value)}
+          onChange={(e) =>
+            update("confirmPassword", e.target.value)
+          }
           placeholder="Confirm password"
           className="input w-full"
         />
 
         <input
           value={form.referralCode}
-          onChange={(e) => update("referralCode", e.target.value.toUpperCase())}
+          onChange={(e) =>
+            update(
+              "referralCode",
+              e.target.value.toUpperCase()
+            )
+          }
           placeholder="Referral code (optional)"
           className="input w-full uppercase placeholder:normal-case"
         />
 
-        {error && <p className="text-sm text-clay">{error}</p>}
+        {error && (
+          <p className="text-sm text-clay">
+            {error}
+          </p>
+        )}
 
         <button
           type="submit"
@@ -246,6 +350,25 @@ export function RegisterModalView() {
           {submitting ? "Sending code…" : "Continue"}
         </button>
       </form>
+
+      {/* Terms and Privacy Notice */}
+      <p className="mt-4 text-center text-xs leading-5 text-ink-soft">
+        By signing up, you agree to our{" "}
+        <Link
+          href="/terms"
+          className="font-medium text-brand-deep hover:underline"
+        >
+          Terms of Service
+        </Link>{" "}
+        and{" "}
+        <Link
+          href="/privacy"
+          className="font-medium text-brand-deep hover:underline"
+        >
+          Privacy Policy
+        </Link>
+        .
+      </p>
 
       <p className="mt-5 border-t border-line pt-5 text-center text-sm text-ink-soft">
         Already have an account?{" "}

@@ -18,12 +18,7 @@ export interface CheckoutItem {
 export interface CheckoutMetadata {
   items: CheckoutItem[];
   shipping_address: string;
-
-  customer_latitude: number;
-  customer_longitude: number;
-
-  delivery_fee?: number;
-
+  delivery_fee: number;
   voucher_code?: string | null;
   discount_amount?: number;
   order_type?: "instant" | "scheduled";
