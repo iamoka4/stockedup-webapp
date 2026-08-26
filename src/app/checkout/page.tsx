@@ -208,24 +208,27 @@ export default function CheckoutPage() {
   delivery_fee: deliveryFee,
 });
 
-const result = await initializePayment(total, {
-  items: cart.items.map((i) => ({
-    product_id: i.product_id,
-    quantity: i.quantity,
-  })),
-  shipping_address,
-  delivery_fee: deliveryFee,
-  customer_latitude: customerLatitude,
-  customer_longitude: customerLongitude,
-  customer_notes: notes || null,
-  idempotency_key,
-  use_wallet_balance: paymentMethod === "wallet",
-  voucher_code: voucherCode,
-  discount_amount: combinedDiscount,
-  order_type: selectedSlot ? "scheduled" : "instant",
-  scheduled_for: selectedSlot?.datetime ?? null,
-  scheduled_slot_id: selectedSlot?.slot_id ?? null,
-});
+const result = await initializePayment(
+  total,
+  {
+    items: cart.items.map((i) => ({
+      product_id: i.product_id,
+      quantity: i.quantity,
+    })),
+    shipping_address,
+    delivery_fee: deliveryFee,
+    customer_notes: notes || null,
+    idempotency_key,
+    use_wallet_balance: paymentMethod === "wallet",
+    voucher_code: voucherCode,
+    discount_amount: combinedDiscount,
+    order_type: selectedSlot ? "scheduled" : "instant",
+    scheduled_for: selectedSlot?.datetime ?? null,
+    scheduled_slot_id: selectedSlot?.slot_id ?? null,
+  },
+  customerLatitude,
+  customerLongitude
+);
 
 
 // Fully covered by wallet balance — verify-payment.php's fallback path
