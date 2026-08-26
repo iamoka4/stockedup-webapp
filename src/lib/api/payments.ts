@@ -18,12 +18,13 @@ export interface CheckoutItem {
 export interface CheckoutMetadata {
   items: CheckoutItem[];
   shipping_address: string;
-
-  customer_latitude: number;
-  customer_longitude: number;
-
+  /**
+   * No longer used by the backend for pricing — processOrder() now
+   * computes delivery fee itself, authoritatively, from vendor +
+   * customer coordinates. Kept here only in case any display/logging
+   * code still reads it; safe to drop entirely later.
+   */
   delivery_fee?: number;
-
   voucher_code?: string | null;
   discount_amount?: number;
   order_type?: "instant" | "scheduled";
@@ -34,13 +35,27 @@ export interface CheckoutMetadata {
   idempotency_key: string;
 }
 
+/**
+ * initialize-payment.php now REQUIRES customer_latitude/customer_longitude
+ * — sent at the top level of the request body, not just in metadata — and
+ * rejects the request with 400 if they're missing. It computes delivery
+ * fee itself server-side from these coordinates; the client no longer
+ * supplies an authoritative delivery_fee.
+ */
 export function initializePayment(
   amount: number,
-  metadata: CheckoutMetadata
+  metadata: CheckoutMetadata,
+  customerLatitude: number,
+  customerLongitude: number
 ): Promise<InitializePaymentResult> {
   return apiRequest("/initialize-payment.php", {
     method: "POST",
-    body: { amount, metadata },
+    body: {
+      amount,
+      metadata,
+      customer_latitude: customerLatitude,
+      customer_longitude: customerLongitude,
+    },
   });
 }
 
