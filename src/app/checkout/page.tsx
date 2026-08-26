@@ -50,6 +50,15 @@ export default function CheckoutPage() {
   const [selectedSlot, setSelectedSlot] = useState<DeliverySlot | null>(null);
   const [isVendorClosed, setIsVendorClosed] = useState(false);
 
+  // Manual location fallback — shown when geolocation is denied/unsupported.
+  // geo.setManual already existed in useGeolocation but was never wired
+  // into this UI, so denied/unsupported customers had no path to checkout
+  // at all. This is a plain lat/lng entry as a minimum viable fallback;
+  // swap for a map-pin picker component if/when one exists.
+  const [manualLat, setManualLat] = useState("");
+  const [manualLng, setManualLng] = useState("");
+  const [manualError, setManualError] = useState<string | null>(null);
+
   const geo = useGeolocation();
 
   const vendorIds = useMemo(
@@ -105,6 +114,28 @@ export default function CheckoutPage() {
     setIsVendorClosed(closed);
   }, []);
 
+  function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setManualError(null);
+
+    const lat = Number(manualLat);
+    const lng = Number(manualLng);
+
+    if (
+      Number.isNaN(lat) ||
+      Number.isNaN(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
+      setManualError("Please enter a valid latitude (-90 to 90) and longitude (-180 to 180).");
+      return;
+    }
+
+    geo.setManual({ latitude: lat, longitude: lng });
+  }
+
   if (authLoading || cartLoading || !user || !cart || cart.items.length === 0) {
     return <div className="mx-auto max-w-2xl px-4 py-16 text-ink-soft">Loading checkout…</div>;
   }
@@ -120,6 +151,28 @@ export default function CheckoutPage() {
   async function handlePay() {
     if (!selectedAddress || !geo.coords || !cart) return;
     setPayError(null);
+
+    // FIX: this used to read geo.coords.lat / geo.coords.lng, but
+    // Coordinates (useGeolocation.ts) defines { latitude, longitude } —
+    // there is no .lat/.lng. That mismatch meant customerLatitude/
+    // customerLongitude were always undefined, the typeof-number guard
+    // below always failed, and handlePay() always bailed out with
+    // "We couldn't determine your delivery location" before ever calling
+    // initializePayment(). Checkout was broken for every web customer at
+    // the final step, not intermittently.
+    const customerLatitude = geo.coords.latitude;
+    const customerLongitude = geo.coords.longitude;
+
+    if (
+      typeof customerLatitude !== "number" ||
+      typeof customerLongitude !== "number" ||
+      Number.isNaN(customerLatitude) ||
+      Number.isNaN(customerLongitude)
+    ) {
+      setPayError("We couldn't determine your delivery location. Please share your location again.");
+      return;
+    }
+
     setPaying(true);
     setShowConfirm(false);
 
@@ -134,6 +187,8 @@ export default function CheckoutPage() {
         items: cart.items.map((i) => ({ product_id: i.product_id, quantity: i.quantity })),
         shipping_address,
         delivery_fee: deliveryFee,
+        customer_latitude: customerLatitude,
+        customer_longitude: customerLongitude,
         customer_notes: notes || null,
         idempotency_key,
         use_wallet_balance: paymentMethod === "wallet",
@@ -197,22 +252,54 @@ export default function CheckoutPage() {
       <section className="mt-8">
         <h2 className="mb-3 font-display text-lg font-semibold text-ink">Delivery location</h2>
         {!geo.coords ? (
-          <button
-            type="button"
-            onClick={geo.request}
-            className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-medium text-ink hover:border-brand"
-          >
-            <MapPin size={16} className="text-brand" />
-            {geo.status === "locating" ? "Finding you…" : "Share my location for delivery"}
-          </button>
+          <>
+            <button
+              type="button"
+              onClick={geo.request}
+              className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-medium text-ink hover:border-brand"
+            >
+              <MapPin size={16} className="text-brand" />
+              {geo.status === "locating" ? "Finding you…" : "Share my location for delivery"}
+            </button>
+
+            {(geo.status === "denied" || geo.status === "unsupported") && (
+              <div className="mt-4 rounded-2xl border border-line bg-bg-raised p-4">
+                <p className="text-sm text-clay">
+                  We couldn&apos;t access your location automatically. You can enter your
+                  coordinates manually instead.
+                </p>
+                <form onSubmit={handleManualSubmit} className="mt-3 flex flex-col gap-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      required
+                      inputMode="decimal"
+                      placeholder="Latitude"
+                      value={manualLat}
+                      onChange={(e) => setManualLat(e.target.value)}
+                      className="input"
+                    />
+                    <input
+                      required
+                      inputMode="decimal"
+                      placeholder="Longitude"
+                      value={manualLng}
+                      onChange={(e) => setManualLng(e.target.value)}
+                      className="input"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-deep"
+                  >
+                    Use these coordinates
+                  </button>
+                </form>
+                {manualError && <p className="mt-2 text-sm text-clay">{manualError}</p>}
+              </div>
+            )}
+          </>
         ) : (
           <p className="text-sm text-leaf">Location set — delivery fee calculated below.</p>
-        )}
-        {(geo.status === "denied" || geo.status === "unsupported") && (
-          <p className="mt-2 text-sm text-clay">
-            We couldn&apos;t access your location. Please enable location access in your browser,
-            or contact support to set delivery manually for this order.
-          </p>
         )}
         {feeError && <p className="mt-2 text-sm text-clay">{feeError}</p>}
       </section>

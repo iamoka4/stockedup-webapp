@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -43,6 +44,10 @@ export function LoginModalView() {
 
   return (
     <div>
+      <div className="mb-4 flex justify-center">
+        <Image src="/weblogo.png" alt="StockedUp Africa" width={128} height={32} style={{ width: "auto", height: "32px" }} />
+      </div>
+
       <h2 className="font-display text-xl font-semibold text-ink">Sign in</h2>
       <p className="mt-1 text-sm text-ink-soft">Welcome back to StockedUp.</p>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ShoppingCart, Search } from "lucide-react";
@@ -26,11 +27,15 @@ export function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur">
       <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 md:gap-4">
-        <Link href="/" className="flex shrink-0 items-center gap-2">
-          <span className="stamp border-brand text-brand-deep">SU</span>
-          <span className="hidden font-display text-xl font-semibold tracking-tight text-ink sm:inline">
-            StockedUp
-          </span>
+        <Link href="/" className="flex shrink-0 items-center">
+          <Image
+            src="/weblogo.png"
+            alt="StockedUp Africa"
+            width={144}
+            height={36}
+            priority
+            style={{ width: "auto", height: "36px" }}
+          />
         </Link>
 
         <div className="hidden shrink-0 md:block">

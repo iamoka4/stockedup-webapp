@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 function ColumnLabel({ children }: { children: React.ReactNode }) {
@@ -13,12 +14,12 @@ export function Footer() {
     <footer className="mt-16 bg-brand-deep">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 lg:grid-cols-7">
         <div className="sm:col-span-2 lg:col-span-2">
-          <span className="font-display text-lg font-semibold text-white">
-            StockedUp Africa
-          </span>
+          <div className="inline-block rounded-lg bg-white/95 px-3 py-1.5">
+            <Image src="/weblogo.png" alt="StockedUp Africa" width={112} height={28} style={{ width: "auto", height: "28px" }} />
+          </div>
 
           <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/90">
-            Foodstuff and groceries from vendors you know, delivered across Awka.
+            Foodstuff and groceries from vendors you know, delivered  right at your doorstep.
           </p>
 
           <div className="mt-5 flex flex-wrap items-center gap-3">

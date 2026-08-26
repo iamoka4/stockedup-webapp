@@ -1,7 +1,6 @@
 import { apiRequest } from "./client";
 import { API_BASE_URL } from "@/lib/config";
 import type { UserAddress, DeliveryFeeResult } from "./types";
-import type { UserAddress, DeliveryFeeResult } from "./types";
 
 export function getUserAddresses(): Promise<{ address: UserAddress[] }> {
   return apiRequest("/get-user-address.php", { method: "GET" });

@@ -1,152 +1,154 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Package } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { getOrders } from "@/lib/api/orders";
-import { StampBadge } from "@/components/StampBadge";
-import { statusTone } from "@/lib/checkout/orderStatus";
+import { getOrders, type Order } from "@/lib/api/orders";
+import { ApiError } from "@/lib/api/client";
+import { useAuthModalStore } from "@/store/authModalStore";
 
-/**
- * Deliberately reuses get-orders.php's list response (which already
- * includes full line items per order) instead of calling
- * get-order-by-id.php directly — that endpoint exists but its response
- * shape (getOrderById() in OrderController.php) hasn't been audited yet.
- * Once that's confirmed, swapping this to a direct single-order fetch is a
- * quick change: replace the useQuery below with a dedicated
- * getOrderById(order_uid) call. For now this works correctly and avoids
- * shipping against a guessed contract.
- */
-export default function OrderDetailPage({
-  params,
-}: {
-  params: Promise<{ uid: string }>;
-}) {
-  const { uid } = use(params);
+const STATUS_STYLES: Record<string, string> = {
+  Delivered: "bg-leaf/10 text-leaf",
+  Pending: "bg-brand-warm text-brand-deep",
+  Processing: "bg-brand-warm text-brand-deep",
+  Cancelled: "bg-clay/10 text-clay",
+};
+
+export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
+  const [orders, setOrders] = useState<Order[] | null>(null);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
+  const openLogin = useAuthModalStore((s) => s.openLogin);
   useEffect(() => {
-    if (!authLoading && !user) router.replace(`/login?next=/account/orders/${uid}`);
-  }, [authLoading, user, router, uid]);
-
-  const { data, isLoading } = useQuery({
-    queryKey: ["orders"],
-    queryFn: getOrders,
-    enabled: !!user,
-  });
-
-  if (authLoading || !user) return null;
-
-  const order = data?.orders.find((o) => o.order_uid === uid);
-
-  if (isLoading) {
-    return <div className="mx-auto max-w-lg px-4 py-16 text-ink-soft">Loading order…</div>;
+  if (!authLoading && !user) {
+    openLogin("/account/orders");
+    router.replace("/");
   }
+}, [authLoading, user, router, openLogin]);
 
-  if (!order) {
-    return (
-      <div className="mx-auto max-w-lg px-4 py-16 text-center">
-        <p className="text-ink-soft">We couldn&apos;t find that order.</p>
-        <Link href="/account/orders" className="mt-3 inline-block text-sm font-medium text-brand-deep">
-          Back to order history
-        </Link>
-      </div>
-    );
+  useEffect(() => {
+    if (!user) return;
+    getOrders()
+      .then((data) => setOrders(data.orders))
+      .catch((e) => setOrdersError(e instanceof ApiError ? e.message : "Failed to load orders"))
+      .finally(() => setOrdersLoading(false));
+  }, [user]);
+
+  if (authLoading || !user) {
+    return <div className="mx-auto max-w-lg px-4 py-16 text-ink-soft">Loading…</div>;
   }
 
   return (
     <div className="mx-auto max-w-lg px-4 py-10">
-      <Link
-        href="/account/orders"
-        className="flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink"
-      >
-        <ArrowLeft size={16} /> Back to order history
+      <Link href="/account" className="mb-6 inline-flex items-center gap-1.5 text-sm text-ink-soft hover:text-ink">
+        <ArrowLeft size={16} />
+        Back to profile
       </Link>
 
-      <div className="mt-4 flex items-start justify-between">
-        <div>
-          <h1 className="tabular font-display text-2xl font-semibold text-ink">
-            {order.order_uid}
-          </h1>
-          <p className="mt-1 text-sm text-ink-soft">{order.date}</p>
-        </div>
-        <StampBadge tone={statusTone(order.status)}>{order.status}</StampBadge>
-      </div>
+      <h1 className="font-display text-2xl font-semibold text-ink">Order history</h1>
 
-      <div className="mt-6 flex items-center gap-3 rounded-2xl border border-line bg-bg-raised p-4">
-        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-brand-tint">
-          {order.shop_logo && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={order.shop_logo} alt={order.store_name} className="h-full w-full object-cover" />
-          )}
+      {ordersLoading ? (
+        <p className="mt-8 text-sm text-ink-soft">Loading orders…</p>
+      ) : ordersError ? (
+        <p className="mt-8 text-sm text-clay">{ordersError}</p>
+      ) : !orders || orders.length === 0 ? (
+        <div className="mt-10 flex flex-col items-center rounded-2xl border border-line bg-bg-raised p-10 text-center">
+          <Package size={32} className="text-ink-soft" />
+          <p className="mt-3 text-sm font-medium text-ink">No orders yet</p>
+          <p className="mt-1 text-sm text-ink-soft">Your past orders will show up here.</p>
+          <Link
+            href="/"
+            className="mt-4 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
+          >
+            Start shopping
+          </Link>
         </div>
-        <div>
-          <p className="text-sm font-medium text-ink">{order.store_name}</p>
-          <p className="text-xs text-ink-soft">Delivered to: {order.shipping_address}</p>
-        </div>
-      </div>
-
-      <div className="mt-6">
-        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Items</h2>
-        <div className="flex flex-col gap-2">
-          {order.items.map((item) => (
-            <div
-              key={item.product_id}
-              className="flex items-center gap-3 rounded-xl border border-line bg-bg-raised p-3"
-            >
-              <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-brand-tint">
-                {item.image_url && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image_url} alt={item.name} className="h-full w-full object-cover" />
-                )}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="line-clamp-1 text-sm font-medium text-ink">{item.name}</p>
-                <p className="tabular text-xs text-ink-soft">
-                  {item.quantity} × ₦{item.price.toLocaleString()}
-                </p>
-              </div>
-              <span className="tabular text-sm font-medium text-ink">
-                ₦{(item.quantity * item.price).toLocaleString()}
-              </span>
-            </div>
+      ) : (
+        <div className="mt-6 flex flex-col gap-4">
+          {orders.map((order) => (
+            <OrderCard key={order.order_id} order={order} />
           ))}
         </div>
-      </div>
-
-      {order.customer_notes && (
-        <div className="mt-6">
-          <h2 className="mb-2 font-display text-lg font-semibold text-ink">Your note</h2>
-          <p className="rounded-xl border border-line bg-bg-raised p-3 text-sm text-ink-soft">
-            {order.customer_notes}
-          </p>
-        </div>
       )}
-
-      <div className="mt-6 rounded-2xl border border-line bg-bg-raised p-4">
-        <Row label="Subtotal" value={order.subtotal} />
-        <Row label="Processing fee" value={order.processing_fee} />
-        <Row label="Delivery fee" value={order.delivery_fee} />
-        <div className="mt-2 flex items-center justify-between border-t border-line pt-2">
-          <span className="font-semibold text-ink">Total</span>
-          <span className="tabular font-display text-lg font-semibold text-ink">
-            ₦{order.total.toLocaleString()}
-          </span>
-        </div>
-      </div>
     </div>
   );
 }
 
-function Row({ label, value }: { label: string; value: number }) {
+function OrderCard({ order }: { order: Order }) {
+  const statusClass = STATUS_STYLES[order.status] ?? "bg-ink/5 text-ink-soft";
+  const visibleItems = order.items.slice(0, 3);
+  const moreCount = order.items.length - visibleItems.length;
+
   return (
-    <div className="flex items-center justify-between py-1 text-sm">
-      <span className="text-ink-soft">{label}</span>
-      <span className="tabular text-ink">₦{value.toLocaleString()}</span>
-    </div>
+    <Link
+      href={`/account/orders/${order.order_uid}`}
+      className="block rounded-2xl border border-line bg-bg-raised p-4 transition-colors hover:border-brand-deep/30"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-center gap-3">
+          {order.shop_logo ? (
+            <img
+              src={order.shop_logo}
+              alt={order.store_name}
+              className="h-10 w-10 shrink-0 rounded-full object-cover"
+            />
+          ) : (
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink/5 text-ink-soft">
+              <Package size={18} />
+            </span>
+          )}
+          <div>
+            <p className="text-sm font-medium text-ink">{order.store_name}</p>
+            <p className="text-xs text-ink-soft">{order.date}</p>
+          </div>
+        </div>
+        <span className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${statusClass}`}>
+          {order.status}
+        </span>
+      </div>
+
+      {/* Item thumbnails — quick visual of what was ordered */}
+      {visibleItems.length > 0 && (
+        <div className="mt-3 flex items-center gap-2">
+          <div className="flex -space-x-2">
+            {visibleItems.map((item, i) => (
+              <div
+                key={item.product_id ?? i}
+                className="h-11 w-11 shrink-0 overflow-hidden rounded-lg border-2 border-bg-raised bg-brand-tint"
+              >
+                {item.image_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.image_url}
+                    alt={item.name}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center text-ink-soft">
+                    <Package size={14} />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+          <p className="text-sm text-ink-soft">
+            {order.items.length} item{order.items.length === 1 ? "" : "s"}
+            {moreCount > 0 ? ` · +${moreCount} more` : ""}
+          </p>
+        </div>
+      )}
+
+      <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
+        <p className="text-xs text-ink-soft">Order #{order.order_uid}</p>
+        <p className="text-sm font-semibold text-ink">
+          ₦{order.total.toLocaleString("en-NG")}
+        </p>
+      </div>
+    </Link>
   );
 }

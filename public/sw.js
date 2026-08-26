@@ -1,44 +1,31 @@
-const CACHE_NAME = "stockedup-shell-v1";
-const APP_SHELL = ["/", "/manifest.json", "/icons/icon-192.png", "/icons/icon-512.png"];
+/**
+ * Kill switch — temporarily disabling the service worker while the app is
+ * under active development. The previous caching strategy (cache-first for
+ * page navigations) was locking devices onto stale HTML/JS snapshots that
+ * never refreshed, causing inconsistent behavior (logo showing/not showing
+ * between header and footer on reload) and, on Android specifically, a
+ * fully frozen non-interactive UI from a stale JS bundle mismatched with
+ * the current page.
+ *
+ * This version unregisters itself and clears every cache the moment any
+ * device loads it, so every client falls back to normal, uncached network
+ * requests. Once the app is stable and ready for real offline support,
+ * replace this with a properly-tested network-first service worker.
+ */
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL))
-  );
+self.addEventListener("install", () => {
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
-});
+    (async () => {
+      const keys = await caches.keys();
+      await Promise.all(keys.map((k) => caches.delete(k)));
+      await self.registration.unregister();
 
-self.addEventListener("fetch", (event) => {
-  const { request } = event;
-  if (request.method !== "GET") return;
-
-  const url = new URL(request.url);
-
-  // Never cache API calls — stock, prices and cart state must stay live.
-  if (url.pathname.includes("/api/") || url.hostname !== self.location.hostname) {
-    return;
-  }
-
-  event.respondWith(
-    caches.match(request).then(
-      (cached) =>
-        cached ||
-        fetch(request)
-          .then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
-            return res;
-          })
-          .catch(() => caches.match("/"))
-    )
+      const clients = await self.clients.matchAll({ type: "window" });
+      clients.forEach((client) => client.navigate(client.url));
+    })()
   );
 });
