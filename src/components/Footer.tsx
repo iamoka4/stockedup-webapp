@@ -3,26 +3,51 @@ import Link from "next/link";
 
 function ColumnLabel({ children }: { children: React.ReactNode }) {
   return (
-    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/75">
+    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/60">
       {children}
     </span>
+  );
+}
+
+function FooterColumn({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-2.5">
+      <ColumnLabel>{label}</ColumnLabel>
+      <div className="flex flex-col gap-2 text-sm text-white/85">
+        {children}
+      </div>
+    </div>
   );
 }
 
 export function Footer() {
   return (
     <footer className="mt-16 bg-brand-deep">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 lg:grid-cols-7">
-        <div className="sm:col-span-2 lg:col-span-2">
+      <div className="mx-auto max-w-6xl px-4 py-12 sm:py-14">
+        {/* ── Brand block — centered on mobile, left-aligned from sm up ── */}
+        <div className="flex flex-col items-center text-center sm:items-start sm:text-left">
           <div className="inline-block rounded-lg bg-white/95 px-3 py-1.5">
-            <Image src="/weblogo.png" alt="StockedUp Africa" width={112} height={28} style={{ width: "auto", height: "28px" }} />
+            <Image
+              src="/weblogo.png"
+              alt="StockedUp Africa"
+              width={112}
+              height={28}
+              style={{ width: "auto", height: "28px" }}
+            />
           </div>
 
-          <p className="mt-2 max-w-xs text-sm leading-relaxed text-white/90">
-            Foodstuff and groceries from vendors you know, delivered  right at your doorstep.
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-white/90">
+            Foodstuff and groceries from vendors you know, delivered right at
+            your doorstep.
           </p>
 
-          <div className="mt-5 flex flex-wrap items-center gap-3">
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
             <a
               href="https://play.google.com/store/apps/details?id=com.africa.stockedup"
               target="_blank"
@@ -40,7 +65,7 @@ export function Footer() {
 
             <span
               aria-disabled="true"
-              className="inline-flex flex-col items-start opacity-70"
+              className="inline-flex flex-col items-center opacity-70 sm:items-start"
               title="Coming soon"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -56,99 +81,106 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="flex flex-col gap-3 text-sm text-white/85">
-          <ColumnLabel>Shop</ColumnLabel>
-          <Link href="/vendors" className="transition-colors hover:text-white">
-            Vendors nearby
-          </Link>
-          <Link href="/categories" className="transition-colors hover:text-white">
-            All categories
-          </Link>
-          <Link href="/how-it-works" className="transition-colors hover:text-white">
-            How It Works
-          </Link>
-        </div>
+        {/* ── Divider ── */}
+        <div className="mt-10 border-t border-white/15" />
 
-        <div className="flex flex-col gap-3 text-sm text-white/85">
-          <ColumnLabel>Categories</ColumnLabel>
-          <Link href="/categories" className="transition-colors hover:text-white">
-            Groceries & Foodstuffs
-          </Link>
-          <Link href="/categories" className="transition-colors hover:text-white">
-            Canned Foods
-          </Link>
-          <Link href="/categories" className="transition-colors hover:text-white">
-            Fresh Vegetables
-          </Link>
-          <Link href="/categories" className="transition-colors hover:text-white">
-            Flour & Grains
-          </Link>
-        </div>
+        {/* ── Link columns — 2-up on mobile, spreads out from md ── */}
+        <div className="mt-10 grid grid-cols-2 gap-x-6 gap-y-9 sm:grid-cols-3 lg:grid-cols-5">
+          <FooterColumn label="Shop">
+            <Link href="/vendors" className="transition-colors hover:text-white">
+              Vendors nearby
+            </Link>
+            <Link href="/categories" className="transition-colors hover:text-white">
+              All categories
+            </Link>
+            <Link href="/how-it-works" className="transition-colors hover:text-white">
+              How It Works
+            </Link>
+          </FooterColumn>
 
-        <div className="flex flex-col gap-3 text-sm text-white/85">
-          <ColumnLabel>Policy</ColumnLabel>
-          <Link href="/return-policy" className="transition-colors hover:text-white">
-            Return Policy
-          </Link>
-          <Link href="/shipping-policy" className="transition-colors hover:text-white">
-            Shipping Policy
-          </Link>
-          <Link href="/quality-guarantee" className="transition-colors hover:text-white">
-            Quality Guarantee
-          </Link>
-          <Link href="/vendor-terms" className="transition-colors hover:text-white">
-            Vendor Terms
-          </Link>
-        </div>
+          <FooterColumn label="Categories">
+            <Link href="/categories" className="transition-colors hover:text-white">
+              Groceries & Foodstuffs
+            </Link>
+            <Link href="/categories" className="transition-colors hover:text-white">
+              Canned Foods
+            </Link>
+            <Link href="/categories" className="transition-colors hover:text-white">
+              Fresh Vegetables
+            </Link>
+            <Link href="/categories" className="transition-colors hover:text-white">
+              Flour & Grains
+            </Link>
+          </FooterColumn>
 
-        <div className="flex flex-col gap-3 text-sm text-white/85">
-          <ColumnLabel>Company</ColumnLabel>
-          <Link href="/about" className="transition-colors hover:text-white">
-            About Us
-          </Link>
-          <Link href="/offer" className="transition-colors hover:text-white">
-            Our Offer
-          </Link>
-          <Link href="/testimonials" className="transition-colors hover:text-white">
-            Testimonials
-          </Link>
-          <Link href="/contact" className="transition-colors hover:text-white">
-            Contact Us
-          </Link>
-          <Link href="/faq" className="transition-colors hover:text-white">
-            FAQ
-          </Link>
-        </div>
+          <FooterColumn label="Policy">
+            <Link href="/return-policy" className="transition-colors hover:text-white">
+              Return Policy
+            </Link>
+            <Link href="/shipping-policy" className="transition-colors hover:text-white">
+              Shipping Policy
+            </Link>
+            <Link href="/quality-guarantee" className="transition-colors hover:text-white">
+              Quality Guarantee
+            </Link>
+            <Link href="/vendor-terms" className="transition-colors hover:text-white">
+              Vendor Terms
+            </Link>
+          </FooterColumn>
 
-        <div className="flex flex-col gap-3 text-sm text-white/85">
-          <ColumnLabel>Affiliate</ColumnLabel>
-          <p className="text-xs leading-relaxed text-white/80">
-            Refer a friend — you earn, they get a discount on their first order.
-          </p>
-          <Link
-            href="/referral"
-            className="inline-flex items-center gap-1 font-medium text-white transition-colors hover:text-white/80"
-          >
-            Start referring →
-          </Link>
+          <FooterColumn label="Company">
+            <Link href="/about" className="transition-colors hover:text-white">
+              About Us
+            </Link>
+            <Link href="/offer" className="transition-colors hover:text-white">
+              Our Offer
+            </Link>
+            <Link href="/testimonials" className="transition-colors hover:text-white">
+              Testimonials
+            </Link>
+            <Link href="/contact" className="transition-colors hover:text-white">
+              Contact Us
+            </Link>
+            <Link href="/faq" className="transition-colors hover:text-white">
+              FAQ
+            </Link>
+          </FooterColumn>
+
+          {/* Affiliate spans both mobile columns so its blurb has room to breathe */}
+          <div className="col-span-2 flex flex-col gap-2.5 sm:col-span-1">
+            <ColumnLabel>Affiliate</ColumnLabel>
+            <p className="text-xs leading-relaxed text-white/80 sm:max-w-[180px]">
+              Refer a friend — you earn, they get a discount on their first
+              order.
+            </p>
+            <Link
+              href="/referral"
+              className="inline-flex items-center gap-1 text-sm font-medium text-white transition-colors hover:text-white/80"
+            >
+              Start referring →
+            </Link>
+          </div>
         </div>
       </div>
 
-      <div className="flex flex-col items-center gap-3 border-t border-white/20 px-4 py-5 text-xs text-white/75 sm:flex-row sm:justify-between">
-        <span>
-          © {new Date().getFullYear()} StockedUp Africa. All rights reserved.
-        </span>
+      {/* ── Bottom bar ── */}
+      <div className="border-t border-white/15 px-4 py-5">
+        <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 text-xs text-white/75 sm:flex-row sm:justify-between">
+          <span>
+            © {new Date().getFullYear()} StockedUp Africa. All rights reserved.
+          </span>
 
-        <div className="flex items-center gap-5">
-          <Link href="/privacy" className="transition-colors hover:text-white">
-            Privacy Policy
-          </Link>
-          <Link href="/terms" className="transition-colors hover:text-white">
-            Terms of Service
-          </Link>
-          <Link href="/cookies" className="transition-colors hover:text-white">
-            Cookies
-          </Link>
+          <div className="flex items-center gap-5">
+            <Link href="/privacy" className="transition-colors hover:text-white">
+              Privacy Policy
+            </Link>
+            <Link href="/terms" className="transition-colors hover:text-white">
+              Terms of Service
+            </Link>
+            <Link href="/cookies" className="transition-colors hover:text-white">
+              Cookies
+            </Link>
+          </div>
         </div>
       </div>
     </footer>
