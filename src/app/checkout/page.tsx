@@ -230,6 +230,7 @@ const result = await initializePayment(
   customerLongitude
 );
 
+
 // Fully covered by wallet balance — verify-payment.php's fallback path
 // isn't needed since initialize-payment.php already created the order.
 if (result.order_id) {
