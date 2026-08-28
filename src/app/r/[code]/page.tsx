@@ -19,7 +19,7 @@ export default async function ReferralRedirect({ params, searchParams }: Props) 
     });
 
     const queryString = qs.toString();
-    const target = `https://stockedup.africa/r.php?code=${encodeURIComponent(code)}${queryString ? `&${queryString}` : ""}`;
+    const target = `https://api.stockedup.africa/r/${encodeURIComponent(code)}${queryString ? `?${queryString}` : ""}`;
 
     redirect(target);
 }
