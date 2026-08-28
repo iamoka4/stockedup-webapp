@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         source: "/backend/api/:path*",
         destination: "https://api.stockedup.africa/backend/api/:path*",
       },
+      {
+        source: "/uploads/:path*",
+        destination: "https://api.stockedup.africa/uploads/:path*",
+      },
     ];
   },
 };
