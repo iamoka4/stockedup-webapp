@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
         source: "/uploads/:path*",
         destination: "https://api.stockedup.africa/uploads/:path*",
       },
+      {
+        source: "/.well-known/assetlinks.json",
+        destination: "/api/assetlinks",
+      },
     ];
   },
 };
