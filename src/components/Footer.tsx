@@ -97,8 +97,11 @@ export function Footer() {
   return (
     <footer className="mt-16 bg-brand-deep">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
-        {/* ── Brand block ── */}
-        <div className="flex flex-row flex-wrap items-center gap-5 text-left">
+        {/* ── Brand block ──
+            Logo on the far left, Play Store badge only on the far right
+            (Apple badge removed per request — no "coming soon" placeholder
+            either). flex-wrap is a safety net on very narrow screens. */}
+        <div className="flex flex-row flex-wrap items-center justify-between gap-5 text-left">
           <div className="flex flex-row items-center gap-3">
             <div className="inline-block rounded-lg bg-white/95 px-3 py-1.5">
               <Image
@@ -114,6 +117,26 @@ export function Footer() {
               your doorstep.
             </p>
           </div>
+
+          <div className="flex flex-col items-end gap-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
+              Get the app
+            </span>
+            <a
+              href="https://play.google.com/store/apps/details?id=com.africa.stockedup"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Get it on Google Play"
+              className="inline-block"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                alt="Get it on Google Play"
+                className="h-10 w-auto sm:h-11"
+              />
+            </a>
+          </div>
         </div>
 
         <div className="mt-8 border-t border-white/15" />
@@ -127,7 +150,7 @@ export function Footer() {
             the 5-col grid since it's new content with nowhere else to go;
             bump lg:grid-cols-5 to 6 if you'd rather it fit on one row). */}
         <div className="flex flex-col sm:mt-10 sm:grid sm:grid-cols-3 sm:gap-x-6 sm:gap-y-9 lg:grid-cols-5">
-          <FooterColumn id="footer-shop" label="Shop" order={5}>
+          <FooterColumn id="footer-shop" label="Shop" order={2}>
             <Link
               href="/vendors"
               className="transition-colors hover:text-white"
@@ -175,7 +198,7 @@ export function Footer() {
             </Link>
           </FooterColumn>
 
-          <FooterColumn id="footer-policy" label="Policy" order={2}>
+          <FooterColumn id="footer-policy" label="Policy" order={4}>
             <Link
               href="/return-policy"
               className="transition-colors hover:text-white"
@@ -241,7 +264,7 @@ export function Footer() {
 
           {/* NEW — Socials. Placeholder hrefs: swap in your real profile
               URLs before shipping. */}
-          <FooterColumn id="footer-socials" label="Socials" order={4}>
+          <FooterColumn id="footer-socials" label="Socials" order={5}>
             <div className="flex items-center gap-4 pb-1">
               <a
                 href="https://instagram.com/stockedupafrica"
@@ -271,7 +294,7 @@ export function Footer() {
                 <XIcon size={20} />
               </a>
               <a
-                href="https://linkedin.com/company/stockedupafrica"
+                href="https://linkedin.com/company/stockedup-ltd/"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="StockedUp Africa on LinkedIn"
