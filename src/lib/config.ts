@@ -25,6 +25,24 @@ function resolveApiBaseUrl(): string {
 
   // Server: need an absolute URL. Point directly at the real backend,
   // bypassing the rewrite (which only exists for browser requests anyway).
+  return `https://stockedup.africa/backend/api`;
+}
+
+export const API_BASE_URL = resolveApiBaseUrl();
+
+export const SITE_NAME = "StockedUp Africa";
+export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://stockedup.africa";
+export const DEFAULT_CITY = "Awka";
+
+export const PAYSTACK_PUBLIC_KEY = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "";
+
+  // Browser: relative path is fine, goes through the rewrite.
+  if (typeof window !== "undefined") {
+    return configured;
+  }
+
+  // Server: need an absolute URL. Point directly at the real backend,
+  // bypassing the rewrite (which only exists for browser requests anyway).
   return `https://api.stockedup.africa/backend/api`;
 }
 
