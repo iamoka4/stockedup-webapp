@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Package, MessageSquareText } from "lucide-react";
+import { ArrowLeft, Package, MessageSquareText, Star } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { getOrders, type Order } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api/client";
 import { useAuthModalStore } from "@/store/authModalStore";
+import { SITE_URL } from "@/lib/config";
 
 type Tab = "All" | "Pending" | "Delivered" | "Cancelled";
 
@@ -27,6 +28,22 @@ const STATUS_STYLES: Record<string, string> = {
   Rejected: "bg-clay/10 text-clay",
   Cancelled: "bg-clay/10 text-clay",
 };
+
+/**
+ * The backend returns image_url / shop_logo as relative paths
+ * (e.g. "/backend/uploads/products/xyz.jpg"), pointing at the PHP
+ * backend's own uploads folder on stockedup.africa. Rendered as-is in an
+ * <img src>, the browser resolves that path against the web app's own
+ * origin (stockedup-webapp.vercel.app / onrender.com) instead — which
+ * doesn't have those files, so the image 404s. Mobile already handles
+ * this (see UploadBaseUrl usage in the RN orders screen); this mirrors
+ * that same fix for web, using SITE_URL from lib/config.
+ */
+function resolveUploadUrl(path: string | null | undefined): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${SITE_URL}${path}`;
+}
 
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -135,6 +152,14 @@ function OrderCard({ order }: { order: Order }) {
     router.push(`/account/orders/${order.order_uid}`);
   }
 
+  function goToReview(e: React.MouseEvent) {
+    e.stopPropagation();
+    // ASSUMPTION: guessed review-page route — confirm the real path before
+    // relying on this. If it doesn't exist yet, this button needs a real
+    // destination just like Cancel/Scheduled did.
+    router.push(`/account/orders/${order.order_uid}/review`);
+  }
+
   return (
     <div
       role="link"
@@ -145,12 +170,14 @@ function OrderCard({ order }: { order: Order }) {
       }}
       className="cursor-pointer rounded-2xl border border-line bg-bg-raised p-4 transition-colors hover:border-brand-deep/30"
     >
-      {/* Header */}
+      {/* Header — vendor identity (existing web design) + order_uid
+          promoted to sit right under it, matching how prominently mobile
+          displays the order id. */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           {order.shop_logo ? (
             <img
-              src={order.shop_logo}
+              src={resolveUploadUrl(order.shop_logo)}
               alt={order.store_name}
               className="h-10 w-10 shrink-0 rounded-full object-cover"
             />
@@ -161,7 +188,7 @@ function OrderCard({ order }: { order: Order }) {
           )}
           <div>
             <p className="text-sm font-medium text-ink">{order.store_name}</p>
-            <p className="text-xs text-ink-soft">{order.date}</p>
+            <p className="text-xs font-medium text-ink-soft">#{order.order_uid}</p>
           </div>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
@@ -174,15 +201,25 @@ function OrderCard({ order }: { order: Order }) {
         </div>
       </div>
 
-      {/* Itemized breakdown — full list, matching the mobile app, rather
-          than a name/thumbnail preview */}
+      {/* Date | item count | total — matching mobile's compact summary line */}
+      <div className="mt-2 flex items-center gap-2 text-xs text-ink-soft">
+        <span>{order.date}</span>
+        <span>·</span>
+        <span>{order.items.length} item{order.items.length === 1 ? "" : "s"}</span>
+        <span>·</span>
+        <span className="font-medium text-ink">₦{order.total.toLocaleString("en-NG")}</span>
+      </div>
+
+      {/* Itemized breakdown — full list with real images, kept from the
+          existing web design (nicer than mobile's for a desktop/tablet
+          layout with more room). */}
       {order.items.length > 0 && (
         <div className="mt-4 flex flex-col gap-2.5 border-t border-line pt-4">
           {order.items.map((item, i) => (
             <div key={item.product_id ?? i} className="flex items-center gap-3">
               {item.image_url ? (
                 <img
-                  src={item.image_url}
+                  src={resolveUploadUrl(item.image_url)}
                   alt={item.name}
                   className="h-11 w-11 shrink-0 rounded-lg object-cover"
                 />
@@ -214,11 +251,19 @@ function OrderCard({ order }: { order: Order }) {
         </div>
       </div>
 
-      {/* Total + order id */}
-      <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
-        <p className="text-xs text-ink-soft">Order #{order.order_uid}</p>
-        <p className="text-sm font-semibold text-ink">₦{order.total.toLocaleString("en-NG")}</p>
-      </div>
+      {/* Rate Order — new on web, matching mobile's Delivered/Completed
+          action. ASSUMPTION: /account/orders/[uid]/review route — confirm
+          the real path for your review page before shipping this button. */}
+      {(order.status === "Delivered" || order.status === "Completed") && (
+        <button
+          type="button"
+          onClick={goToReview}
+          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 text-sm font-medium text-white hover:opacity-90"
+        >
+          <Star size={15} />
+          Rate order
+        </button>
+      )}
     </div>
   );
 }

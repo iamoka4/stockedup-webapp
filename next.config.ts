@@ -13,11 +13,11 @@ const nextConfig: NextConfig = {
       afterFiles: [
         {
           source: "/backend/api/:path*",
-          destination: "https://stockedup.africa/backend/api/:path*",
+          destination: "https://api.stockedup.africa/backend/api/:path*",
         },
         {
           source: "/uploads/:path*",
-          destination: "https://stockedup.africa/uploads/:path*",
+          destination: "https://api.stockedup.africa/uploads/:path*",
         },
       ],
     };

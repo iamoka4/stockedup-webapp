@@ -25,7 +25,7 @@ function resolveApiBaseUrl(): string {
 
   // Server: need an absolute URL. Point directly at the real backend,
   // bypassing the rewrite (which only exists for browser requests anyway).
-  return `https://stockedup.africa/backend/api`;
+  return `https://api.stockedup.africa/backend/api`;
 }
 
 export const API_BASE_URL = resolveApiBaseUrl();
