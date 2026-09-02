@@ -8,6 +8,7 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import { getOrders, type Order } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api/client";
 import { useAuthModalStore } from "@/store/authModalStore";
+import { SITE_URL } from "@/lib/config";
 
 const STATUS_STYLES: Record<string, string> = {
   Delivered: "bg-leaf/10 text-leaf",
@@ -15,6 +16,18 @@ const STATUS_STYLES: Record<string, string> = {
   Processing: "bg-brand-warm text-brand-deep",
   Cancelled: "bg-clay/10 text-clay",
 };
+
+/**
+ * Backend returns image_url / shop_logo as relative paths
+ * (e.g. "/backend/uploads/products/xyz.jpg") pointing at stockedup.africa.
+ * Rendered as-is, the browser resolves it against this app's own origin
+ * instead, so the image 404s. Same fix as the other orders list component.
+ */
+function resolveUploadUrl(path: string | null | undefined): string {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+  return `${SITE_URL}${path}`;
+}
 
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -93,7 +106,7 @@ function OrderCard({ order }: { order: Order }) {
         <div className="flex items-center gap-3">
           {order.shop_logo ? (
             <img
-              src={order.shop_logo}
+              src={resolveUploadUrl(order.shop_logo)}
               alt={order.store_name}
               className="h-10 w-10 shrink-0 rounded-full object-cover"
             />
@@ -124,7 +137,7 @@ function OrderCard({ order }: { order: Order }) {
                 {item.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={item.image_url}
+                    src={resolveUploadUrl(item.image_url)}
                     alt={item.name}
                     className="h-full w-full object-cover"
                   />
