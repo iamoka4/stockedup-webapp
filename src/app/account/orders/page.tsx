@@ -30,14 +30,17 @@ const STATUS_STYLES: Record<string, string> = {
 };
 
 /**
- * The backend returns image_url / shop_logo as relative paths
- * (e.g. "/backend/uploads/products/xyz.jpg"), pointing at the PHP
- * backend's own uploads folder on stockedup.africa. Rendered as-is in an
- * <img src>, the browser resolves that path against the web app's own
- * origin (stockedup-webapp.vercel.app / onrender.com) instead — which
- * doesn't have those files, so the image 404s. Mobile already handles
- * this (see UploadBaseUrl usage in the RN orders screen); this mirrors
- * that same fix for web, using SITE_URL from lib/config.
+ * Defensive fallback: if get-orders.php ever returns a relative path
+ * instead of the full absolute URL it's supposed to (per the
+ * UPLOAD_BASE_URL fix), this prefixes it with SITE_URL so the browser
+ * doesn't resolve it against the frontend's own origin by mistake.
+ * If the backend fix is deployed and working, every path already starts
+ * with http(s):// and this is a no-op passthrough.
+ *
+ * NEEDS CONFIRMING: SITE_URL here needs to point at wherever images
+ * actually live (stockedup.africa), NOT the frontend's own deployed URL
+ * (Vercel/Render) — those are two different origins per how this project
+ * is deployed. Worth double-checking lib/config.ts defines it that way.
  */
 function resolveUploadUrl(path: string | null | undefined): string {
   if (!path) return "";
@@ -170,27 +173,14 @@ function OrderCard({ order }: { order: Order }) {
       }}
       className="cursor-pointer rounded-2xl border border-line bg-bg-raised p-4 transition-colors hover:border-brand-deep/30"
     >
-      {/* Header — vendor identity (existing web design) + order_uid
-          promoted to sit right under it, matching how prominently mobile
-          displays the order id. */}
+      {/* Header — order_uid as the primary identifier, matching mobile
+          exactly. Vendor name/logo removed: get-orders.php's query picks
+          ONE arbitrary vendor (MAX(v.shop_name)) per order, which is
+          actively misleading for multi-vendor orders — the shown vendor
+          may not even be who a given line item belongs to. Mobile never
+          shows vendor branding on this screen for exactly this reason. */}
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {order.shop_logo ? (
-            <img
-              src={resolveUploadUrl(order.shop_logo)}
-              alt={order.store_name}
-              className="h-10 w-10 shrink-0 rounded-full object-cover"
-            />
-          ) : (
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink/5 text-ink-soft">
-              <Package size={18} />
-            </span>
-          )}
-          <div>
-            <p className="text-sm font-medium text-ink">{order.store_name}</p>
-            <p className="text-xs font-medium text-ink-soft">#{order.order_uid}</p>
-          </div>
-        </div>
+        <p className="text-sm font-semibold text-ink">#{order.order_uid}</p>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass}`}>
             {order.status}
