@@ -15,6 +15,22 @@ export function getProducts(filters: ProductFilters = {}): Promise<Product[]> {
   });
 }
 
+export interface BestSellersFilters {
+  city?: string;
+}
+
+export function getBestSellers(filters: BestSellersFilters = {}): Promise<Product[]> {
+  return apiGet("/get-best-sellers.php", {
+    period: "weekly",
+    filter: "weekly",
+    type: "weekly",
+    range: "weekly",
+    timeframe: "weekly",
+    interval: "7",
+    city: filters.city,
+  });
+}
+
 export function getProduct(id: number): Promise<ProductDetailResponse> {
   return apiGet("/get-product.php", { id });
 }

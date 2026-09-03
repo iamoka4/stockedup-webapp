@@ -22,6 +22,22 @@ const nextConfig: NextConfig = {
       ],
     };
   },
+  async headers() {
+    return [
+      {
+        // Never let the browser cache the service worker script itself —
+        // otherwise a stale sw.js can keep re-running old caching logic
+        // indefinitely, even after the server-side file is fixed/updated.
+        source: "/sw.js",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "no-cache, no-store, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
 };
 
 export default nextConfig;

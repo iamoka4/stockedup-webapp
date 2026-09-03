@@ -6,14 +6,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart } from "@/lib/api/cart";
 import type { Product } from "@/lib/api/types";
 
-/**
- * Images are served from the backend's own upload host, whose domain isn't
- * finalized yet (see audit — CORS/domain still an open question), so this
- * intentionally uses a plain <img> rather than next/image's remote-pattern
- * allowlist. Swap to next/image once the production image host is locked
- * in — it's a straightforward change confined to this component and
- * VendorCard/product-detail once that happens.
- */
 export function ProductCard({ product }: { product: Product }) {
   const queryClient = useQueryClient();
   const outOfStock = product.stock === "outOfStock" || Number(product.stock) === 0;
@@ -40,7 +32,7 @@ export function ProductCard({ product }: { product: Product }) {
       </Link>
       <div className="flex flex-1 flex-col gap-1 p-3">
         <Link href={`/products/${product.id}`}>
-          <h3 className="line-clamp-2 font-body text-sm font-medium text-ink">
+          <h3 className="line-clamp-2 min-h-[2.5rem] font-body text-sm font-medium text-ink">
             {product.name}
           </h3>
         </Link>
@@ -59,9 +51,7 @@ export function ProductCard({ product }: { product: Product }) {
             <Plus size={18} strokeWidth={2.5} />
           </button>
         </div>
-        {outOfStock && (
-          <StampOut />
-        )}
+        {outOfStock && <StampOut />}
       </div>
     </div>
   );

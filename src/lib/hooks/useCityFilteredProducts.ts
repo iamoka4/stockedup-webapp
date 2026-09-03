@@ -21,22 +21,35 @@ interface Options {
  * useCityFilteredVendors applies here too though — flagged as a backend
  * data-quality item, not fixable purely from this hook.
  *
- * BUG FIX: `initialData` must only seed the cache for the exact city it
+ * BUG FIX #1: `initialData` must only seed the cache for the exact city it
  * was actually fetched for (the SSR default, DEFAULT_CITY). Passing it
  * unconditionally for every city meant React Query treated the Awka
  * product list as "fresh" data for Onitsha/Port Harcourt/etc's query key
  * too, and skipped fetching the real data for that city entirely — which
  * is why switching cities appeared to do nothing.
+ *
+ * BUG FIX #2: the city check alone isn't enough once `category` exists.
+ * `initialProducts` is always the unfiltered, no-category product list
+ * (seeded from page.tsx's plain getProducts({ city: DEFAULT_CITY }) call).
+ * A category-scoped query has a different queryKey but was still being
+ * seeded with that same unfiltered list whenever the city matched — so
+ * every category section silently rendered the same products as Fresh
+ * Picks instead of fetching its own filtered data. initialData is only
+ * a valid seed when there's no category at all.
  */
-export function useCityFilteredProducts({ category, initialProducts }: Options = {}) {
+export function useCityFilteredProducts({
+  category,
+  initialProducts,
+}: Options = {}) {
   const city = useUiStore((s) => s.city);
   const label = cityLabel(city);
   const isDefaultCity = label.toLowerCase() === DEFAULT_CITY.toLowerCase();
+  const canUseInitialData = isDefaultCity && !category;
 
   const { data, isFetching } = useQuery({
     queryKey: ["products", label, category ?? null],
     queryFn: () => getProducts({ city: label, category }),
-    initialData: isDefaultCity ? initialProducts : undefined,
+    initialData: canUseInitialData ? initialProducts : undefined,
     staleTime: 60_000,
   });
 

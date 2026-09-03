@@ -7,6 +7,13 @@ import { CategoryScroller } from "@/components/home/CategoryScroller";
 import { InstallAppBanner } from "@/components/home/InstallAppBanner";
 import { PopularVendorsSection } from "@/components/home/PopularVendorsSection";
 import { FreshPicksSection } from "@/components/home/FreshPicksSection";
+import { FreshVeggiesSection } from "@/components/home/FreshVeggiesSection";
+import { FrozenFoodsSection } from "@/components/home/FrozenFoodsSection";
+import { SeafoodSection } from "@/components/home/SeafoodSection";
+import { TrendingDrinksSection } from "@/components/home/TrendingDrinksSection";
+import { BreakfastSection } from "@/components/home/BreakfastSection";
+import { RecommendedSection } from "@/components/home/RecommendedSection";
+import { HotProductsSection } from "@/components/home/HotProductsSection";
 import { DEFAULT_CITY } from "@/lib/config";
 
 export const revalidate = 60;
@@ -49,6 +56,13 @@ export default async function HomePage() {
 
       <PopularVendorsSection initialVendors={vendors} />
       <FreshPicksSection initialProducts={products} />
+      <FreshVeggiesSection initialProducts={products} />
+      <FrozenFoodsSection initialProducts={products} />
+      <SeafoodSection initialProducts={products} />
+      <TrendingDrinksSection initialProducts={products} />
+      <BreakfastSection initialProducts={products} />
+      <RecommendedSection initialProducts={products} />
+      <HotProductsSection />
     </div>
   );
 }
