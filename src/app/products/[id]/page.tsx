@@ -6,7 +6,7 @@ import { getProduct } from "@/lib/api/products";
 import { StampBadge } from "@/components/StampBadge";
 import { AddToCartPanel } from "./AddToCartPanel";
 import { DEFAULT_CITY } from "@/lib/config";
-
+import { TrackProductView } from "./TrackProductView";
 export const revalidate = 60;
 
 interface Props {
@@ -90,6 +90,7 @@ export default async function ProductDetailPage({ params }: Props) {
           )}
 
           <AddToCartPanel productId={product.id} inStock={product.in_stock} />
+           <TrackProductView productId={product.id} />
         </div>
       </div>
 
