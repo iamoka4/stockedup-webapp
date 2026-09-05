@@ -4,16 +4,33 @@
 import { useState } from "react";
 
 export function ContactForm() {
-  const [status, setStatus] = useState<"idle" | "submitting" | "sent">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "sent" | "error">("idle");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("submitting");
 
-    // TODO: wire this up to your actual API route / email service
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    const form = e.currentTarget;
+    const data = {
+      firstName: (form.elements.namedItem("firstName") as HTMLInputElement).value,
+      lastName: (form.elements.namedItem("lastName") as HTMLInputElement).value,
+      email: (form.elements.namedItem("email") as HTMLInputElement).value,
+      message: (form.elements.namedItem("message") as HTMLTextAreaElement).value,
+    };
 
-    setStatus("sent");
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) throw new Error("Request failed");
+      setStatus("sent");
+    } catch (err) {
+      console.error("[contact] submit failed:", err);
+      setStatus("error");
+    }
   }
 
   if (status === "sent") {
@@ -82,6 +99,14 @@ export function ContactForm() {
           className="mt-1.5 w-full resize-none rounded-lg border border-line bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-soft/60 focus:border-brand-deep focus:outline-none focus:ring-1 focus:ring-brand-deep"
         />
       </div>
+
+      {status === "error" && (
+        <div className="sm:col-span-2">
+          <p className="text-sm text-red-600">
+            Something went wrong sending your message. Please try again in a moment.
+          </p>
+        </div>
+      )}
 
       <div className="sm:col-span-2">
         <button
