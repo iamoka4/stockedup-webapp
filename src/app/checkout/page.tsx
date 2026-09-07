@@ -10,6 +10,7 @@ import { useAuthModalStore } from "@/store/authModalStore";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { AREA_GROUPS } from "@/lib/constants/cityCoords";
 import { useDeliveryFees } from "./useDeliveryFees";
+import { useProcessingFee } from "./useProcessingFee";
 import { AddressPanel } from "./AddressPanel";
 import { PaymentMethodPanel, type PaymentMethod } from "./PaymentMethodPanel";
 import { VoucherPanel } from "./VoucherPanel";
@@ -82,7 +83,12 @@ export default function CheckoutPage() {
   const firstOrderApplied = firstOrderEligible && subtotal >= firstOrderMinimum ? firstOrderDiscount : 0;
   const combinedDiscount = voucherDiscount + firstOrderApplied;
 
-  const { processingFee, total } = calculateOrderTotal(subtotal, deliveryFee, combinedDiscount);
+  // Processing fee now comes from the live processing_fee_tiers config
+  // (System Config → Processing Fees) via processing-fee.php, not a
+  // hardcoded local copy — see lib/checkout/fees.ts for why that matters.
+  const { fee: processingFee, loading: feeCalcLoading, error: processingFeeError } = useProcessingFee(subtotal);
+
+  const { total } = calculateOrderTotal(subtotal, deliveryFee, combinedDiscount, processingFee);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -160,6 +166,7 @@ export default function CheckoutPage() {
     !!selectedAddress &&
     !!geo.coords &&
     !feeLoading &&
+    !feeCalcLoading &&
     !paying &&
     (!isVendorClosed || !!selectedSlot) &&
     !(paymentMethod === "wallet" && walletBalance <= 0);
@@ -168,14 +175,6 @@ export default function CheckoutPage() {
     if (!selectedAddress || !geo.coords || !cart) return;
     setPayError(null);
 
-    // FIX: this used to read geo.coords.lat / geo.coords.lng, but
-    // Coordinates (useGeolocation.ts) defines { latitude, longitude } —
-    // there is no .lat/.lng. That mismatch meant customerLatitude/
-    // customerLongitude were always undefined, the typeof-number guard
-    // below always failed, and handlePay() always bailed out with
-    // "We couldn't determine your delivery location" before ever calling
-    // initializePayment(). Checkout was broken for every web customer at
-    // the final step, not intermittently.
     const customerLatitude = geo.coords.latitude;
     const customerLongitude = geo.coords.longitude;
 
@@ -197,46 +196,36 @@ export default function CheckoutPage() {
       .join(", ");
 
     const idempotency_key = generateIdempotencyKey();
-      
+
     try {
-     console.log("[CHECKOUT] Payment coordinates and metadata:", {
-  customerLatitude,
-  customerLongitude,
-  latitudeType: typeof customerLatitude,
-  longitudeType: typeof customerLongitude,
-  shipping_address,
-  delivery_fee: deliveryFee,
-});
+      const result = await initializePayment(
+        total,
+        {
+          items: cart.items.map((i) => ({
+            product_id: i.product_id,
+            quantity: i.quantity,
+          })),
+          shipping_address,
+          delivery_fee: deliveryFee,
+          customer_notes: notes || null,
+          idempotency_key,
+          use_wallet_balance: paymentMethod === "wallet",
+          voucher_code: voucherCode,
+          discount_amount: combinedDiscount,
+          order_type: selectedSlot ? "scheduled" : "instant",
+          scheduled_for: selectedSlot?.datetime ?? null,
+          scheduled_slot_id: selectedSlot?.slot_id ?? null,
+        },
+        customerLatitude,
+        customerLongitude
+      );
 
-const result = await initializePayment(
-  total,
-  {
-    items: cart.items.map((i) => ({
-      product_id: i.product_id,
-      quantity: i.quantity,
-    })),
-    shipping_address,
-    delivery_fee: deliveryFee,
-    customer_notes: notes || null,
-    idempotency_key,
-    use_wallet_balance: paymentMethod === "wallet",
-    voucher_code: voucherCode,
-    discount_amount: combinedDiscount,
-    order_type: selectedSlot ? "scheduled" : "instant",
-    scheduled_for: selectedSlot?.datetime ?? null,
-    scheduled_slot_id: selectedSlot?.slot_id ?? null,
-  },
-  customerLatitude,
-  customerLongitude
-);
-
-
-// Fully covered by wallet balance — verify-payment.php's fallback path
-// isn't needed since initialize-payment.php already created the order.
-if (result.order_id) {
-  router.push(`/checkout/success?order=${result.order_id}`);
-  return;
-}
+      // Fully covered by wallet balance — verify-payment.php's fallback path
+      // isn't needed since initialize-payment.php already created the order.
+      if (result.order_id) {
+        router.push(`/checkout/success?order=${result.order_id}`);
+        return;
+      }
 
       if (!result.access_code || !window.PaystackPop) {
         throw new Error("Payment could not be started. Please try again.");
@@ -427,7 +416,7 @@ if (result.order_id) {
 
       <section className="mt-8 rounded-2xl border border-line bg-bg-raised p-4">
         <Row label="Subtotal" value={subtotal} />
-        <Row label="Processing fee" value={processingFee} />
+        <Row label="Processing fee" value={feeCalcLoading ? null : processingFee} />
         <Row label="Delivery fee" value={feeLoading ? null : deliveryFee} />
         {voucherDiscount > 0 && <Row label="Voucher discount" value={-voucherDiscount} />}
         {firstOrderApplied > 0 && <Row label="First order discount" value={-firstOrderApplied} />}
@@ -439,6 +428,7 @@ if (result.order_id) {
         </div>
       </section>
 
+      {processingFeeError && <p className="mt-4 text-sm text-clay">{processingFeeError}</p>}
       {payError && <p className="mt-4 text-sm text-clay">{payError}</p>}
 
       <button

@@ -1,6 +1,6 @@
 import { apiRequest } from "./client";
 import { API_BASE_URL } from "@/lib/config";
-import type { UserAddress, DeliveryFeeResult } from "./types";
+import type { UserAddress, DeliveryFeeResult, ProcessingFeeResult } from "./types";
 
 export function getUserAddresses(): Promise<{ address: UserAddress[] }> {
   return apiRequest("/get-user-address.php", { method: "GET" });
@@ -50,4 +50,29 @@ export async function getDeliveryFee(
   }
 
   return json as DeliveryFeeResult;
+}
+
+/**
+ * Reads the live processing_fee_tiers config (System Config → Processing
+ * Fees) via calculateProcessingFeeFromConfig() — the same source of truth
+ * OrderController.php and webhook.php use. Do not hardcode tiers on the
+ * frontend; see lib/checkout/fees.ts for why.
+ */
+export async function getProcessingFee(subtotal: number): Promise<ProcessingFeeResult> {
+  const res = await fetch(`${API_BASE_URL}/processing-fee.php`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ subtotal }),
+    cache: "no-store",
+  });
+
+  const json = await res.json();
+
+  if (!res.ok || json.error) {
+    throw new Error(json.error || "Couldn't calculate processing fee");
+  }
+
+  return json as ProcessingFeeResult;
 }

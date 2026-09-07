@@ -214,3 +214,9 @@ export interface DeliveryFeeResult {
   total: number;
   currency: string;
 }
+
+export interface ProcessingFeeResult {
+  subtotal: number;
+  processing_fee: number;
+  currency: string;
+}
