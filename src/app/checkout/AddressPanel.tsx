@@ -15,7 +15,7 @@ export function AddressPanel({
   const [showForm, setShowForm] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["addresses"],
     queryFn: getUserAddresses,
   });
@@ -23,6 +23,21 @@ export function AddressPanel({
   const addresses = data?.address ?? [];
 
   if (isLoading) return <p className="text-sm text-ink-soft">Loading addresses…</p>;
+
+  if (isError) {
+    return (
+      <div className="rounded-2xl border border-line bg-bg-raised p-4">
+        <p className="text-sm text-clay">Couldn&apos;t load your saved addresses.</p>
+        <button
+          type="button"
+          onClick={() => refetch()}
+          className="mt-2 text-sm font-medium text-brand-deep underline"
+        >
+          Try again
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-3">
