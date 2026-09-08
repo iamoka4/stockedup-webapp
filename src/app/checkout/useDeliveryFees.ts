@@ -12,10 +12,21 @@ interface VendorFee {
 
 /**
  * delivery-fee.php takes a single vendor_id per call, so a multi-vendor
- * cart needs one call per vendor. The sum is what gets sent as the order's
- * overall delivery_fee — processOrder() then splits that evenly across
- * vendors internally, which matches this being an aggregate figure rather
- * than something we need to keep pre-split on the frontend.
+ * cart needs one call per vendor — still necessary, since each vendor's
+ * individual delivery eligibility (out-of-range check) has to be
+ * validated separately; any one ineligible vendor should still surface
+ * an error here, same as processOrder() enforces server-side.
+ *
+ * FIX: the order-level delivery fee is no longer the SUM of every
+ * vendor's quote. Per StockedUp policy, a multi-vendor order is still
+ * ONE delivery leg from the buyer's side and must be priced as ONE quote
+ * — matching processOrder() in OrderController.php, which takes the
+ * MINIMUM quote across the order's vendors as the actual charge (see its
+ * comments re: order #57, where the old summing logic overcharged
+ * ₦4,000 instead of ₦2,000 for a 2-vendor cart). This hook was still
+ * summing, so checkout was showing a phantom total the customer would
+ * never actually be charged. Take the minimum here too so the estimate
+ * shown at checkout matches what processOrder() will actually charge.
  */
 export function useDeliveryFees(vendorIds: number[], coords: Coordinates | null) {
   const [fees, setFees] = useState<VendorFee[]>([]);
@@ -58,6 +69,6 @@ export function useDeliveryFees(vendorIds: number[], coords: Coordinates | null)
     };
   }, [coords, vendorIds.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const total = fees.reduce((sum, f) => sum + f.total, 0);
+  const total = fees.length > 0 ? Math.min(...fees.map((f) => f.total)) : 0;
   return { fees, total, loading, error };
 }
