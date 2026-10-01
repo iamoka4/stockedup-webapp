@@ -1,23 +1,33 @@
 import type { Metadata } from "next";
-import { VendorListing } from "@/components/vendors/VendorListing";
-import { getSupermarkets } from "@/lib/api/vendor-listing";
-import type { VendorListingItem } from "@/lib/api/vendor-listing";
+import { getSupermarketProducts } from "@/lib/api/products";
+import { ProductListingPage } from "@/components/shop/ProductListingPage";
+import { DEFAULT_CITY } from "@/lib/config";
+import type { Product } from "@/lib/api/types";
+
+export const metadata: Metadata = {
+  title: `Supermarkets — shop and get it delivered in ${DEFAULT_CITY}`,
+  description: `Shop from supermarkets in ${DEFAULT_CITY} and get your items delivered by KoulriaGo.`,
+};
 
 export const revalidate = 60;
 
-export const metadata: Metadata = {
-  title: "Supermarkets",
-  description: "Shop supermarket essentials from stores near you on StockedUp.",
-};
-
 export default async function SupermarketsPage() {
-  let items: VendorListingItem[] = [];
+  let products: Product[] = [];
   let failed = false;
   try {
-    items = await getSupermarkets();
+    products = await getSupermarketProducts({ city: DEFAULT_CITY });
   } catch (err) {
-    console.error("[supermarkets] getSupermarkets failed:", err);
+    console.error("[supermarkets] getSupermarketProducts failed:", err);
     failed = true;
   }
-  return <VendorListing businessType="supermarket" items={items} failed={failed} />;
+
+  return (
+    <ProductListingPage
+      title="Supermarkets"
+      intro="Shop from your favourite supermarkets and get your items delivered."
+      products={products}
+      failed={failed}
+      emptyText="No supermarket items are listed yet. Check back soon."
+    />
+  );
 }

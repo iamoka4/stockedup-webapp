@@ -2,7 +2,7 @@
 // Routes marked NEW don't exist in your app yet: create them, or repoint them.
 export const HOME_ROUTES = {
   food: "/food", // NEW
-  groceries: "/products", // existing
+  groceries: "/groceries", // NEW (/products stays as the search page)
   supermarkets: "/supermarkets", // NEW
   shops: "/vendors", // existing (swap for a dedicated local-shops page later)
   shop: "/shop", // logged-in marketplace home
