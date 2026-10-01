@@ -1,6 +1,5 @@
-import Link from "next/link";
 import type { Vendor } from "@/lib/api/types";
-import { DEFAULT_CITY } from "@/lib/config";
+import { ExploreNearbyButton } from "./ExploreNearby";
 
 // Organic "pebble" shapes, alternated so the grid feels hand-cut, not boxed.
 const BLOBS = [
@@ -22,40 +21,40 @@ function isRestaurant(v: Vendor): boolean {
   return /restaurant|kitchen|cooked|eatery|meal/.test(raw);
 }
 
+// Display only: these are the partners we're proud to work with, not a
+// storefront, so nothing here links anywhere and nothing is location-filtered.
 function VendorGrid({ vendors }: { vendors: Vendor[] }) {
   return (
     <ul className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
       {vendors.map((v, i) => {
         const label = v.shop_name || v.name;
         return (
-          <li key={v.id}>
-            <Link href={`/vendors/${v.id}`} className="group flex flex-col items-center">
-              <div
-                className={`size-32 overflow-hidden bg-brand-tint transition duration-300 group-hover:scale-105 md:size-36 ${BLOBS[i % BLOBS.length]}`}
-              >
-                {v.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={v.image}
-                    alt=""
-                    loading="lazy"
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <span className="grid size-full place-items-center font-display text-4xl font-bold text-brand-deep">
-                    {label.charAt(0).toUpperCase()}
-                  </span>
-                )}
-              </div>
-              <span className="-mt-3 max-w-full truncate rounded-lg bg-brand-tint px-2.5 py-1 text-sm font-bold text-brand-deep">
-                {label}
-              </span>
-              {v.average_rating > 0 && (
-                <span className="tabular mt-1 text-xs text-ink-soft">
-                  ★ {Number(v.average_rating).toFixed(1)}
+          <li key={v.id} className="flex flex-col items-center">
+            <div
+              className={`size-32 overflow-hidden bg-brand-tint md:size-36 ${BLOBS[i % BLOBS.length]}`}
+            >
+              {v.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={v.image}
+                  alt=""
+                  loading="lazy"
+                  className="size-full object-cover"
+                />
+              ) : (
+                <span className="grid size-full place-items-center font-display text-4xl font-bold text-brand-deep">
+                  {label.charAt(0).toUpperCase()}
                 </span>
               )}
-            </Link>
+            </div>
+            <span className="-mt-3 max-w-full truncate rounded-lg bg-brand-tint px-2.5 py-1 text-sm font-bold text-brand-deep">
+              {label}
+            </span>
+            {v.average_rating > 0 && (
+              <span className="tabular mt-1 text-xs text-ink-soft">
+                ★ {Number(v.average_rating).toFixed(1)}
+              </span>
+            )}
           </li>
         );
       })}
@@ -78,7 +77,7 @@ export function TopVendors({ vendors }: { vendors: Vendor[] }) {
   return (
     <section className="mx-auto max-w-6xl px-6 pt-16 pb-6 md:pt-20">
       <h2 className="text-center font-display text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-        Top businesses in {DEFAULT_CITY}
+        Top businesses on StockedUp
       </h2>
 
       {split ? (
@@ -103,12 +102,7 @@ export function TopVendors({ vendors }: { vendors: Vendor[] }) {
       )}
 
       <div className="mt-10 text-center">
-        <Link
-          href="/vendors"
-          className="inline-flex rounded-full bg-brand px-7 py-3.5 font-bold text-white transition hover:bg-brand-deep"
-        >
-          Explore restaurants &amp; stores
-        </Link>
+        <ExploreNearbyButton />
       </div>
     </section>
   );
