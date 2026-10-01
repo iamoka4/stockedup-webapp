@@ -133,7 +133,7 @@ export default function AboutPage() {
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-ink-soft sm:text-lg">
               StockedUp Africa connects customers with trusted local food
-              vendors across Nigeria, making it easier to buy foodstuff and
+              vendors across Nigeria, making it easier to buy food, foodstuff and
               everyday groceries online and have them delivered to your
               doorstep.
             </p>
@@ -148,7 +148,7 @@ export default function AboutPage() {
             <div className="mt-9 flex flex-col items-center gap-3">
               <VendorThread />
               <p className="text-xs font-medium uppercase tracking-[0.15em] text-ink-soft">
-                Grains · Fish · Tubers · Produce — 21 categories, one marketplace
+                Rice Dishes · Soups & Stews · Pastries · Swallow · Grains · Fish · Tubers · Produce — 27 categories, one marketplace
               </p>
             </div>
           </div>
@@ -200,13 +200,13 @@ export default function AboutPage() {
               Our Mission
             </p>
             <p className="mt-4 font-display text-lg font-semibold text-ink">
-              To transform how people buy and sell foodstuff in Africa by
+              To transform how people buy and sell food & groceries in Africa by
               connecting customers with trusted local vendors through
               technology.
             </p>
             <p className="mt-4 text-sm text-ink-soft">
               We are building a marketplace that makes it simple for customers
-              to discover, order and receive foodstuff, while giving local
+              to discover, order and receive food & groceries, while giving local
               vendors the digital tools and visibility they need to grow.
             </p>
           </div>
@@ -222,11 +222,11 @@ export default function AboutPage() {
               Our Vision
             </p>
             <p className="mt-4 font-display text-lg font-semibold text-ink">
-              To become Africa&apos;s most trusted digital marketplace for
+              To become Africa&apos;s most trusted digital marketplace for food,
               foodstuff and everyday essentials.
             </p>
             <p className="mt-4 text-sm text-ink-soft">
-              A future where buying foodstuff online is as simple and reliable
+              A future where buying meals, foodstuff and groceries online is as simple and reliable
               as ordering any other product, while local vendors grow their
               businesses beyond the limits of their physical stores.
             </p>
@@ -290,10 +290,10 @@ export default function AboutPage() {
           <div className="text-center">
             <Eyebrow>Our Story</Eyebrow>
             <h2 className="mt-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
-              Buying foodstuff in Nigeria could be much easier
+              Buying food & groceries in Nigeria could be much easier
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-ink-soft">
-              Instead of customers visiting different vendors one by one,
+              Instead of customers visiting different stores/restaurants one by one,
               StockedUp brings those vendors into one digital marketplace —
               closer to how an order actually travels, from a vendor&apos;s
               stall to a customer&apos;s door.
