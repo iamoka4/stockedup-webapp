@@ -107,11 +107,11 @@ const COLUMNS = [
     ["Merchant Growth", R.merchantGrowth], ["Vendor Terms", "/vendor-terms"],
   ]},
   { id: "footer-delivery", label: "Delivery", order: 3, links: [
-    ["KoulriaGo", R.koulriago], ["Become a Rider", R.riders],
+    ["KoulriaGo", "/riders#about-koulriago"], ["Become a Rider", "/riders"],
     ["Shipping Policy", "/shipping-policy"],
   ]},
   { id: "footer-company", label: "Company", order: 4, links: [
-    ["About Us", "/about"], ["How It Works", R.howItWorks],
+    ["About Us", "/about"], ["Careers", "/careers"], ["How It Works", R.howItWorks],
     ["Help Centre", R.help], ["Contact", "/contact"],
     ["Privacy", "/privacy"], ["Terms", "/terms"], ["Refer a Friend", "/referral"],
   ]},

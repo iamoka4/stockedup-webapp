@@ -30,7 +30,7 @@ const CARDS = [
     title: "Careers",
     text: "Want to help build local commerce in Africa? We'd love to hear from you.",
     cta: "Get in touch",
-    href: HOME_ROUTES.careers,
+    href: "/careers",
     img: "/home/join-careers.jpg",
     alt: "The StockedUp team working together",
     back: "bg-leaf",
