@@ -167,22 +167,32 @@ export interface Category {
 }
 
 /**
- * Snapshot of an add-on saved on a cart row. `addon_option_id` is null if
- * the vendor deleted the option after it was added to the cart.
- * NOTE: the optional fields below (id, addons, special_request) are what
- * the mobile app reads from get-cart.php — confirm the web API returns
- * them before relying on them in the cart UI.
+ * Snapshot of an add-on saved on a cart row (cart_item_addons).
+ * `addon_option_id` is null if the vendor deleted the option after it was
+ * added to the cart.
+ *
+ * `quantity` is the add-on's OWN quantity for the whole cart line, and
+ * `total_price` is already the full price for that quantity. The backend
+ * rescales both whenever the line's quantity changes (update-cart.php),
+ * so a line's add-on cost must be added ONCE — never multiplied by the
+ * line's quantity again.
  */
 export interface CartItemAddon {
   addon_option_id: number | null;
+  name: string;
   quantity: number;
-  name?: string;
+  /** Full price for this add-on on this line (already includes quantity). */
+  total_price: number;
+  /** Per-unit price, if the API sends it. Not used for line totals. */
   price?: number;
 }
 
 export interface CartItem {
-  /** Cart row id. Needed once the same product can appear with different add-ons. */
-  id?: number;
+  /**
+   * Cart row id (cart.id). Use this, NOT product_id, for update/remove —
+   * the same product can appear on several rows with different add-ons.
+   */
+  id: number;
   product_id: number;
   vendor_id: number;
   name: string;

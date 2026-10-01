@@ -30,19 +30,26 @@ export async function addToCart(
   });
 }
 
-/** quantity = 0 removes the item, matching the backend contract. */
+/**
+ * quantity = 0 removes the item (backend contract; max 25).
+ *
+ * `cart_id` is the cart ROW's own id (CartItem.id), NOT the product id.
+ * The same product can have several rows with different add-ons, so
+ * product_id alone can't identify a single line. The backend also rescales
+ * that row's add-on quantities/prices whenever the quantity changes.
+ */
 export async function updateCartItem(
-  product_id: number,
+  cart_id: number,
   quantity: number
 ): Promise<void> {
   await ensureGuestToken();
   await apiRequest("/update-cart.php", {
     method: "POST",
     withIdentity: true,
-    body: { product_id, quantity },
+    body: { cart_id, quantity },
   });
 }
 
-export function removeCartItem(product_id: number): Promise<void> {
-  return updateCartItem(product_id, 0);
+export function removeCartItem(cart_id: number): Promise<void> {
+  return updateCartItem(cart_id, 0);
 }
