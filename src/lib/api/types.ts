@@ -102,7 +102,7 @@ export interface AddonGroup {
   options: AddonOption[];
 }
 
-/** What we send to add-to-cart.php for each chosen add-on. */
+/** What we send to add-to-cart.php for each chosen add-on (per product unit). */
 export interface SelectedAddon {
   addon_option_id: number;
   quantity: number;
@@ -167,31 +167,22 @@ export interface Category {
 }
 
 /**
- * Snapshot of an add-on saved on a cart row (cart_item_addons).
+ * Add-on snapshot saved on a cart row (from get-cart.php).
  * `addon_option_id` is null if the vendor deleted the option after it was
- * added to the cart.
- *
- * `quantity` is the add-on's OWN quantity for the whole cart line, and
- * `total_price` is already the full price for that quantity. The backend
- * rescales both whenever the line's quantity changes (update-cart.php),
- * so a line's add-on cost must be added ONCE — never multiplied by the
- * line's quantity again.
+ * added to the cart. `quantity` is the TOTAL for the line (per-unit qty x
+ * product qty) and `total_price` is server-computed — display it as-is.
  */
 export interface CartItemAddon {
   addon_option_id: number | null;
+  group_name: string;
   name: string;
+  unit_price: number;
   quantity: number;
-  /** Full price for this add-on on this line (already includes quantity). */
   total_price: number;
-  /** Per-unit price, if the API sends it. Not used for line totals. */
-  price?: number;
 }
 
 export interface CartItem {
-  /**
-   * Cart row id (cart.id). Use this, NOT product_id, for update/remove —
-   * the same product can appear on several rows with different add-ons.
-   */
+  /** Cart ROW id. The same product can appear in several rows with different add-ons. */
   id: number;
   product_id: number;
   vendor_id: number;
@@ -202,8 +193,8 @@ export interface CartItem {
   unit: string;
   quantity: number;
   shipping_address: string | null;
-  addons?: CartItemAddon[];
-  special_request?: string | null;
+  special_request: string | null;
+  addons: CartItemAddon[];
 }
 
 export interface UserAddress {

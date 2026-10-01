@@ -1,18 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { Check, Minus, Plus } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Check, Minus, Pencil, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { addToCart } from "@/lib/api/cart";
+import { addToCart, removeCartItem } from "@/lib/api/cart";
+import { useCart } from "@/lib/hooks/useCart";
 import type { AddonGroup, AddonOption, SelectedAddon } from "@/lib/api/types";
 
 // Change this if your cart route is different.
 const CART_HREF = "/cart";
-const DEFAULT_MAX_QTY = 25;
+const MAX_QTY_LIMIT = 25; // backend limit in add-to-cart.php / update-cart.php
+const EMPTY_GROUPS: AddonGroup[] = [];
 
-// groupId -> optionId -> quantity
+// groupId -> optionId -> quantity (PER product unit, like the backend expects)
 type Selections = Record<number, Record<number, number>>;
+
+type Action = "add" | "buyNow" | "update";
 
 const formatPrice = (n: number) => "₦" + n.toLocaleString("en-NG");
 
@@ -29,10 +33,11 @@ export function AddToCartPanel({
   inStock,
   price,
   stock,
-  addonGroups = [],
+  addonGroups = EMPTY_GROUPS,
 }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
 
   const [quantity, setQuantity] = useState(1);
   const [selections, setSelections] = useState<Selections>({});
@@ -40,7 +45,54 @@ export function AddToCartPanel({
   const [formError, setFormError] = useState<string | null>(null);
   const [justAdded, setJustAdded] = useState(false);
 
-  const maxQty = typeof stock === "number" && stock > 0 ? stock : DEFAULT_MAX_QTY;
+  const maxQty =
+    typeof stock === "number" && stock > 0
+      ? Math.min(stock, MAX_QTY_LIMIT)
+      : MAX_QTY_LIMIT;
+
+  // ── Edit mode: ?editCartId=123 ───────────────────────────────────────────
+  const editCartId = Number(searchParams.get("editCartId")) || null;
+  const { data: cart } = useCart();
+
+  const editingItem = useMemo(() => {
+    if (!editCartId) return null;
+    const found = cart?.items.find((i) => i.id === editCartId);
+    // Ignore a stale/mismatched param (cart row for a different product).
+    return found && found.product_id === productId ? found : null;
+  }, [cart, editCartId, productId]);
+
+  const isEditMode = editingItem !== null;
+
+  // Pre-fill once, so a background cart refetch never overwrites in-progress edits.
+  const prefilledRef = useRef(false);
+
+  useEffect(() => {
+    if (!editingItem || prefilledRef.current) return;
+
+    const next: Selections = {};
+    for (const addon of editingItem.addons ?? []) {
+      if (addon.addon_option_id === null) continue; // option deleted by vendor
+      const group = addonGroups.find((g) =>
+        g.options.some((o) => o.id === addon.addon_option_id)
+      );
+      if (!group) continue; // option no longer exists on this product
+      const option = group.options.find((o) => o.id === addon.addon_option_id)!;
+
+      // The server stores the LINE TOTAL (per-unit x cart quantity), so
+      // divide back down to the per-unit quantity the form works with.
+      const perUnit = Math.max(
+        1,
+        Math.round(addon.quantity / Math.max(1, editingItem.quantity))
+      );
+      if (!next[group.id]) next[group.id] = {};
+      next[group.id][addon.addon_option_id] = Math.min(perUnit, option.max_quantity);
+    }
+
+    setSelections(next);
+    setSpecialRequest(editingItem.special_request ?? "");
+    setQuantity(Math.min(Math.max(1, editingItem.quantity), maxQty));
+    prefilledRef.current = true;
+  }, [editingItem, addonGroups, maxQty]);
 
   // ── Selection helpers ────────────────────────────────────────────────────
   const selectedCount = (groupId: number) =>
@@ -95,7 +147,9 @@ export function AddToCartPanel({
   };
 
   // ── Live totals ──────────────────────────────────────────────────────────
-  const addonsTotal = useMemo(() => {
+  // Add-on quantities are per product unit, so extras scale with quantity
+  // (matches how add-to-cart.php / update-cart.php store and price them).
+  const perUnitAddonsTotal = useMemo(() => {
     let total = 0;
     for (const group of addonGroups) {
       const groupSel = selections[group.id];
@@ -108,9 +162,10 @@ export function AddToCartPanel({
   }, [selections, addonGroups]);
 
   const subtotal = Number(price) * quantity;
-  const grandTotal = subtotal + addonsTotal;
+  const extrasTotal = perUnitAddonsTotal * quantity;
+  const grandTotal = subtotal + extrasTotal;
 
-  // ── Validation (same rules as the mobile app) ────────────────────────────
+  // ── Validation (same rules as the server) ────────────────────────────────
   const validationError = useMemo(() => {
     for (const group of addonGroups) {
       const count = Object.keys(selections[group.id] ?? {}).length;
@@ -143,31 +198,72 @@ export function AddToCartPanel({
 
   // ── Submit ───────────────────────────────────────────────────────────────
   const mutation = useMutation({
-    mutationFn: (_vars: { buyNow: boolean }) =>
-      addToCart(productId, quantity, {
+    mutationFn: async (vars: { action: Action }) => {
+      const options = {
         addons: buildAddonsPayload(),
         special_request: specialRequest.trim() || undefined,
-      }),
+      };
+
+      if (vars.action === "update" && editingItem) {
+        // A changed add-on set is a different cart line (different
+        // addon_signature), and add-to-cart would MERGE into the old row
+        // if the set were unchanged. So: remove the old row first, then add
+        // the new configuration. If the add fails, put the original back so
+        // the customer never loses the item.
+        const original: SelectedAddon[] = (editingItem.addons ?? [])
+          .filter((a) => a.addon_option_id !== null)
+          .map((a) => ({
+            addon_option_id: a.addon_option_id as number,
+            quantity: Math.max(
+              1,
+              Math.round(a.quantity / Math.max(1, editingItem.quantity))
+            ),
+          }));
+
+        await removeCartItem(editingItem.id);
+        try {
+          await addToCart(productId, quantity, options);
+        } catch (err) {
+          try {
+            await addToCart(productId, editingItem.quantity, {
+              addons: original,
+              special_request: editingItem.special_request ?? undefined,
+            });
+          } catch {
+            // Restore failed too (e.g. an add-on was removed by the vendor).
+            // The cart refetch in onError shows the true state.
+          }
+          throw err;
+        }
+        return;
+      }
+
+      await addToCart(productId, quantity, options);
+    },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
-      if (vars.buyNow) {
-        // Only navigate once the item is really in the cart.
+      if (vars.action === "buyNow" || vars.action === "update") {
+        // Only navigate once the cart change has really succeeded.
         router.push(CART_HREF);
         return;
       }
       setJustAdded(true);
       setTimeout(() => setJustAdded(false), 2500);
     },
+    onError: () => {
+      // The edit flow may have partly changed the cart, so resync.
+      queryClient.invalidateQueries({ queryKey: ["cart"] });
+    },
   });
 
-  const submit = (buyNow: boolean) => {
+  const submit = (action: Action) => {
     if (!inStock) return;
     if (validationError) {
       setFormError(validationError);
       return;
     }
     setFormError(null);
-    mutation.mutate({ buyNow });
+    mutation.mutate({ action });
   };
 
   const serverError = mutation.isError
@@ -178,9 +274,17 @@ export function AddToCartPanel({
   const errorMessage = formError ?? serverError;
 
   const disabled = !inStock || mutation.isPending;
+  const pendingAction = mutation.isPending ? mutation.variables?.action : null;
 
   return (
     <div className="mt-6 space-y-6">
+      {isEditMode && (
+        <div className="inline-flex items-center gap-1.5 rounded-lg bg-brand-tint px-3 py-1.5 text-xs font-semibold text-brand-deep">
+          <Pencil size={12} />
+          Editing your cart selection
+        </div>
+      )}
+
       {/* Extras / Add-ons */}
       {addonGroups.length > 0 && (
         <section>
@@ -356,10 +460,10 @@ export function AddToCartPanel({
                 <span>Subtotal</span>
                 <span className="tabular">{formatPrice(subtotal)}</span>
               </div>
-              {addonsTotal > 0 && (
+              {extrasTotal > 0 && (
                 <div className="flex justify-between text-ink-soft">
                   <span>Extras</span>
-                  <span className="tabular">{formatPrice(addonsTotal)}</span>
+                  <span className="tabular">{formatPrice(extrasTotal)}</span>
                 </div>
               )}
             </>
@@ -381,32 +485,47 @@ export function AddToCartPanel({
       )}
 
       {/* Actions */}
-      <div className="flex gap-3">
+      {isEditMode ? (
         <button
           type="button"
           disabled={disabled}
-          onClick={() => submit(false)}
-          className="flex-1 rounded-full border border-brand px-6 py-3 text-sm font-semibold text-brand-deep transition-colors hover:bg-brand-tint disabled:cursor-not-allowed disabled:border-line disabled:text-ink-soft"
-        >
-          {mutation.isPending && !mutation.variables?.buyNow
-            ? "Adding…"
-            : justAdded
-              ? "Added to cart ✓"
-              : "Add to cart"}
-        </button>
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={() => submit(true)}
-          className="flex-[1.4] rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
+          onClick={() => submit("update")}
+          className="w-full rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
         >
           {!inStock
-            ? "Out of stock"
-            : mutation.isPending && mutation.variables?.buyNow
-              ? "Please wait…"
-              : `Buy now — ${formatPrice(grandTotal)}`}
+            ? "Unavailable"
+            : pendingAction === "update"
+              ? "Updating…"
+              : `Update cart — ${formatPrice(grandTotal)}`}
         </button>
-      </div>
+      ) : (
+        <div className="flex gap-3">
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => submit("add")}
+            className="flex-1 rounded-full border border-brand px-6 py-3 text-sm font-semibold text-brand-deep transition-colors hover:bg-brand-tint disabled:cursor-not-allowed disabled:border-line disabled:text-ink-soft"
+          >
+            {pendingAction === "add"
+              ? "Adding…"
+              : justAdded
+                ? "Added to cart ✓"
+                : "Add to cart"}
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => submit("buyNow")}
+            className="flex-[1.4] rounded-full bg-brand px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
+          >
+            {!inStock
+              ? "Out of stock"
+              : pendingAction === "buyNow"
+                ? "Please wait…"
+                : `Buy now — ${formatPrice(grandTotal)}`}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Star } from "lucide-react";
 import { getProduct } from "@/lib/api/products";
 import { StampBadge } from "@/components/StampBadge";
 import { AddToCartPanel } from "./AddToCartPanel";
+import { Suspense } from "react";
 import { DEFAULT_CITY } from "@/lib/config";
 import { TrackProductView } from "./TrackProductView";
 export const revalidate = 60;

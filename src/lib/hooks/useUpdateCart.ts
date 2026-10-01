@@ -36,11 +36,25 @@ export function useUpdateCart() {
         const items =
           newData.quantity === 0
             ? old.items.filter((item) => item.id !== newData.cart_id)
-            : old.items.map((item) =>
-                item.id === newData.cart_id
-                  ? { ...item, quantity: newData.quantity }
-                  : item
-              );
+            : old.items.map((item) => {
+                if (item.id !== newData.cart_id) return item;
+
+                // Mirror update-cart.php: add-on quantity is per product
+                // unit, so it scales with the new cart quantity. The
+                // refetch in onSettled replaces this with the server's
+                // numbers; this just avoids a flash of inconsistent totals.
+                const addons = (item.addons ?? []).map((a) => {
+                  const perUnit = a.quantity / Math.max(1, item.quantity);
+                  const qty = Math.max(1, Math.round(perUnit * newData.quantity));
+                  return {
+                    ...a,
+                    quantity: qty,
+                    total_price: Math.round(qty * a.unit_price * 100) / 100,
+                  };
+                });
+
+                return { ...item, quantity: newData.quantity, addons };
+              });
 
         return { ...old, items };
       });
@@ -54,9 +68,8 @@ export function useUpdateCart() {
       }
     },
 
-    // Always refetch: the backend rescales add-on quantities and prices
-    // when the quantity changes, and the optimistic update doesn't model
-    // that, so the refetch brings the add-on data back in line.
+    // Always refetch: the backend is the source of truth for add-on
+    // quantities and prices after a quantity change.
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: cartQueryKey });
     },
