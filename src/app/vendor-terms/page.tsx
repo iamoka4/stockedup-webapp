@@ -10,7 +10,7 @@ export default function VendorTermsPage() {
   return (
     <LegalDocument
       title="StockedUp Vendor Terms & Conditions"
-      effectiveDate="23rd June, 2026"
+      effectiveDate="1st, Oct, 2026"
     >
       <p className="text-ink-soft">These terms apply to all vendors on StockedUp.</p>
 
@@ -45,9 +45,19 @@ export default function VendorTermsPage() {
         <LegalList>
           <li>Vendors set their own prices</li>
           <li>
-            StockedUp does not currently charge vendors a commission on orders.
-            Should this change in the future, vendors will be notified and
-            these terms will be updated accordingly
+            StockedUp charges a commission on every completed order placed
+            through the platform. The applicable commission rate is
+            communicated to each vendor directly, through the vendor
+            dashboard or in writing, and is deducted automatically from the
+            vendor&apos;s earnings on each completed order
+          </li>
+          <li>
+            StockedUp may change commission rates from time to time. Vendors
+            will be notified of any change before it takes effect
+          </li>
+          <li>
+            Commission rates are confidential between StockedUp and the
+            vendor, and vendors agree not to publicly disclose them
           </li>
           <li>
             A processing fee may be charged to buyers at checkout. This fee is
@@ -64,8 +74,9 @@ export default function VendorTermsPage() {
         </p>
         <LegalList>
           <li>
-            Your earnings from a completed order are credited to your vendor
-            wallet once the order is marked as completed on the platform
+            Your earnings from a completed order, after deduction of the
+            applicable commission, are credited to your vendor wallet once the
+            order is marked as completed on the platform
           </li>
           <li>
             You can request a withdrawal of your available wallet balance to

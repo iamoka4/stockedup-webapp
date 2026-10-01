@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { ShoppingCart, Search, Menu } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { ShoppingCart, Search, Menu, User } from "lucide-react";
 import { useCart } from "@/lib/hooks/useCart";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
@@ -12,12 +12,15 @@ import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useState } from "react";
 
+const MINIMAL_HEADER_PATHS = ["/", "/merchants", "/riders"];
+
 export function Header() {
   const { data: cart } = useCart();
   const { user, logout } = useAuth();
   const openLogin = useAuthModalStore((s) => s.openLogin);
   const openRegister = useAuthModalStore((s) => s.openRegister);
   const router = useRouter();
+  const pathname = usePathname();
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -25,6 +28,55 @@ export function Header() {
     e.preventDefault();
     if (query.trim())
       router.push(`/products?q=${encodeURIComponent(query.trim())}`);
+  }
+
+  // Landing-page header: logo + login only. Every other page keeps the full
+  // header (search, location, cart) so shopping and checkout stay reachable.
+  // Add more paths here to use the minimal header on other pages.
+  if (MINIMAL_HEADER_PATHS.includes(pathname)) {
+    return (
+      <header className="sticky top-0 z-40 bg-brand">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+          <Link href="/" className="flex shrink-0 items-center rounded-lg bg-white/95 px-3 py-1">
+            <Image
+              src="/weblogo.png"
+              alt="StockedUp Africa"
+              width={144}
+              height={36}
+              priority
+              style={{ width: "auto", height: "36px" }}
+            />
+          </Link>
+
+          {user ? (
+            <div className="flex items-center gap-2">
+              <Link
+                href="/shop"
+                className="rounded-full border-2 border-white px-5 py-2.5 text-sm font-bold text-white transition hover:bg-white hover:text-brand-deep"
+              >
+                Shop
+              </Link>
+              <Link
+                href="/account"
+                className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-brand-deep transition hover:bg-brand-tint"
+              >
+                <User size={16} />
+                {user.first_name ?? "Account"}
+              </Link>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => openLogin()}
+              className="flex items-center gap-2 rounded-full bg-white px-5 py-2.5 text-sm font-bold text-brand-deep transition hover:bg-brand-tint"
+            >
+              <User size={16} />
+              Login
+            </button>
+          )}
+        </div>
+      </header>
+    );
   }
 
   return (

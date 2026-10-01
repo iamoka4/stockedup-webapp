@@ -1,68 +1,49 @@
-import Link from "next/link";
-import { getCategories } from "@/lib/api/categories";
+import type { Metadata } from "next";
+import { StickyLocationBar } from "@/components/home/StickyLocationBar";
+import { Hero } from "@/components/home/Hero";
+import { PlatformCards } from "@/components/home/PlatformCards";
+import { TopVendors } from "@/components/home/TopVendors";
+import { HowItWorks } from "@/components/home/HowItWorks";
+import { KoulriaGo } from "@/components/home/KoulriaGo";
+import { WhereWeDeliver } from "@/components/home/WhereWeDeliver";
+import { AppDownload } from "@/components/home/AppDownload";
+import { JoinUs } from "@/components/home/JoinUs";
+import { CtaBand } from "@/components/home/CtaBand";
 import { getVendors } from "@/lib/api/vendors";
-import { getProducts } from "@/lib/api/products";
-import { PromoBanner } from "@/components/home/PromoBanner";
-import { CategoryScroller } from "@/components/home/CategoryScroller";
-import { InstallAppBanner } from "@/components/home/InstallAppBanner";
-import { PopularVendorsSection } from "@/components/home/PopularVendorsSection";
-import { FreshPicksSection } from "@/components/home/FreshPicksSection";
-import { FreshVeggiesSection } from "@/components/home/FreshVeggiesSection";
-import { FrozenFoodsSection } from "@/components/home/FrozenFoodsSection";
-import { SeafoodSection } from "@/components/home/SeafoodSection";
-import { TrendingDrinksSection } from "@/components/home/TrendingDrinksSection";
-import { BreakfastSection } from "@/components/home/BreakfastSection";
-import { RecommendedSection } from "@/components/home/RecommendedSection";
-import { HotProductsSection } from "@/components/home/HotProductsSection";
-import { DEFAULT_CITY } from "@/lib/config";
+import type { Vendor } from "@/lib/api/types";
 
-export const revalidate = 60;
+export const metadata: Metadata = {
+  description:
+    "Order cooked meals, groceries, supermarket essentials and more from businesses around you in Awka. Delivered by KoulriaGo.",
+};
 
+// Re-fetch vendors at most every 5 minutes instead of on every visit.
+export const revalidate = 300;
+
+// Informative landing page only. The marketplace (products, vendors,
+// categories) lives at /shop, for logged-in users.
 export default async function HomePage() {
-  const [{ categories }, { vendors }, products] = await Promise.all([
-    getCategories().catch((err) => {
-      console.error("[home] getCategories failed:", err);
-      return { categories: [] };
-    }),
-    getVendors().catch((err) => {
-      console.error("[home] getVendors failed:", err);
-      return { vendors: [] };
-    }),
-    getProducts({ city: DEFAULT_CITY }).catch((err) => {
-      console.error("[home] getProducts failed:", err);
-      return [];
-    }),
-  ]);
+  // If the API is down, the landing page should still load without the vendors section.
+  let vendors: Vendor[] = [];
+  try {
+    const res = await getVendors();
+    vendors = res.vendors ?? [];
+  } catch {
+    vendors = [];
+  }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-6">
-      <PromoBanner />
-
-      <section className="py-8">
-        <div className="mb-4 flex items-end justify-between">
-          <h2 className="font-display text-xl font-semibold text-ink sm:text-2xl">
-            Shop by category
-          </h2>
-          <Link href="/categories" className="text-sm font-medium text-brand-deep hover:underline">
-            See all {categories.length > 0 ? `(${categories.length})` : ""}
-          </Link>
-        </div>
-        <CategoryScroller categories={categories} />
-      </section>
-
-      <div className="my-8">
-        <InstallAppBanner />
-      </div>
-
-      <PopularVendorsSection initialVendors={vendors} />
-      <FreshPicksSection initialProducts={products} />
-      <FreshVeggiesSection initialProducts={products} />
-      <FrozenFoodsSection initialProducts={products} />
-      <SeafoodSection initialProducts={products} />
-      <TrendingDrinksSection initialProducts={products} />
-      <BreakfastSection initialProducts={products} />
-      <RecommendedSection initialProducts={products} />
-      <HotProductsSection />
-    </div>
+    <>
+      <StickyLocationBar />
+      <Hero />
+      <PlatformCards />
+      <TopVendors vendors={vendors} />
+      <HowItWorks />
+      <KoulriaGo />
+      <WhereWeDeliver />
+      <AppDownload />
+      <JoinUs />
+      <CtaBand />
+    </>
   );
 }

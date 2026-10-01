@@ -1,4 +1,6 @@
 // components/home/HowItWorksSection.tsx
+// Same design as before. Only the copy changed, so it fits all of StockedUp
+// (food, groceries, supermarkets, local shops) and credits KoulriaGo.
 import { Search, ShoppingCart, Truck, PackageCheck, ChevronRight } from "lucide-react";
 
 const STEPS = [
@@ -6,7 +8,7 @@ const STEPS = [
     num: 1,
     icon: Search,
     title: "Browse",
-    body: "Explore a curated selection of fresh food and groceries from trusted vendors near you.",
+    body: "Explore food, groceries, supermarkets and local shops from trusted businesses near you.",
   },
   {
     num: 2,
@@ -18,13 +20,13 @@ const STEPS = [
     num: 3,
     icon: Truck,
     title: "Track",
-    body: "Follow your order in real time — from the vendor's hands to your doorstep.",
+    body: "A KoulriaGo rider picks up your order. Follow it in real time, from the vendor to your doorstep.",
   },
   {
     num: 4,
     icon: PackageCheck,
     title: "Delivered",
-    body: "Receive your groceries fresh, on time, right where you are. Easy.",
+    body: "Receive your order fresh, on time, right where you are. Easy.",
   },
 ];
 
@@ -45,9 +47,9 @@ export function HowItWorksSection() {
           How it works
         </span>
         <h2 className="font-display text-3xl font-bold text-ink sm:text-4xl">
-          Four steps to
+          Four steps from
           <br />
-          <em className="italic text-leaf">fresh groceries</em>
+          <em className="italic text-leaf">tap to doorstep</em>
         </h2>
         <p className="mx-auto mt-4 max-w-md text-sm text-ink-soft">
           From your first tap to the bag on your doorstep — no market trip, no

@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { LocationDropdown } from "@/components/LocationDropdown";
+import { NAV_LINKS } from "@/components/SiteNav";
 import type { AuthUser } from "@/lib/api/types";
 
 interface MobileMenuProps {
@@ -40,14 +41,9 @@ export function MobileMenu({ open, onClose, user, onLogin, onRegister, onLogout 
     user?.full_name ??
     ([user?.first_name, user?.last_name].filter(Boolean).join(" ") || "Account");
 
-  // FIX: this used to return the JSX directly, rendered inline inside
-  // <header>. The header has backdrop-blur (backdrop-filter), which per
-  // the CSS spec makes it the containing block for any position:fixed
-  // descendant — so "fixed inset-0" was being measured against the
-  // header's own bounding box, not the viewport, clipping the drawer to
-  // a small box at the top of the screen instead of covering the full
-  // page. Rendering through a portal to document.body escapes that
-  // containing block entirely.
+  // Rendered through a portal to document.body: the header has backdrop-blur,
+  // which makes it the containing block for position:fixed descendants and
+  // would otherwise clip the drawer to the header's box.
   return createPortal(
     <div className="fixed inset-0 z-50 md:hidden">
       {/* Backdrop */}
@@ -135,6 +131,23 @@ export function MobileMenu({ open, onClose, user, onLogin, onRegister, onLogout 
             </button>
           </div>
         )}
+
+        {/* NEW: Main navigation */}
+        <nav aria-label="Main" className="border-b border-line px-2 py-2">
+          <ul>
+            {NAV_LINKS.map((l) => (
+              <li key={l.label}>
+                <Link
+                  href={l.href}
+                  onClick={onClose}
+                  className="block rounded-xl px-3 py-3 text-base font-medium text-ink hover:bg-brand-tint hover:text-brand-deep"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
 
         {/* Location */}
         <div className="border-b border-line px-4 py-4">

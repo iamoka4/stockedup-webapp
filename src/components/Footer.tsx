@@ -1,12 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
+import { HOME_ROUTES as R } from "@/components/home/routes";
 
-// lucide-react no longer exports brand/company logos (Instagram, Facebook,
-// Twitter/X, etc.) — those were removed from the core icon set in a recent
-// version since they're trademarked logos, not generic icons. Small inline
-// SVGs instead, sized to match how the lucide icons were being used (20px,
-// currentColor so they pick up the same text-color/hover classes).
+// lucide-react no longer exports brand/company logos, so these are small
+// inline SVGs (20px, currentColor) that pick up the same text/hover classes.
 function InstagramIcon({ size = 20 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -49,6 +47,14 @@ function TikTokIcon({ size = 20 }: { size?: number }) {
   );
 }
 
+function AppleIcon({ size = 20 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" stroke="none">
+      <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
+    </svg>
+  );
+}
+
 function FooterColumn({
   id,
   label,
@@ -65,18 +71,14 @@ function FooterColumn({
       className="border-b border-white/15 sm:order-0 sm:border-none"
       style={order ? { order } : undefined}
     >
-      {/* Mobile: tap-to-expand accordion via a hidden checkbox — no JS needed.
-          Desktop (sm+): the checkbox/chevron are hidden and content is
-          forced visible, so it renders as a normal static column exactly
-          like before. */}
+      {/* Mobile: tap-to-expand accordion via a hidden checkbox (no JS).
+          Desktop (sm+): checkbox/chevron hidden, content forced visible. */}
       <input type="checkbox" id={id} className="peer hidden" />
       <label
         htmlFor={id}
         className="flex cursor-pointer items-center justify-between py-3.5 text-xs font-semibold uppercase tracking-[0.12em] text-white/60 sm:cursor-default sm:py-0"
       >
         {label}
-        {/* Plus/chevron toggle — rotates into an "x"-ish state via rotation
-            when expanded, matching the reference's +/expand affordance. */}
         <ChevronDown
           size={16}
           className="text-orange-400 transition-transform duration-200 peer-checked:rotate-180 sm:hidden"
@@ -93,14 +95,44 @@ function FooterColumn({
   );
 }
 
+const LINK = "transition-colors hover:text-white";
+
+const COLUMNS = [
+  { id: "footer-shop", label: "Shop", order: 1, links: [
+    ["Food", R.food], ["Groceries", R.groceries],
+    ["Supermarkets", R.supermarkets], ["Local Shops", R.shops],
+  ]},
+  { id: "footer-business", label: "Business", order: 2, links: [
+    ["Become a Merchant", R.merchants], ["Merchant Dashboard", R.merchants],
+    ["Merchant Growth", R.merchantGrowth], ["Vendor Terms", "/vendor-terms"],
+  ]},
+  { id: "footer-delivery", label: "Delivery", order: 3, links: [
+    ["KoulriaGo", R.koulriago], ["Become a Rider", R.riders],
+    ["Shipping Policy", "/shipping-policy"],
+  ]},
+  { id: "footer-company", label: "Company", order: 4, links: [
+    ["About Us", "/about"], ["How It Works", R.howItWorks],
+    ["Help Centre", R.help], ["Contact", "/contact"],
+    ["Privacy", "/privacy"], ["Terms", "/terms"], ["Refer a Friend", "/referral"],
+  ]},
+  { id: "footer-policy", label: "Policy", order: 5, links: [
+    ["Return Policy", "/return-policy"], ["Quality Guarantee", "/quality-guarantee"],
+    ["Testimonials", "/testimonials"], ["FAQ", "/faq"],
+  ]},
+] as const;
+
+const SOCIALS = [
+  ["Instagram", "https://instagram.com/stockedupafrica", InstagramIcon],
+  ["Facebook", "https://facebook.com/stockedupafrica", FacebookIcon],
+  ["X (Twitter)", "https://twitter.com/stockedupafrica", XIcon],
+  ["LinkedIn", "https://linkedin.com/company/stockedup-ltd/", LinkedInIcon],
+  ["TikTok", "https://tiktok.com/@stockedupafrica", TikTokIcon],
+] as const;
+
 export function Footer() {
   return (
     <footer className="mt-16 bg-brand-deep">
       <div className="mx-auto max-w-6xl px-4 py-10 sm:py-14">
-        {/* ── Brand block ──
-            Logo on the far left, Play Store badge only on the far right
-            (Apple badge removed per request — no "coming soon" placeholder
-            either). flex-wrap is a safety net on very narrow screens. */}
         <div className="flex flex-row flex-wrap items-center justify-between gap-5 text-left">
           <div className="flex flex-row items-center gap-3">
             <div className="inline-block rounded-lg bg-white/95 px-3 py-1.5">
@@ -112,9 +144,9 @@ export function Footer() {
                 style={{ width: "auto", height: "25px" }}
               />
             </div>
-            <p className="max-w-60 text-xs leading-snug text-white/80 sm:max-w-xs sm:text-sm">
-              Foodstuff and groceries from vendors you know, delivered right at
-              your doorstep.
+            <p className="max-w-60 text-xs leading-snug text-white/80 sm:max-w-sm sm:text-sm">
+              Food, groceries, supermarkets and other items from businesses you
+              know, delivered to your doorstep by KoulriaGo.
             </p>
           </div>
 
@@ -122,224 +154,83 @@ export function Footer() {
             <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white">
               Get the app
             </span>
-            <a
-              href="https://play.google.com/store/apps/details?id=com.africa.stockedup"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Get it on Google Play"
-              className="inline-block"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
-                alt="Get it on Google Play"
-                className="h-10 w-auto sm:h-11"
-              />
-            </a>
+            <div className="flex items-center gap-2">
+              <a
+                href="https://play.google.com/store/apps/details?id=com.africa.stockedup"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Get it on Google Play"
+                className="inline-block"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"
+                  alt="Get it on Google Play"
+                  className="h-10 w-auto sm:h-11"
+                />
+              </a>
+
+              {/* App Store: not live yet, so a non-clickable "coming soon" badge.
+                  Swap for a real link + Apple's official badge once it launches. */}
+              <div
+                role="img"
+                aria-label="App Store, coming soon"
+                className="flex h-8 cursor-default select-none items-center gap-1.5 rounded-md border border-white/40 bg-black px-2.5 text-white sm:h-9"
+              >
+                <AppleIcon size={20} />
+                <div className="flex flex-col leading-none">
+                  <span className="text-[8px] uppercase tracking-wide text-white/70">
+                    Coming soon on the
+                  </span>
+                  <span className="mt-0.5 text-sm font-semibold sm:text-base">
+                    App Store
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
         <div className="mt-8 border-t border-white/15" />
 
-        {/* ── Link columns ──
-            Mobile: flex-col with `order-*` so Categories/Policy/Company/
-            Socials come first (matching the reference), Shop/Affiliate
-            follow. Desktop (sm+): order resets to none, so the grid keeps
-            its original left-to-right DOM order (Shop, Categories, Policy,
-            Company, Affiliate, Socials — Socials wraps to a second row in
-            the 5-col grid since it's new content with nowhere else to go;
-            bump lg:grid-cols-5 to 6 if you'd rather it fit on one row). */}
-        <div className="flex flex-col sm:mt-10 sm:grid sm:grid-cols-3 sm:gap-x-6 sm:gap-y-9 lg:grid-cols-5">
-          <FooterColumn id="footer-shop" label="Shop" order={2}>
-            <Link
-              href="/vendors"
-              className="transition-colors hover:text-white"
-            >
-              Vendors nearby
-            </Link>
-            <Link
-              href="/categories"
-              className="transition-colors hover:text-white"
-            >
-              All categories
-            </Link>
-            <Link
-              href="/how-it-works"
-              className="transition-colors hover:text-white"
-            >
-              How It Works
-            </Link>
-          </FooterColumn>
+        <div className="flex flex-col sm:mt-10 sm:grid sm:grid-cols-3 sm:gap-x-6 sm:gap-y-9 lg:grid-cols-6">
+          {COLUMNS.map((c) => (
+            <FooterColumn key={c.id} id={c.id} label={c.label} order={c.order}>
+              {c.links.map(([label, href]) => (
+                <Link key={label} href={href} className={LINK}>
+                  {label}
+                </Link>
+              ))}
+            </FooterColumn>
+          ))}
 
-          <FooterColumn id="footer-categories" label="Categories" order={1}>
-            <Link
-              href="/categories"
-              className="transition-colors hover:text-white"
-            >
-              Groceries & Foodstuffs
-            </Link>
-            <Link
-              href="/categories"
-              className="transition-colors hover:text-white"
-            >
-              Canned Foods
-            </Link>
-            <Link
-              href="/categories"
-              className="transition-colors hover:text-white"
-            >
-              Fresh Vegetables
-            </Link>
-            <Link
-              href="/categories"
-              className="transition-colors hover:text-white"
-            >
-              Flour & Grains
-            </Link>
-          </FooterColumn>
-
-          <FooterColumn id="footer-policy" label="Policy" order={4}>
-            <Link
-              href="/return-policy"
-              className="transition-colors hover:text-white"
-            >
-              Return Policy
-            </Link>
-            <Link
-              href="/shipping-policy"
-              className="transition-colors hover:text-white"
-            >
-              Shipping Policy
-            </Link>
-            <Link
-              href="/quality-guarantee"
-              className="transition-colors hover:text-white"
-            >
-              Quality Guarantee
-            </Link>
-            <Link
-              href="/vendor-terms"
-              className="transition-colors hover:text-white"
-            >
-              Vendor Terms
-            </Link>
-          </FooterColumn>
-
-          <FooterColumn id="footer-company" label="Company" order={3}>
-            <Link href="/about" className="transition-colors hover:text-white">
-              About Us
-            </Link>
-            <Link href="/offer" className="transition-colors hover:text-white">
-              Our Offer
-            </Link>
-            <Link
-              href="/testimonials"
-              className="transition-colors hover:text-white"
-            >
-              Testimonials
-            </Link>
-            <Link
-              href="/contact"
-              className="transition-colors hover:text-white"
-            >
-              Contact Us
-            </Link>
-            <Link href="/faq" className="transition-colors hover:text-white">
-              FAQ
-            </Link>
-          </FooterColumn>
-
-          <FooterColumn id="footer-affiliate" label="Affiliate" order={6}>
-            <p className="text-xs leading-relaxed text-white/80 sm:max-w-45">
-              Refer a friend — you earn, they get a discount on their first
-              order.
-            </p>
-            <Link
-              href="/referral"
-              className="inline-flex items-center gap-1 text-sm font-medium text-white transition-colors hover:text-white/80"
-            >
-              Start referring →
-            </Link>
-          </FooterColumn>
-
-          {/* NEW — Socials. Placeholder hrefs: swap in your real profile
-              URLs before shipping. */}
-          <FooterColumn id="footer-socials" label="Socials" order={5}>
+          <FooterColumn id="footer-socials" label="Socials" order={6}>
             <div className="flex items-center gap-4 pb-1">
-              <a
-                href="https://instagram.com/stockedupafrica"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="StockedUp Africa on Instagram"
-                className="text-white/85 transition-colors hover:text-orange-400"
-              >
-                <InstagramIcon size={20} />
-              </a>
-              <a
-                href="https://facebook.com/stockedupafrica"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="StockedUp Africa on Facebook"
-                className="text-white/85 transition-colors hover:text-orange-400"
-              >
-                <FacebookIcon size={20} />
-              </a>
-              <a
-                href="https://twitter.com/stockedupafrica"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="StockedUp Africa on X (Twitter)"
-                className="text-white/85 transition-colors hover:text-orange-400"
-              >
-                <XIcon size={20} />
-              </a>
-              <a
-                href="https://linkedin.com/company/stockedup-ltd/"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="StockedUp Africa on LinkedIn"
-                className="text-white/85 transition-colors hover:text-orange-400"
-              >
-                <LinkedInIcon size={20} />
-              </a>
-              <a
-                href="https://tiktok.com/@stockedupafrica"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="StockedUp Africa on TikTok"
-                className="text-white/85 transition-colors hover:text-orange-400"
-              >
-                <TikTokIcon size={20} />
-              </a>
+              {SOCIALS.map(([name, href, Icon]) => (
+                <a
+                  key={name}
+                  href={href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`StockedUp Africa on ${name}`}
+                  className="text-white/85 transition-colors hover:text-orange-400"
+                >
+                  <Icon size={20} />
+                </a>
+              ))}
             </div>
           </FooterColumn>
         </div>
       </div>
 
-      {/* ── Bottom bar ── */}
       <div className="border-t border-white/15 px-4 py-5">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 text-xs text-white/75 sm:flex-row sm:justify-between">
           <span>
             © {new Date().getFullYear()} StockedUp Africa. All rights reserved.
           </span>
-
-          <div className="flex items-center gap-5">
-            <Link
-              href="/privacy"
-              className="transition-colors hover:text-white"
-            >
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="transition-colors hover:text-white">
-              Terms of Service
-            </Link>
-            <Link
-              href="/cookies"
-              className="transition-colors hover:text-white"
-            >
-              Cookies
-            </Link>
-          </div>
+          <Link href="/cookies" className={LINK}>
+            Cookies
+          </Link>
         </div>
       </div>
     </footer>
