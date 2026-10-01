@@ -84,6 +84,30 @@ export interface Product {
   vendor_id: number;
 }
 
+// ── Add-ons (Extras) ────────────────────────────────────────────────────────
+export interface AddonOption {
+  id: number;
+  name: string;
+  price: number;
+  max_quantity: number;
+}
+
+export interface AddonGroup {
+  id: number;
+  name: string;
+  is_required: boolean;
+  min_selections: number;
+  max_selections: number;
+  allow_multiple_quantity: boolean;
+  options: AddonOption[];
+}
+
+/** What we send to add-to-cart.php for each chosen add-on. */
+export interface SelectedAddon {
+  addon_option_id: number;
+  quantity: number;
+}
+
 export interface ProductDetail {
   id: number;
   vendor_id: number;
@@ -96,6 +120,8 @@ export interface ProductDetail {
   stock: string | number;
   in_stock: boolean;
   created_at: string;
+  /** Present only if get-product.php returns add-on groups for this product. */
+  addon_groups?: AddonGroup[];
   vendor: {
     id: number;
     name: string;
@@ -140,7 +166,23 @@ export interface Category {
   sub_categories: string | null;
 }
 
+/**
+ * Snapshot of an add-on saved on a cart row. `addon_option_id` is null if
+ * the vendor deleted the option after it was added to the cart.
+ * NOTE: the optional fields below (id, addons, special_request) are what
+ * the mobile app reads from get-cart.php — confirm the web API returns
+ * them before relying on them in the cart UI.
+ */
+export interface CartItemAddon {
+  addon_option_id: number | null;
+  quantity: number;
+  name?: string;
+  price?: number;
+}
+
 export interface CartItem {
+  /** Cart row id. Needed once the same product can appear with different add-ons. */
+  id?: number;
   product_id: number;
   vendor_id: number;
   name: string;
@@ -150,6 +192,8 @@ export interface CartItem {
   unit: string;
   quantity: number;
   shipping_address: string | null;
+  addons?: CartItemAddon[];
+  special_request?: string | null;
 }
 
 export interface UserAddress {

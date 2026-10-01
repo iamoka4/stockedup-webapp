@@ -47,6 +47,10 @@ export default async function ProductDetailPage({ params }: Props) {
 
   const { product, review_stats, related_products } = data;
 
+  // Backend may send stock as a string ("12"), so normalize it.
+  const stockCount = Number(product.stock ?? 0) || 0;
+  const lowStock = product.in_stock && stockCount > 0 && stockCount <= 10;
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
       <div className="grid gap-8 md:grid-cols-2">
@@ -66,7 +70,7 @@ export default async function ProductDetailPage({ params }: Props) {
             {product.name}
           </h1>
 
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             {review_stats.total > 0 && (
               <StampBadge tone="brand">
                 <Star size={11} fill="currentColor" strokeWidth={0} />
@@ -76,6 +80,7 @@ export default async function ProductDetailPage({ params }: Props) {
             <StampBadge tone={product.in_stock ? "leaf" : "clay"}>
               {product.in_stock ? "In stock" : "Out of stock"}
             </StampBadge>
+            {lowStock && <StampBadge tone="clay">Only {stockCount} left</StampBadge>}
           </div>
 
           <p className="tabular mt-5 font-display text-3xl font-semibold text-ink">
@@ -89,8 +94,14 @@ export default async function ProductDetailPage({ params }: Props) {
             <p className="mt-4 text-sm leading-relaxed text-ink-soft">{product.description}</p>
           )}
 
-          <AddToCartPanel productId={product.id} inStock={product.in_stock} />
-           <TrackProductView productId={product.id} />
+          <AddToCartPanel
+            productId={product.id}
+            inStock={product.in_stock}
+            price={product.price}
+            stock={stockCount}
+            addonGroups={product.addon_groups ?? []}
+          />
+          <TrackProductView productId={product.id} />
         </div>
       </div>
 
