@@ -2,12 +2,13 @@ import Link from "next/link";
 import { StampBadge } from "@/components/StampBadge";
 import type { Product } from "@/lib/api/types";
 
-type Section = "main" | "snacks" | "drinks";
+type Section = "main" | "desserts" | "snacks" | "drinks";
 // get-products.php adds `section` to typed listings (food/groceries/supermarkets).
 type ListedProduct = Product & { section?: Section };
 
-const SECTION_ORDER: Section[] = ["main", "snacks", "drinks"];
+const SECTION_ORDER: Section[] = ["main", "desserts", "snacks", "drinks"];
 const SECTION_LABELS: Record<Exclude<Section, "main">, string> = {
+  desserts: "Cakes & Desserts",
   snacks: "Snacks",
   drinks: "Drinks",
 };
@@ -55,7 +56,7 @@ interface Props {
   /** True when the API call failed (shown instead of the empty message). */
   failed?: boolean;
   emptyText: string;
-  /** Heading for the main (non-snack, non-drink) section. Defaults to `title`. */
+  /** Heading for the main (non-dessert, non-snack, non-drink) section. Defaults to `title`. */
   mainLabel?: string;
 }
 
