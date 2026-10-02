@@ -40,13 +40,13 @@ const MAX_PAGES = 6;
 async function fetchAll(
   path: string,
   key: "restaurants" | "supermarkets",
-  city: string,
+  city: string | null,
   coords?: Coords
 ): Promise<VendorListingItem[]> {
   const all: VendorListingItem[] = [];
   for (let page = 0; page < MAX_PAGES; page++) {
     const data = await apiGet<ListData>(path, {
-      city,
+      city: city ?? undefined,
       customer_latitude: coords?.latitude,
       customer_longitude: coords?.longitude,
       limit: PAGE_SIZE,
@@ -60,16 +60,17 @@ async function fetchAll(
 }
 
 // Pass coords (from the browser's geolocation) to get distance_km, a
-// distance-based delivery estimate and delivers_here.
+// distance-based delivery estimate and delivers_here. Pass city = null to
+// list every city (no location filtering).
 export function getRestaurants(
-  city: string = DEFAULT_CITY,
+  city: string | null = DEFAULT_CITY,
   coords?: Coords
 ): Promise<VendorListingItem[]> {
   return fetchAll("/get-restaurants.php", "restaurants", city, coords);
 }
 
 export function getSupermarkets(
-  city: string = DEFAULT_CITY,
+  city: string | null = DEFAULT_CITY,
   coords?: Coords
 ): Promise<VendorListingItem[]> {
   return fetchAll("/get-supermarkets.php", "supermarkets", city, coords);

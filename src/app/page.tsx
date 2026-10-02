@@ -10,6 +10,7 @@ import { AppDownload } from "@/components/home/AppDownload";
 import { JoinUs } from "@/components/home/JoinUs";
 import { CtaBand } from "@/components/home/CtaBand";
 import { getVendors } from "@/lib/api/vendors";
+import { getRestaurants, getSupermarkets } from "@/lib/api/vendor-listing";
 import type { Vendor } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -17,27 +18,33 @@ export const metadata: Metadata = {
     "Order cooked meals, groceries, supermarket essentials and more from businesses around you in Awka. Delivered by KoulriaGo.",
 };
 
-// Re-fetch vendors at most every 5 minutes instead of on every visit.
+// Re-fetch partners at most every 5 minutes instead of on every visit.
 export const revalidate = 300;
 
 // Informative landing page only. The marketplace (products, vendors,
 // categories) lives at /shop, for logged-in users.
 export default async function HomePage() {
-  // If the API is down, the landing page should still load without the vendors section.
-  let vendors: Vendor[] = [];
-  try {
-    const res = await getVendors();
-    vendors = res.vendors ?? [];
-  } catch {
-    vendors = [];
-  }
+  // "Top businesses" is informational, not a storefront, so it is not
+  // location-filtered: restaurants and supermarkets are fetched for every
+  // city (city = null). If an API call fails, that part is simply left out.
+  const [groceries, restaurants, supermarkets] = await Promise.all([
+    getVendors()
+      .then((res) => res.vendors ?? [])
+      .catch(() => [] as Vendor[]),
+    getRestaurants(null).catch(() => []),
+    getSupermarkets(null).catch(() => []),
+  ]);
 
   return (
     <>
       <StickyLocationBar />
       <Hero />
       <PlatformCards />
-      <TopVendors vendors={vendors} />
+      <TopVendors
+        groceries={groceries}
+        restaurants={restaurants}
+        supermarkets={supermarkets}
+      />
       <HowItWorks />
       <KoulriaGo />
       <WhereWeDeliver />
