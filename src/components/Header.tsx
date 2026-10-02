@@ -14,6 +14,11 @@ import { useState } from "react";
 
 const MINIMAL_HEADER_PATHS = ["/", "/merchants", "/riders"];
 
+// Pages that get a stripped-down header: logo, login/sign up and cart only.
+// These pages have their own location picker and search, so the full
+// header would just repeat them.
+const CLEAN_HEADER_PATHS = ["/explore"];
+
 export function Header() {
   const { data: cart } = useCart();
   const { user, logout } = useAuth();
@@ -74,6 +79,55 @@ export function Header() {
               Login
             </button>
           )}
+        </div>
+      </header>
+    );
+  }
+
+  // Clean header (e.g. the Explore page): logo, login/sign up and cart only.
+  if (CLEAN_HEADER_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    return (
+      <header className="sticky top-0 z-40 border-b border-line bg-bg/95 backdrop-blur">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+          <Link href="/" className="flex shrink-0 items-center">
+            <Image
+              src="/weblogo.png"
+              alt="StockedUp Africa"
+              width={144}
+              height={36}
+              priority
+              style={{ width: "auto", height: "36px" }}
+            />
+          </Link>
+
+          <div className="flex items-center gap-2">
+            {user ? (
+              <Link
+                href="/account"
+                className="rounded-full px-3 py-2 text-sm font-medium text-ink hover:text-brand-deep"
+              >
+                {user.first_name ?? "Account"}
+              </Link>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  onClick={() => openLogin()}
+                  className="rounded-full border border-line px-4 py-2 text-sm font-semibold text-ink hover:border-ink"
+                >
+                  Login
+                </button>
+                <button
+                  type="button"
+                  onClick={() => openRegister()}
+                  className="hidden rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white hover:bg-brand-deep sm:block"
+                >
+                  Sign up
+                </button>
+              </>
+            )}
+            <CartLink count={cart?.count ?? 0} />
+          </div>
         </div>
       </header>
     );
