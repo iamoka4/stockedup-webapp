@@ -12,7 +12,7 @@ export interface ProductFilters {
   category?: string;
   vendor_id?: number;
   city?: string;
-  /** Limit to products whose category belongs to these business types. */
+  /** Limit to products sold by vendors of these business types. */
   business_type?: BusinessType | BusinessType[];
 }
 
@@ -35,11 +35,11 @@ export function getFoodProducts(
   return getProducts({ ...filters, business_type: "restaurant" });
 }
 
-/** Grocery items only, with no cooked meals. */
+/** Groceries from local vendors/shops and supermarkets. */
 export function getGroceryProducts(
   filters: Omit<ProductFilters, "business_type"> = {}
 ): Promise<Product[]> {
-  return getProducts({ ...filters, business_type: "grocery" });
+  return getProducts({ ...filters, business_type: ["grocery", "supermarket"] });
 }
 
 /** Supermarket items only. */

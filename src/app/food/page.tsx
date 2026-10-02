@@ -24,6 +24,7 @@ export default async function FoodPage() {
   return (
     <ProductListingPage
       title="Food"
+      mainLabel="Meals"
       intro="Cooked meals from restaurants and food vendors around you."
       products={products}
       failed={failed}
