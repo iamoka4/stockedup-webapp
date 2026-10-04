@@ -46,7 +46,7 @@ function RailOrEmpty({
   title: string;
   titleClassName?: string;
   products: Product[];
-  rows: number;
+  rows: 1 | 2 | 3;
   fetching: boolean;
   label: string;
 }) {
