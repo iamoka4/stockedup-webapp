@@ -17,6 +17,7 @@ import {
   X,
 } from "lucide-react";
 import type { VendorListingItem } from "@/lib/api/vendor-listing";
+import { useCityVendorListing } from "@/lib/hooks/useCityVendorListing";
 
 type BusinessType = "restaurant" | "supermarket";
 type ViewMode = "list" | "grid";
@@ -165,10 +166,17 @@ export function VendorListing({
   failed = false,
 }: {
   businessType: BusinessType;
+  /** Server-rendered list for the default city. Used as the starting data only. */
   items: VendorListingItem[];
   failed?: boolean;
 }) {
   const copy = COPY[businessType];
+  const {
+    items: cityItems,
+    isFetching,
+    isError,
+    label,
+  } = useCityVendorListing(businessType, items, failed);
   const [search, setSearch] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -177,7 +185,7 @@ export function VendorListing({
   // Alphabetical by shop name, then filtered by the search text.
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return [...items]
+    return [...cityItems]
       .sort((a, b) => (a.shop_name || "").localeCompare(b.shop_name || ""))
       .filter(
         (v) =>
@@ -186,7 +194,7 @@ export function VendorListing({
             (f || "").toLowerCase().includes(q)
           )
       );
-  }, [items, search]);
+  }, [cityItems, search]);
 
   // Closing the field also clears the query, so the list is never filtered
   // by text the user can't see.
@@ -212,6 +220,7 @@ export function VendorListing({
 
             <h1 className="flex-1 truncate text-center font-display text-lg font-extrabold text-ink">
               {copy.title}
+              <span className="block text-xs font-medium text-ink-soft">in {label}</span>
             </h1>
 
             <div className="flex w-24 items-center justify-end gap-2">
@@ -221,12 +230,12 @@ export function VendorListing({
                     ["list", List, "List view"],
                     ["grid", LayoutGrid, "Grid view"],
                   ] as const
-                ).map(([mode, Icon, label]) => (
+                ).map(([mode, Icon, btnLabel]) => (
                   <button
                     key={mode}
                     type="button"
                     onClick={() => setViewMode(mode)}
-                    aria-label={label}
+                    aria-label={btnLabel}
                     aria-pressed={viewMode === mode}
                     className={`rounded-md p-[5px] ${
                       viewMode === mode
@@ -279,13 +288,19 @@ export function VendorListing({
       </header>
 
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-4">
-        {failed ? (
+        {isError && cityItems.length === 0 ? (
           <p className="py-20 text-center text-sm text-red-500">
             {copy.errorText}
           </p>
+        ) : isFetching && cityItems.length === 0 ? (
+          <p className="py-20 text-center text-sm text-ink-soft">
+            Loading {copy.title.toLowerCase()} in {label}…
+          </p>
         ) : visible.length === 0 ? (
           <div className="py-20 text-center">
-            <p className="font-bold text-ink">{copy.emptyTitle}</p>
+            <p className="font-bold text-ink">
+              {copy.emptyTitle} in {label}
+            </p>
             <p className="mt-1 text-sm text-ink-soft">{copy.emptyDesc}</p>
           </div>
         ) : (
