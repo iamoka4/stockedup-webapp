@@ -1,8 +1,13 @@
 import { apiGet } from "./client";
 import type { Vendor, VendorDetailsResponse } from "./types";
 
-export function getVendors(): Promise<{ vendors: Vendor[] }> {
-  return apiGet("/get-vendors.php");
+/**
+ * Pass `city` (the display label, e.g. "Awka" or "Port Harcourt") to get only
+ * the vendors serving that city. Omit it for the unfiltered list (used on the
+ * landing page's partners section, which is intentionally not location-based).
+ */
+export function getVendors(city?: string): Promise<{ vendors: Vendor[] }> {
+  return apiGet("/get-vendors.php", { city });
 }
 
 export function getVendorDetails(
