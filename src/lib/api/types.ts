@@ -247,6 +247,8 @@ export interface Order {
   date: string;
   created_at: string;
   customer_notes: string | null;
+  /** Delivery confirmation PIN. Only present when the API includes it for the order. */
+  delivery_pin?: string | null;
   items: OrderItem[];
 }
 

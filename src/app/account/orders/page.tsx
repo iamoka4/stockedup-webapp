@@ -1,23 +1,30 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Package, MessageSquareText, Star } from "lucide-react";
+import {
+  ArrowLeft,
+  MessageSquareText,
+  Package,
+  RefreshCw,
+  Star,
+} from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
-import { getOrders, type Order } from "@/lib/api/orders";
+import { cancelOrder, getOrders, type Order } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api/client";
 import { useAuthModalStore } from "@/store/authModalStore";
 import { SITE_URL } from "@/lib/config";
+import { OrderLiveInfo } from "@/components/orders/OrderLiveInfo";
+import { RatingSheet } from "@/components/orders/RatingSheet";
+import { ConfirmDialog } from "@/components/orders/ConfirmDialog";
 
-type Tab = "All" | "Pending" | "Delivered" | "Cancelled";
+type Tab = "All" | "Pending" | "Accepted" | "Enroute" | "Delivered" | "Cancelled";
+const TABS: Tab[] = ["All", "Pending", "Accepted", "Enroute", "Delivered", "Cancelled"];
 
-// Matches mobile's STATUS_COLORS one-for-one, translated to the site's
-// existing design tokens where one exists (brand-warm/brand-deep for
-// pending-ish states, leaf for delivered/completed, clay for
-// rejected/cancelled) and a plain Tailwind color for the two states that
-// don't have a design-token equivalent yet (Enroute, Processing) — swap
-// these for real tokens if/when the design system adds them.
+// Same remembered-dismissals key as the mobile app uses.
+const DISMISSED_KEY = "dismissed_order_ratings";
+
 const STATUS_STYLES: Record<string, string> = {
   Pending: "bg-brand-warm text-brand-deep",
   Accepted: "bg-brand-warm text-brand-deep",
@@ -29,18 +36,19 @@ const STATUS_STYLES: Record<string, string> = {
   Cancelled: "bg-clay/10 text-clay",
 };
 
+const isDelivered = (o: Order) => o.status === "Delivered" || o.status === "Completed";
+
+function matchesTab(o: Order, tab: Tab): boolean {
+  if (tab === "All") return true;
+  if (tab === "Delivered") return isDelivered(o);
+  if (tab === "Cancelled") return o.status === "Cancelled" || o.status === "Rejected";
+  return o.status === tab;
+}
+
 /**
  * Defensive fallback: if get-orders.php ever returns a relative path
- * instead of the full absolute URL it's supposed to (per the
- * UPLOAD_BASE_URL fix), this prefixes it with SITE_URL so the browser
- * doesn't resolve it against the frontend's own origin by mistake.
- * If the backend fix is deployed and working, every path already starts
- * with http(s):// and this is a no-op passthrough.
- *
- * NEEDS CONFIRMING: SITE_URL here needs to point at wherever images
- * actually live (stockedup.africa), NOT the frontend's own deployed URL
- * (Vercel/Render) — those are two different origins per how this project
- * is deployed. Worth double-checking lib/config.ts defines it that way.
+ * instead of the full absolute URL, prefix it with SITE_URL so the browser
+ * doesn't resolve it against the frontend's own origin.
  */
 function resolveUploadUrl(path: string | null | undefined): string {
   if (!path) return "";
@@ -48,15 +56,43 @@ function resolveUploadUrl(path: string | null | undefined): string {
   return `${SITE_URL}${path}`;
 }
 
+function readDismissed(): number[] {
+  try {
+    const raw = window.localStorage.getItem(DISMISSED_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addDismissed(orderId: number) {
+  try {
+    const list = readDismissed();
+    if (!list.includes(orderId)) {
+      list.push(orderId);
+      window.localStorage.setItem(DISMISSED_KEY, JSON.stringify(list));
+    }
+  } catch {
+    /* storage unavailable: nothing to remember */
+  }
+}
+
 export default function OrdersPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
+  const openLogin = useAuthModalStore((s) => s.openLogin);
 
   const [orders, setOrders] = useState<Order[] | null>(null);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("All");
-  const openLogin = useAuthModalStore((s) => s.openLogin);
+
+  const [ratingOrder, setRatingOrder] = useState<Order | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -65,25 +101,72 @@ export default function OrdersPage() {
     }
   }, [authLoading, user, router, openLogin]);
 
+  const fetchOrders = useCallback(async (): Promise<Order[] | null> => {
+    try {
+      const data = await getOrders();
+      setOrders(data.orders);
+      setOrdersError(null);
+      return data.orders;
+    } catch (e) {
+      setOrdersError(e instanceof ApiError ? e.message : "Failed to load orders");
+      return null;
+    } finally {
+      setOrdersLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  // First load: also offer to rate the first delivered, unrated order the
+  // user hasn't dismissed before (same behaviour as the mobile app).
   useEffect(() => {
     if (!user) return;
-    getOrders()
-      .then((data) => setOrders(data.orders))
-      .catch((e) => setOrdersError(e instanceof ApiError ? e.message : "Failed to load orders"))
-      .finally(() => setOrdersLoading(false));
-  }, [user]);
+    fetchOrders().then((list) => {
+      if (!list) return;
+      const dismissed = readDismissed();
+      const toRate = list.find(
+        (o) => isDelivered(o) && o.is_rated === 0 && !dismissed.includes(o.order_id)
+      );
+      if (toRate) setRatingOrder(toRate);
+    });
+  }, [user, fetchOrders]);
 
-  const filteredOrders = useMemo(() => {
-    if (!orders) return [];
-    if (activeTab === "All") return orders;
-    if (activeTab === "Delivered") {
-      return orders.filter((o) => o.status === "Delivered" || o.status === "Completed");
+  const filteredOrders = useMemo(
+    () => (orders ?? []).filter((o) => matchesTab(o, activeTab)),
+    [orders, activeTab]
+  );
+
+  const counts = useMemo(() => {
+    const c = {} as Record<Tab, number>;
+    for (const t of TABS) c[t] = (orders ?? []).filter((o) => matchesTab(o, t)).length;
+    return c;
+  }, [orders]);
+
+  function dismissRating() {
+    if (ratingOrder) addDismissed(ratingOrder.order_id);
+    setRatingOrder(null);
+  }
+
+  function completeRating() {
+    const id = ratingOrder?.order_id;
+    setOrders((prev) => prev?.map((o) => (o.order_id === id ? { ...o, is_rated: 1 } : o)) ?? prev);
+    setRatingOrder(null);
+  }
+
+  async function confirmCancel() {
+    if (!cancelTarget) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      await cancelOrder(cancelTarget.order_id);
+      setCancelTarget(null);
+      setNotice("Order cancelled successfully.");
+      await fetchOrders();
+    } catch (e) {
+      setCancelError(e instanceof ApiError ? e.message : "Network error. Please try again.");
+    } finally {
+      setCancelling(false);
     }
-    if (activeTab === "Cancelled") {
-      return orders.filter((o) => o.status === "Cancelled" || o.status === "Rejected");
-    }
-    return orders.filter((o) => o.status === activeTab);
-  }, [orders, activeTab]);
+  }
 
   if (authLoading || !user) {
     return <div className="mx-auto max-w-lg px-4 py-16 text-ink-soft">Loading…</div>;
@@ -96,22 +179,54 @@ export default function OrdersPage() {
         Back to profile
       </Link>
 
-      <h1 className="font-display text-2xl font-semibold text-ink">Order history</h1>
+      <div className="flex items-end justify-between gap-3">
+        <div>
+          <h1 className="font-display text-2xl font-semibold text-ink">Order history</h1>
+          {orders && (
+            <p className="mt-0.5 text-xs text-ink-soft">
+              {orders.length} total order{orders.length === 1 ? "" : "s"}
+            </p>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            setRefreshing(true);
+            fetchOrders();
+          }}
+          disabled={refreshing}
+          className="flex items-center gap-1.5 rounded-full border border-line px-3 py-1.5 text-xs font-medium text-ink-soft hover:border-ink hover:text-ink disabled:opacity-60"
+        >
+          <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
+          Refresh
+        </button>
+      </div>
+
+      {notice && (
+        <p role="status" className="mt-4 rounded-xl bg-leaf/10 px-3 py-2 text-sm text-leaf">
+          {notice}
+        </p>
+      )}
 
       {/* Tabs */}
-      <div className="mt-5 flex gap-1.5 rounded-full bg-bg-raised p-1">
-        {(["All", "Pending", "Delivered", "Cancelled"] as Tab[]).map((tab) => (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => setActiveTab(tab)}
-            className={`flex-1 rounded-full py-2 text-sm font-medium transition-colors ${
-              activeTab === tab ? "bg-brand text-white" : "text-ink-soft hover:text-ink"
-            }`}
-          >
-            {tab}
-          </button>
-        ))}
+      <div className="-mx-4 mt-5 overflow-x-auto px-4">
+        <div className="flex w-max gap-2">
+          {TABS.map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              onClick={() => setActiveTab(tab)}
+              className={`whitespace-nowrap rounded-full border px-4 py-2 text-sm font-semibold transition-colors ${
+                activeTab === tab
+                  ? "border-brand bg-brand text-white"
+                  : "border-line bg-bg-raised text-ink-soft hover:text-ink"
+              }`}
+            >
+              {tab}
+              {counts[tab] > 0 ? ` (${counts[tab]})` : ""}
+            </button>
+          ))}
+        </div>
       </div>
 
       {ordersLoading ? (
@@ -129,7 +244,7 @@ export default function OrdersPage() {
           </p>
           {activeTab === "All" && (
             <Link
-              href="/"
+              href="/shop"
               className="mt-4 rounded-full bg-ink px-5 py-2.5 text-sm font-medium text-white hover:opacity-90"
             >
               Start shopping
@@ -139,28 +254,49 @@ export default function OrdersPage() {
       ) : (
         <div className="mt-6 flex flex-col gap-4">
           {filteredOrders.map((order) => (
-            <OrderCard key={order.order_id} order={order} />
+            <OrderCard
+              key={order.order_id}
+              order={order}
+              onRate={() => setRatingOrder(order)}
+              onCancel={() => {
+                setCancelError(null);
+                setCancelTarget(order);
+              }}
+            />
           ))}
         </div>
       )}
+
+      <RatingSheet order={ratingOrder} onDismiss={dismissRating} onComplete={completeRating} />
+
+      <ConfirmDialog
+        open={cancelTarget !== null}
+        title="Cancel order"
+        message={`Are you sure you want to cancel order #${cancelTarget?.order_uid ?? ""}?`}
+        confirmLabel="Yes, cancel"
+        busy={cancelling}
+        error={cancelError}
+        onConfirm={confirmCancel}
+        onCancel={() => setCancelTarget(null)}
+      />
     </div>
   );
 }
 
-function OrderCard({ order }: { order: Order }) {
+function OrderCard({
+  order,
+  onRate,
+  onCancel,
+}: {
+  order: Order;
+  onRate: () => void;
+  onCancel: () => void;
+}) {
   const router = useRouter();
   const statusClass = STATUS_STYLES[order.status] ?? "bg-ink/5 text-ink-soft";
 
   function goToDetail() {
     router.push(`/account/orders/${order.order_uid}`);
-  }
-
-  function goToReview(e: React.MouseEvent) {
-    e.stopPropagation();
-    // ASSUMPTION: guessed review-page route — confirm the real path before
-    // relying on this. If it doesn't exist yet, this button needs a real
-    // destination just like Cancel/Scheduled did.
-    router.push(`/account/orders/${order.order_uid}/review`);
   }
 
   return (
@@ -173,41 +309,37 @@ function OrderCard({ order }: { order: Order }) {
       }}
       className="cursor-pointer rounded-2xl border border-line bg-bg-raised p-4 transition-colors hover:border-brand-deep/30"
     >
-      {/* Header — order_uid as the primary identifier, matching mobile
-          exactly. Vendor name/logo removed: get-orders.php's query picks
-          ONE arbitrary vendor (MAX(v.shop_name)) per order, which is
-          actively misleading for multi-vendor orders — the shown vendor
-          may not even be who a given line item belongs to. Mobile never
-          shows vendor branding on this screen for exactly this reason. */}
+      {/* Header: order_uid is the identifier. No vendor name or logo,
+          because an order can span several vendors. */}
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-semibold text-ink">#{order.order_uid}</p>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${statusClass}`}>
             {order.status}
           </span>
-          {order.is_paid === "No" && (
-            <span className="text-[11px] font-medium text-clay">Unpaid</span>
-          )}
+          {order.is_paid === "No" && <span className="text-[11px] font-medium text-clay">Unpaid</span>}
         </div>
       </div>
 
-      {/* Date | item count | total — matching mobile's compact summary line */}
       <div className="mt-2 flex items-center gap-2 text-xs text-ink-soft">
         <span>{order.date}</span>
         <span>·</span>
-        <span>{order.items.length} item{order.items.length === 1 ? "" : "s"}</span>
+        <span>
+          {order.items.length} item{order.items.length === 1 ? "" : "s"}
+        </span>
         <span>·</span>
         <span className="font-medium text-ink">₦{order.total.toLocaleString("en-NG")}</span>
       </div>
 
-      {/* Itemized breakdown — full list with real images, kept from the
-          existing web design (nicer than mobile's for a desktop/tablet
-          layout with more room). */}
+      {/* Delivery PIN and Track order (Accepted / Enroute only) */}
+      <OrderLiveInfo order={order} />
+
       {order.items.length > 0 && (
         <div className="mt-4 flex flex-col gap-2.5 border-t border-line pt-4">
           {order.items.map((item, i) => (
             <div key={item.product_id ?? i} className="flex items-center gap-3">
               {item.image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={resolveUploadUrl(item.image_url)}
                   alt={item.name}
@@ -222,15 +354,12 @@ function OrderCard({ order }: { order: Order }) {
                 <p className="truncate text-sm font-medium text-ink">{item.name}</p>
                 <p className="text-xs text-ink-soft">Qty: {item.quantity}</p>
               </div>
-              <p className="shrink-0 text-sm font-medium text-ink">
-                ₦{item.price.toLocaleString("en-NG")}
-              </p>
+              <p className="shrink-0 text-sm font-medium text-ink">₦{item.price.toLocaleString("en-NG")}</p>
             </div>
           ))}
         </div>
       )}
 
-      {/* Order note — always visible, matching mobile */}
       <div className="mt-4 flex items-start gap-2 border-t border-line pt-4">
         <MessageSquareText size={15} className="mt-0.5 shrink-0 text-ink-soft" />
         <div className="min-w-0">
@@ -241,18 +370,37 @@ function OrderCard({ order }: { order: Order }) {
         </div>
       </div>
 
-      {/* Rate Order — new on web, matching mobile's Delivered/Completed
-          action. ASSUMPTION: /account/orders/[uid]/review route — confirm
-          the real path for your review page before shipping this button. */}
-      {(order.status === "Delivered" || order.status === "Completed") && (
+      {order.status === "Pending" && (
         <button
           type="button"
-          onClick={goToReview}
+          onClick={(e) => {
+            e.stopPropagation();
+            onCancel();
+          }}
+          className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-clay/10 py-2.5 text-sm font-medium text-clay hover:bg-clay/20"
+        >
+          ✕ Cancel order
+        </button>
+      )}
+
+      {isDelivered(order) && order.is_rated === 0 && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRate();
+          }}
           className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 text-sm font-medium text-white hover:opacity-90"
         >
           <Star size={15} />
           Rate order
         </button>
+      )}
+
+      {isDelivered(order) && order.is_rated === 1 && (
+        <p className="mt-4 rounded-xl border border-leaf/30 bg-leaf/10 py-2.5 text-center text-sm font-medium text-leaf">
+          ✓ You rated this order
+        </p>
       )}
     </div>
   );
