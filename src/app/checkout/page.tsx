@@ -1,291 +1,467 @@
 "use client";
 
-import { memo, useState } from "react";
-import Link from "next/link";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Minus, Pencil, Plus, Trash2 } from "lucide-react";
-import { useCart, getLineTotal } from "@/lib/hooks/useCart";
-import { useUpdateCart } from "@/lib/hooks/useUpdateCart"; // adjust path
+import Script from "next/script";
+import { MapPin } from "lucide-react";
+import { useCart } from "@/lib/hooks/useCart";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
-import { useProcessingFee } from "@/app/checkout/useProcessingFee"; // adjust path
-import type { CartItem } from "@/lib/api/types";
+import { useGeolocation } from "@/lib/hooks/useGeolocation";
+import { AREA_GROUPS } from "@/lib/constants/cityCoords";
+import { useDeliveryFees } from "./useDeliveryFees";
+import { useProcessingFee } from "./useProcessingFee";
+import { AddressPanel } from "./AddressPanel";
+import { PaymentMethodPanel, type PaymentMethod } from "./PaymentMethodPanel";
+import { VoucherPanel } from "./VoucherPanel";
+import { SchedulingPanel } from "./SchedulingPanel";
+import { ConfirmModal } from "./ConfirmModal";
+import { calculateOrderTotal } from "@/lib/checkout/fees";
+import { initializePayment, verifyPayment } from "@/lib/api/payments";
+import { checkFirstOrderDiscount } from "@/lib/api/discounts";
+import { getWallet } from "@/lib/api/wallet";
+import type { UserAddress } from "@/lib/api/types";
+import type { DeliverySlot } from "@/lib/api/scheduling";
 
-const DELIVERY_FEE = 0; // same as mobile: real fee is quoted at checkout
-const MAX_QTY = 25; // backend limit in update-cart.php
+function generateIdempotencyKey(): string {
+  return `web_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+}
 
-// Change to your product route. Edit mode (editCartId) is not handled by
-// AddToCartPanel yet, see the notes after this file.
-const productHref = (item: CartItem) =>
-  `/product/${item.product_id}?editCartId=${item.id}`;
-
-const formatPrice = (n: number) => "₦" + n.toLocaleString("en-NG");
-
-type Action = "increment" | "decrement" | "remove";
-
-// Each row owns its own useUpdateCart instance, so the spinner and error
-// only affect the row being changed (mirrors mobile's CartItemRow).
-const CartItemRow = memo(function CartItemRow({ item }: { item: CartItem }) {
-  const { updateCart } = useUpdateCart();
-  const [loadingAction, setLoadingAction] = useState<Action | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  const addons = item.addons ?? [];
-  const lineTotal = getLineTotal(item);
-  const maxQty = Math.min(
-    MAX_QTY,
-    typeof item.stock === "number" && item.stock > 0 ? item.stock : MAX_QTY
-  );
-  const busy = loadingAction !== null;
-
-  function handleAction(action: Action, newQty: number) {
-    setError(null);
-    setLoadingAction(action);
-
-    updateCart(
-      { cart_id: item.id, quantity: newQty },
-      {
-        onSuccess: () => setLoadingAction(null),
-        onError: (err) => {
-          setLoadingAction(null);
-          setError(
-            err instanceof Error ? err.message : "Couldn't update this item. Please try again."
-          );
-        },
-      }
-    );
-  }
-
-  return (
-    <li className="rounded-2xl border border-line bg-bg-raised p-4">
-      <div className="flex gap-3">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={item.image}
-          alt={item.name}
-          className="h-[70px] w-[70px] shrink-0 rounded-xl bg-brand-tint object-cover"
-        />
-
-        <div className="min-w-0 flex-1">
-          <p className="line-clamp-2 text-sm font-semibold text-ink">{item.name}</p>
-          <p className="text-xs text-ink-soft">{formatPrice(item.price)} each</p>
-          <p className="tabular text-xs font-semibold text-ink">
-            Subtotal: {formatPrice(lineTotal)}
-          </p>
-
-          <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              onClick={() => handleAction("remove", 0)}
-              disabled={busy}
-              className="flex items-center gap-1 rounded-full border border-line px-3 py-1 text-xs text-clay hover:border-clay disabled:opacity-50"
-            >
-              <Trash2 size={12} />
-              {loadingAction === "remove" ? "Removing…" : "Remove"}
-            </button>
-
-            <Link
-              href={productHref(item)}
-              className="flex items-center gap-1 rounded-full border border-line px-3 py-1 text-xs font-medium text-ink hover:border-brand"
-            >
-              <Pencil size={12} />
-              Edit
-            </Link>
-          </div>
-        </div>
-
-        {/* Stepper */}
-        <div className="flex flex-col items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => handleAction("increment", item.quantity + 1)}
-            disabled={busy || item.quantity >= maxQty}
-            aria-label={`Increase ${item.name}`}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand-deep hover:bg-brand-tint disabled:opacity-40"
-          >
-            <Plus size={14} />
-          </button>
-          <span className="tabular min-w-5 text-center text-sm font-bold text-ink">
-            {item.quantity}
-          </span>
-          <button
-            type="button"
-            onClick={() => handleAction("decrement", item.quantity - 1)}
-            disabled={busy || item.quantity <= 1}
-            aria-label={`Decrease ${item.name}`}
-            className="flex h-7 w-7 items-center justify-center rounded-lg border border-line text-brand-deep hover:bg-brand-tint disabled:opacity-40"
-          >
-            <Minus size={14} />
-          </button>
-        </div>
-      </div>
-
-      {/* Extras / add-ons breakdown */}
-      {addons.length > 0 && (
-        <ul className="mt-3 space-y-1 rounded-xl bg-brand-tint p-2.5">
-          {addons.map((addon, idx) => (
-            <li
-              key={`${item.id}-addon-${addon.addon_option_id ?? "deleted"}-${idx}`}
-              className="flex justify-between gap-3 text-xs text-ink"
-            >
-              <span className="truncate">
-                + {addon.name} ×{addon.quantity}
-              </span>
-              <span className="tabular font-semibold">
-                {formatPrice(addon.total_price ?? 0)}
-              </span>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {/* Special request */}
-      {item.special_request && (
-        <p className="mt-2 line-clamp-2 text-xs italic text-ink-soft">
-          📝 &ldquo;{item.special_request}&rdquo;
-        </p>
-      )}
-
-      {error && (
-        <p role="alert" className="mt-2 text-xs text-clay">
-          {error}
-        </p>
-      )}
-    </li>
-  );
-});
-
-export default function CartPage() {
+export default function CheckoutPage() {
+  const { user, isLoading: authLoading } = useAuth();
+  const { data: cart, isLoading: cartLoading } = useCart();
   const router = useRouter();
-  const { user } = useAuth();
   const openLogin = useAuthModalStore((s) => s.openLogin);
-  const { data: cart, isLoading, error, refetch } = useCart();
 
-  // cart.subtotal already includes add-ons (see getLineTotal in useCart).
+  const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null);
+  const [notes, setNotes] = useState("");
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [showConfirm, setShowConfirm] = useState(false);
+
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("paystack");
+  const [walletBalance, setWalletBalance] = useState(0);
+
+  const [voucherCode, setVoucherCode] = useState<string | null>(null);
+  const [voucherDiscount, setVoucherDiscount] = useState(0);
+
+  const [firstOrderEligible, setFirstOrderEligible] = useState(false);
+  const [firstOrderDiscount, setFirstOrderDiscount] = useState(0);
+  const [firstOrderMinimum, setFirstOrderMinimum] = useState(0);
+
+  const [selectedSlot, setSelectedSlot] = useState<DeliverySlot | null>(null);
+  const [isVendorClosed, setIsVendorClosed] = useState(false);
+
+  // Manual location fallback — shown when geolocation is denied/unsupported.
+  // geo.setManual already existed in useGeolocation but was never wired
+  // into this UI. Originally this was a raw lat/lng form, but that meant
+  // nothing to most customers — an "area" dropdown (same named areas and
+  // coordinates as the mobile app's CITY_COORDS) is the primary fallback
+  // now; raw coordinates are still available but tucked behind an
+  // "advanced" toggle for the rare case an area isn't listed.
+  const [selectedAreaLabel, setSelectedAreaLabel] = useState("");
+  const [showAdvancedManual, setShowAdvancedManual] = useState(false);
+  const [manualLat, setManualLat] = useState("");
+  const [manualLng, setManualLng] = useState("");
+  const [manualError, setManualError] = useState<string | null>(null);
+
+  const geo = useGeolocation();
+
+  const vendorIds = useMemo(
+    () => Array.from(new Set((cart?.items ?? []).map((i) => i.vendor_id))),
+    [cart?.items]
+  );
+  const primaryVendorId = vendorIds[0] ?? null;
+
+  const { total: deliveryFee, loading: feeLoading, error: feeError } = useDeliveryFees(
+    vendorIds,
+    geo.coords
+  );
+
   const subtotal = cart?.subtotal ?? 0;
 
-  const {
-    fee: processingFee,
-    loading: processingFeeLoading,
-    error: processingFeeError,
-  } = useProcessingFee(subtotal);
+  const firstOrderApplied = firstOrderEligible && subtotal >= firstOrderMinimum ? firstOrderDiscount : 0;
+  const combinedDiscount = voucherDiscount + firstOrderApplied;
 
-  const total = subtotal + (processingFee ?? 0) + DELIVERY_FEE;
+  // Processing fee now comes from the live processing_fee_tiers config
+  // (System Config → Processing Fees) via processing-fee.php, not a
+  // hardcoded local copy — see lib/checkout/fees.ts for why that matters.
+  const { fee: processingFee, loading: feeCalcLoading, error: processingFeeError } = useProcessingFee(subtotal);
 
-  function handleCheckout() {
-    if (!user) {
+  const { total } = calculateOrderTotal(subtotal, deliveryFee, combinedDiscount, processingFee);
+
+  useEffect(() => {
+    if (!authLoading && !user) {
       openLogin("/checkout");
+      router.replace("/cart");
+    }
+  }, [authLoading, user, router, openLogin]);
+
+  useEffect(() => {
+    if (!cartLoading && cart && cart.items.length === 0) {
+      router.replace("/cart");
+    }
+  }, [cartLoading, cart, router]);
+
+  useEffect(() => {
+    if (!user) return;
+    getWallet()
+      .then((w) => setWalletBalance(w.balance))
+      .catch(() => {});
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    checkFirstOrderDiscount()
+      .then((d) => {
+        setFirstOrderEligible(d.eligible);
+        setFirstOrderDiscount(d.discount_amount);
+        setFirstOrderMinimum(d.minimum_subtotal);
+      })
+      .catch(() => {});
+  }, [user]);
+
+  const handleVendorClosedChange = useCallback((closed: boolean) => {
+    setIsVendorClosed(closed);
+  }, []);
+
+  function handleAreaSelect(e: React.ChangeEvent<HTMLSelectElement>) {
+    const label = e.target.value;
+    setSelectedAreaLabel(label);
+    if (!label) return;
+
+    const area = AREA_GROUPS.flatMap((g) => g.areas).find((a) => a.label === label);
+    if (!area) return;
+
+    geo.setManual({ latitude: area.latitude, longitude: area.longitude });
+  }
+
+  function handleManualSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setManualError(null);
+
+    const lat = Number(manualLat);
+    const lng = Number(manualLng);
+
+    if (
+      Number.isNaN(lat) ||
+      Number.isNaN(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
+      setManualError("Please enter a valid latitude (-90 to 90) and longitude (-180 to 180).");
       return;
     }
-    if (processingFeeLoading || processingFeeError) return;
-    router.push("/checkout");
+
+    geo.setManual({ latitude: lat, longitude: lng });
   }
 
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-16 text-center text-ink-soft">
-        Loading your cart…
-      </div>
-    );
+  if (authLoading || cartLoading || !user || !cart || cart.items.length === 0) {
+    return <div className="mx-auto max-w-2xl px-4 py-16 text-ink-soft">Loading checkout…</div>;
   }
 
-  if (error) {
-    return (
-      <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-16 text-center">
-        <p className="font-display text-xl font-semibold text-clay">Failed to load cart</p>
-        <p className="mt-2 text-sm text-ink-soft">Please check your connection.</p>
-        <button
-          type="button"
-          onClick={() => refetch()}
-          className="mt-5 rounded-full bg-brand px-8 py-3 text-sm font-semibold text-white hover:bg-brand-deep"
-        >
-          Try again
-        </button>
-      </div>
-    );
-  }
+  const readyToPay =
+    !!selectedAddress &&
+    !!geo.coords &&
+    !feeLoading &&
+    !feeCalcLoading &&
+    !paying &&
+    (!isVendorClosed || !!selectedSlot) &&
+    !(paymentMethod === "wallet" && walletBalance <= 0);
 
-  if (!cart || cart.items.length === 0) {
-    return (
-      <div className="mx-auto flex max-w-2xl flex-col items-center px-4 py-16 text-center">
-        <p className="font-display text-2xl font-semibold text-ink">Your cart is empty</p>
-        <p className="mt-2 text-sm text-ink-soft">Add some products to get started!</p>
-        <Link
-          href="/"
-          className="mt-5 rounded-full bg-brand px-8 py-3 text-sm font-semibold text-white hover:bg-brand-deep"
-        >
-          Continue shopping
-        </Link>
-      </div>
-    );
-  }
+  async function handlePay() {
+    if (!selectedAddress || !geo.coords || !cart) return;
+    setPayError(null);
 
-  const itemCount = cart.items.length;
+    const customerLatitude = geo.coords.latitude;
+    const customerLongitude = geo.coords.longitude;
+
+    if (
+      typeof customerLatitude !== "number" ||
+      typeof customerLongitude !== "number" ||
+      Number.isNaN(customerLatitude) ||
+      Number.isNaN(customerLongitude)
+    ) {
+      setPayError("We couldn't determine your delivery location. Please share your location again.");
+      return;
+    }
+
+    setPaying(true);
+    setShowConfirm(false);
+
+    const shipping_address = [selectedAddress.line1, selectedAddress.line2, selectedAddress.city, selectedAddress.state]
+      .filter(Boolean)
+      .join(", ");
+
+    const idempotency_key = generateIdempotencyKey();
+
+    try {
+      const result = await initializePayment(
+        total,
+        {
+          items: cart.items.map((i) => ({
+            product_id: i.product_id,
+            quantity: i.quantity,
+          })),
+          shipping_address,
+          delivery_fee: deliveryFee,
+          customer_notes: notes || null,
+          idempotency_key,
+          use_wallet_balance: paymentMethod === "wallet",
+          voucher_code: voucherCode,
+          discount_amount: combinedDiscount,
+          order_type: selectedSlot ? "scheduled" : "instant",
+          scheduled_for: selectedSlot?.datetime ?? null,
+          scheduled_slot_id: selectedSlot?.slot_id ?? null,
+        },
+        customerLatitude,
+        customerLongitude
+      );
+
+      // Fully covered by wallet balance — verify-payment.php's fallback path
+      // isn't needed since initialize-payment.php already created the order.
+      if (result.order_id) {
+        router.push(`/checkout/success?order=${result.order_id}`);
+        return;
+      }
+
+      if (!result.access_code || !window.PaystackPop) {
+        throw new Error("Payment could not be started. Please try again.");
+      }
+
+      const popup = new window.PaystackPop();
+      popup.resumeTransaction(result.access_code, {
+        onSuccess: async () => {
+          try {
+            // Always confirm server-side rather than trusting the client
+            // callback alone — verify-payment.php is the source of truth
+            // and is safe to call even if the webhook already processed it
+            // (idempotency is handled on the backend).
+            const verified = await verifyPayment(result.reference);
+            router.push(`/checkout/success?order=${verified.order_id}`);
+          } catch {
+            router.push(`/checkout/success?reference=${result.reference}`);
+          }
+        },
+        onCancel: () => {
+          setPaying(false);
+        },
+        onError: (err: { message?: string }) => {
+          setPayError(err?.message || "Payment failed. Please try again.");
+          setPaying(false);
+        },
+      });
+    } catch (err) {
+      setPayError(err instanceof Error ? err.message : "Payment failed. Please try again.");
+      setPaying(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-10">
-      <div className="mb-5 flex items-baseline justify-between">
-        <h1 className="font-display text-3xl font-semibold text-ink">Your cart</h1>
-        <p className="text-sm text-ink-soft">
-          {itemCount} {itemCount === 1 ? "item" : "items"}
-        </p>
-      </div>
+      <Script src="https://js.paystack.co/v2/inline.js" strategy="lazyOnload" />
 
-      <ul className="space-y-3">
-        {cart.items.map((item) => (
-          <CartItemRow key={item.id} item={item} />
-        ))}
-      </ul>
+      <h1 className="font-display text-3xl font-semibold text-ink">Checkout</h1>
 
-      <section className="mt-6 rounded-2xl border border-line bg-bg-raised p-4">
-        <h2 className="text-sm font-bold text-ink">Order summary</h2>
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Delivery address</h2>
+        <AddressPanel selectedId={selectedAddress?.id ?? null} onSelect={setSelectedAddress} />
+      </section>
 
-        <div className="mt-3 space-y-1 border-b border-line pb-3 text-sm">
-          <SummaryRow label="Subtotal" value={formatPrice(subtotal)} />
-          <SummaryRow
-            label="Processing fee"
-            value={
-              processingFeeLoading
-                ? "Calculating…"
-                : processingFeeError
-                  ? "Unavailable"
-                  : formatPrice(processingFee ?? 0)
-            }
-          />
-          <SummaryRow label="Delivery fee" value={formatPrice(DELIVERY_FEE)} />
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Delivery location</h2>
+        {!geo.coords ? (
+          <>
+            <button
+              type="button"
+              onClick={geo.request}
+              className="flex items-center gap-2 rounded-full border border-line px-5 py-2.5 text-sm font-medium text-ink hover:border-brand"
+            >
+              <MapPin size={16} className="text-brand" />
+              {geo.status === "locating" ? "Finding you…" : "Share my location for delivery"}
+            </button>
+
+            {(geo.status === "denied" || geo.status === "unsupported") && (
+              <div className="mt-4 rounded-2xl border border-line bg-bg-raised p-4">
+                <p className="text-sm text-clay">
+                  We couldn&apos;t access your location automatically. Select the area closest to
+                  your delivery address instead.
+                </p>
+
+                <select
+                  value={selectedAreaLabel}
+                  onChange={handleAreaSelect}
+                  className="input mt-3 w-full"
+                >
+                  <option value="" disabled>
+                    Select your area…
+                  </option>
+                  {AREA_GROUPS.map((group) => (
+                    <optgroup key={group.group} label={group.group}>
+                      {group.areas.map((area) => (
+                        <option key={area.label} value={area.label}>
+                          {area.label}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                </select>
+
+                {!showAdvancedManual ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvancedManual(true)}
+                    className="mt-3 text-xs font-medium text-ink-soft underline hover:text-ink"
+                  >
+                    Don&apos;t see your area? Enter coordinates manually
+                  </button>
+                ) : (
+                  <form onSubmit={handleManualSubmit} className="mt-3 flex flex-col gap-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <input
+                        required
+                        inputMode="decimal"
+                        placeholder="Latitude"
+                        value={manualLat}
+                        onChange={(e) => setManualLat(e.target.value)}
+                        className="input"
+                      />
+                      <input
+                        required
+                        inputMode="decimal"
+                        placeholder="Longitude"
+                        value={manualLng}
+                        onChange={(e) => setManualLng(e.target.value)}
+                        className="input"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      className="rounded-full bg-brand py-2 text-sm font-semibold text-white hover:bg-brand-deep"
+                    >
+                      Use these coordinates
+                    </button>
+                  </form>
+                )}
+                {manualError && <p className="mt-2 text-sm text-clay">{manualError}</p>}
+              </div>
+            )}
+          </>
+        ) : (
+          <p className="text-sm text-leaf">Location set — delivery fee calculated below.</p>
+        )}
+        {feeError && <p className="mt-2 text-sm text-clay">{feeError}</p>}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Delivery time</h2>
+        <SchedulingPanel
+          vendorId={primaryVendorId}
+          selectedSlot={selectedSlot}
+          onSelectSlot={setSelectedSlot}
+          onVendorClosedChange={handleVendorClosedChange}
+        />
+        {isVendorClosed && !selectedSlot && (
+          <p className="mt-2 text-sm text-clay">This vendor is currently closed — please pick a delivery slot.</p>
+        )}
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Payment method</h2>
+        <PaymentMethodPanel selected={paymentMethod} onSelect={setPaymentMethod} walletBalance={walletBalance} />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Voucher code</h2>
+        <VoucherPanel
+          subtotal={subtotal}
+          appliedCode={voucherCode}
+          discount={voucherDiscount}
+          onApply={(code, discount) => {
+            setVoucherCode(code);
+            setVoucherDiscount(discount);
+          }}
+          onRemove={() => {
+            setVoucherCode(null);
+            setVoucherDiscount(0);
+          }}
+        />
+      </section>
+
+      <section className="mt-8">
+        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Notes (optional)</h2>
+        <textarea
+          value={notes}
+          onChange={(e) => setNotes(e.target.value.slice(0, 300))}
+          placeholder="e.g. Call me when you arrive"
+          rows={3}
+          className="input w-full"
+        />
+      </section>
+
+      {firstOrderEligible && subtotal >= firstOrderMinimum && (
+        <div className="mt-8 rounded-2xl border border-brand-deep/20 bg-brand-warm/40 p-4">
+          <p className="text-sm font-medium text-brand-deep">
+            🎉 Welcome to StockedUp! ₦{firstOrderDiscount.toLocaleString("en-NG")} has been applied to your first order.
+          </p>
         </div>
+      )}
+      {firstOrderEligible && subtotal < firstOrderMinimum && (
+        <p className="mt-4 text-xs text-ink-soft">
+          Add ₦{(firstOrderMinimum - subtotal).toLocaleString("en-NG")} more to unlock your first-order discount.
+        </p>
+      )}
 
-        <div className="mt-3 flex items-center justify-between">
+      <section className="mt-8 rounded-2xl border border-line bg-bg-raised p-4">
+        <Row label="Subtotal" value={subtotal} />
+        <Row label="Processing fee" value={feeCalcLoading ? null : processingFee} />
+        <Row label="Delivery fee" value={feeLoading ? null : deliveryFee} />
+        {voucherDiscount > 0 && <Row label="Voucher discount" value={-voucherDiscount} />}
+        {firstOrderApplied > 0 && <Row label="First order discount" value={-firstOrderApplied} />}
+        <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
           <span className="font-semibold text-ink">Total</span>
-          <span className="tabular font-display text-xl font-semibold text-brand-deep">
-            {formatPrice(total)}
+          <span className="tabular font-display text-xl font-semibold text-ink">
+            ₦{total.toLocaleString()}
           </span>
         </div>
-
-        {processingFeeError && (
-          <p role="alert" className="mt-2 text-xs text-clay">
-            {processingFeeError}
-          </p>
-        )}
-
-        <button
-          type="button"
-          onClick={handleCheckout}
-          disabled={processingFeeLoading || !!processingFeeError}
-          className="mt-4 w-full rounded-full bg-brand py-3.5 text-sm font-semibold text-white transition-colors hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
-        >
-          Proceed to checkout
-        </button>
       </section>
+
+      {processingFeeError && <p className="mt-4 text-sm text-clay">{processingFeeError}</p>}
+      {payError && <p className="mt-4 text-sm text-clay">{payError}</p>}
+
+      <button
+        type="button"
+        disabled={!readyToPay}
+        onClick={() => setShowConfirm(true)}
+        className="mt-6 w-full rounded-full bg-brand py-3.5 text-sm font-semibold text-white hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
+      >
+        {paying ? "Redirecting to payment…" : isVendorClosed ? "Schedule order" : `Pay ₦${total.toLocaleString()}`}
+      </button>
+
+      <ConfirmModal
+        open={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handlePay}
+        address={selectedAddress}
+        slot={selectedSlot}
+        notes={notes}
+        deliveryFee={deliveryFee}
+        total={total}
+        firstOrderDiscount={firstOrderApplied}
+        paying={paying}
+        isScheduled={!!selectedSlot}
+      />
     </div>
   );
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: { label: string; value: number | null }) {
   return (
-    <div className="flex justify-between">
+    <div className="flex items-center justify-between py-1 text-sm">
       <span className="text-ink-soft">{label}</span>
-      <span className="tabular font-medium text-ink">{value}</span>
+      <span className="tabular text-ink">{value === null ? "—" : `₦${value.toLocaleString()}`}</span>
     </div>
   );
 }
