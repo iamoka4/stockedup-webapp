@@ -115,24 +115,23 @@ export function logout(): void {
 }
 
 /**
- * NOT VERIFIED against the actual reset-password.php contract — that file
- * wasn't part of the backend audit. This call is built on the one solid
- * clue we have: verify-otp.php returns `reset_token` when purpose is
- * 'forgot_password', which strongly implies reset-password.php expects
- * (email, reset_token, new_password). If that guess is wrong, this will
- * fail loudly with whatever error reset-password.php returns — it won't
- * silently corrupt anything, but send over that file to replace this with
- * a confirmed implementation.
+ * reset-password.php contract (confirmed against the PHP):
+ *   POST JSON { token, password, type: "user" | "vendor" }
+ * The token is the `reset_token` returned by verify-otp.php for the
+ * 'forgot_password' purpose. The server looks up the email from the token,
+ * so the email is not sent. It is kept as the first argument only so the
+ * existing call site doesn't change.
  */
 export function resetPassword(
-  email: string,
+  _email: string,
   reset_token: string,
-  new_password: string
+  new_password: string,
+  type: "user" | "vendor" = "user"
 ): Promise<void> {
   return apiRequest("/reset-password.php", {
     method: "POST",
     skipAuth: true,
-    body: { email, reset_token, new_password },
+    body: { token: reset_token, password: new_password, type },
   });
 }
 
