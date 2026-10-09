@@ -296,6 +296,64 @@ export default function CheckoutPage() {
 
       <h1 className="font-display text-3xl font-semibold text-ink">Checkout</h1>
 
+      <section className="mt-8 rounded-2xl border border-line bg-bg-raised p-4">
+        <h2 className="font-display text-lg font-semibold text-ink">Order items</h2>
+        <p className="mt-1 text-sm text-ink-soft">
+          {cart.items.length} item{cart.items.length !== 1 ? "s" : ""} in this order
+        </p>
+
+        <ul className="mt-3">
+          {cart.items.map((item, idx) => {
+            const addons = item.addons ?? [];
+            const addonsTotal = addons.reduce((sum, a) => sum + (Number(a.total_price) || 0), 0);
+            const baseTotal = (Number(item.price) || 0) * (Number(item.quantity) || 0);
+            const isLast = idx === cart.items.length - 1;
+
+            return (
+              <li key={item.id} className={isLast ? "py-3" : "border-b border-line py-3"}>
+                <div className="flex items-start justify-between gap-3 text-sm">
+                  <span className="font-semibold text-ink">
+                    {item.quantity}x {item.name}
+                  </span>
+                  <span className="tabular font-semibold text-ink">₦{baseTotal.toLocaleString()}</span>
+                </div>
+
+                {addons.length > 0 && (
+                  <div className="mt-1.5 space-y-0.5 pl-2">
+                    {addons.map((addon, aIdx) => (
+                      <div
+                        key={`${item.id}-addon-${addon.addon_option_id ?? "deleted"}-${aIdx}`}
+                        className="flex items-center justify-between text-xs text-ink-soft"
+                      >
+                        <span>
+                          + {addon.name}
+                          {addon.quantity > 1 ? ` x${addon.quantity}` : ""}
+                          {addon.addon_option_id === null ? " (no longer available)" : ""}
+                        </span>
+                        <span className="tabular">₦{(Number(addon.total_price) || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {item.special_request && (
+                  <p className="mt-1.5 text-xs italic text-clay">📝 {item.special_request}</p>
+                )}
+
+                {addonsTotal > 0 && (
+                  <div className="mt-2 flex items-center justify-between border-t border-line pt-1.5 text-xs">
+                    <span className="text-ink-soft">Item total</span>
+                    <span className="tabular font-semibold text-brand">
+                      ₦{(baseTotal + addonsTotal).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
       <section className="mt-8">
         <h2 className="mb-3 font-display text-lg font-semibold text-ink">Delivery address</h2>
         <AddressPanel selectedId={selectedAddress?.id ?? null} onSelect={setSelectedAddress} />
