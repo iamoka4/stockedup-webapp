@@ -20,7 +20,7 @@ import { calculateOrderTotal } from "@/lib/checkout/fees";
 import { initializePayment, verifyPayment } from "@/lib/api/payments";
 import { checkFirstOrderDiscount } from "@/lib/api/discounts";
 import { getWallet } from "@/lib/api/wallet";
-import type { UserAddress } from "@/lib/api/types";
+import type { UserAddress, CartItemAddon } from "@/lib/api/types";
 import type { DeliverySlot } from "@/lib/api/scheduling";
 
 function generateIdempotencyKey(): string {
@@ -34,7 +34,6 @@ export default function CheckoutPage() {
   const openLogin = useAuthModalStore((s) => s.openLogin);
 
   const [selectedAddress, setSelectedAddress] = useState<UserAddress | null>(null);
-  const [notes, setNotes] = useState("");
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -78,7 +77,19 @@ export default function CheckoutPage() {
     geo.coords
   );
 
-  const subtotal = cart?.subtotal ?? 0;
+  // Subtotal now includes add-ons, same as the mobile app: base price x
+  // quantity plus each add-on's server-computed total_price. Falls back to
+  // the cart's own subtotal if the line items sum to zero.
+  const subtotal = useMemo(() => {
+    const computed = (cart?.items ?? []).reduce((sum, i) => {
+      const addonsTotal = (i.addons ?? []).reduce(
+        (aSum, a) => aSum + (Number(a.total_price) || 0),
+        0
+      );
+      return sum + (Number(i.price) || 0) * (Number(i.quantity) || 0) + addonsTotal;
+    }, 0);
+    return computed > 0 ? computed : cart?.subtotal ?? 0;
+  }, [cart?.items, cart?.subtotal]);
 
   const firstOrderApplied = firstOrderEligible && subtotal >= firstOrderMinimum ? firstOrderDiscount : 0;
   const combinedDiscount = voucherDiscount + firstOrderApplied;
@@ -197,17 +208,37 @@ export default function CheckoutPage() {
 
     const idempotency_key = generateIdempotencyKey();
 
+    // Same item shape the mobile app sends: base unit price (add-ons
+    // excluded), add-ons as { addon_option_id, quantity } with the cart's
+    // quantity passed through as-is, and the per-item special request.
+    // Add-ons whose option the vendor has since deleted (null id) are
+    // dropped, since there is no live option left to attach to the order.
+    const items = cart.items.map((i) => {
+      const addons = (i.addons ?? [])
+        .filter(
+          (a): a is CartItemAddon & { addon_option_id: number } => a.addon_option_id !== null
+        )
+        .map((a) => ({
+          addon_option_id: a.addon_option_id,
+          quantity: a.quantity,
+        }));
+
+      return {
+        product_id: i.product_id,
+        quantity: i.quantity,
+        price: i.price,
+        ...(addons.length > 0 ? { addons } : {}),
+        ...(i.special_request ? { special_request: i.special_request } : {}),
+      };
+    });
+
     try {
       const result = await initializePayment(
         total,
         {
-          items: cart.items.map((i) => ({
-            product_id: i.product_id,
-            quantity: i.quantity,
-          })),
+          items,
           shipping_address,
           delivery_fee: deliveryFee,
-          customer_notes: notes || null,
           idempotency_key,
           use_wallet_balance: paymentMethod === "wallet",
           voucher_code: voucherCode,
@@ -390,16 +421,9 @@ export default function CheckoutPage() {
         />
       </section>
 
-      <section className="mt-8">
-        <h2 className="mb-3 font-display text-lg font-semibold text-ink">Notes (optional)</h2>
-        <textarea
-          value={notes}
-          onChange={(e) => setNotes(e.target.value.slice(0, 300))}
-          placeholder="e.g. Call me when you arrive"
-          rows={3}
-          className="input w-full"
-        />
-      </section>
+      {/* The order-level "Notes (optional)" box was removed: the backend no
+          longer reads customer_notes. Notes are per item (special_request),
+          written on the product details page and sent with each item. */}
 
       {firstOrderEligible && subtotal >= firstOrderMinimum && (
         <div className="mt-8 rounded-2xl border border-brand-deep/20 bg-brand-warm/40 p-4">
@@ -446,7 +470,7 @@ export default function CheckoutPage() {
         onConfirm={handlePay}
         address={selectedAddress}
         slot={selectedSlot}
-        notes={notes}
+        notes=""
         deliveryFee={deliveryFee}
         total={total}
         firstOrderDiscount={firstOrderApplied}
