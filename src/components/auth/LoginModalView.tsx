@@ -104,8 +104,11 @@ export function LoginModalView() {
         </div>
 
         <div className="-mt-2 flex justify-end">
+          {/* The modal is a full-screen overlay: it must be closed when this
+              link navigates, or the page loads hidden behind it. */}
           <Link
             href="/forgot-password"
+            onClick={close}
             className="text-xs font-medium text-brand-deep hover:underline"
           >
             Forgot password?
@@ -128,6 +131,7 @@ export function LoginModalView() {
         By logging in, you agree to our{" "}
         <Link
           href="/terms"
+          onClick={close}
           className="font-medium text-brand-deep hover:underline"
         >
           Terms of Service
@@ -135,6 +139,7 @@ export function LoginModalView() {
         and{" "}
         <Link
           href="/privacy"
+          onClick={close}
           className="font-medium text-brand-deep hover:underline"
         >
           Privacy Policy
