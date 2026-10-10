@@ -10,6 +10,7 @@ import { useAuthModalStore } from "@/store/authModalStore";
 import { LocationDropdown } from "@/components/LocationDropdown";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { MobileMenu } from "@/components/MobileMenu";
+import { useUiStore } from "@/store/uiStore";
 import { useState } from "react";
 
 const MINIMAL_HEADER_PATHS = ["/", "/merchants", "/riders"];
@@ -26,13 +27,20 @@ export function Header() {
   const openRegister = useAuthModalStore((s) => s.openRegister);
   const router = useRouter();
   const pathname = usePathname();
+  const city = useUiStore((s) => s.city);
   const [query, setQuery] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
 
+  // Marketplace-wide search: meals, groceries and supermarket items, in the
+  // city picked in the location dropdown.
+  // (Used to go to /products?q=…, which only covered the old product list.)
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (query.trim())
-      router.push(`/products?q=${encodeURIComponent(query.trim())}`);
+    const q = query.trim();
+    if (!q) return;
+    const params = new URLSearchParams({ q });
+    if (city) params.set("city", city);
+    router.push(`/search?${params.toString()}`);
   }
 
   // Landing-page header: logo + login only. Every other page keeps the full
@@ -164,7 +172,7 @@ export function Header() {
           <LocationDropdown />
         </div>
 
-        <form onSubmit={handleSearch} className="relative min-w-0 flex-1">
+        <form onSubmit={handleSearch} role="search" className="relative min-w-0 flex-1">
           <Search
             size={17}
             className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft"
@@ -172,7 +180,9 @@ export function Header() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search for rice, tomatoes, vendors…"
+            placeholder="Search meals, groceries, vendors…"
+            aria-label="Search meals, groceries and vendors"
+            maxLength={100}
             className="w-full rounded-full border border-line bg-bg-raised py-2.5 pl-9 pr-4 text-sm outline-none focus:border-brand"
           />
         </form>
