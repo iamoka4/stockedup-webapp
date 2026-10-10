@@ -6,6 +6,7 @@ import {
   type SearchProduct,
 } from "@/lib/api/products";
 import { SearchBar } from "@/components/search/SearchBar";
+import { SearchCitySync } from "@/components/search/SearchCitySync";
 import { SearchResultCard } from "@/components/search/SearchResultCard";
 import { DEFAULT_CITY } from "@/lib/config";
 import { cityLabel } from "@/lib/cities";
@@ -62,6 +63,7 @@ export default async function SearchPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
+      <SearchCitySync q={q} urlCity={first(sp.city).trim() || undefined} />
       <SearchBar defaultValue={q} city={first(sp.city).trim() || undefined} />
 
       {tooShort ? (
