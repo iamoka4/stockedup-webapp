@@ -3,7 +3,9 @@ import Link from "next/link";
 import { getCategories } from "@/lib/api/categories";
 import { getVendors } from "@/lib/api/vendors";
 import { getProducts } from "@/lib/api/products";
+import { getPromoSlides } from "@/lib/api/promo";
 import type { Product } from "@/lib/api/types";
+import type { PromoSlide } from "@/lib/api/promo";
 import { HomeSegmentTabs } from "@/components/home/HomeSegmentTabs";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { CategoryScroller } from "@/components/home/CategoryScroller";
@@ -28,20 +30,26 @@ const normalizeCity = (s: string) => s.toLowerCase().replace(/\s+/g, "");
 
 // App-style home: mirrors the mobile home screen section for section.
 export default async function HomePage() {
-  const [{ categories }, { vendors }, products] = await Promise.all([
-    getCategories().catch((err) => {
-      console.error("[home] getCategories failed:", err);
-      return { categories: [] };
-    }),
-    getVendors(DEFAULT_CITY).catch((err) => {
-      console.error("[home] getVendors failed:", err);
-      return { vendors: [] };
-    }),
-    getProducts({ city: DEFAULT_CITY }).catch((err) => {
-      console.error("[home] getProducts failed:", err);
-      return [] as Product[];
-    }),
-  ]);
+  const [{ categories }, { vendors }, products, promoSlides] =
+    await Promise.all([
+      getCategories().catch((err) => {
+        console.error("[home] getCategories failed:", err);
+        return { categories: [] };
+      }),
+      getVendors(DEFAULT_CITY).catch((err) => {
+        console.error("[home] getVendors failed:", err);
+        return { vendors: [] };
+      }),
+      getProducts({ city: DEFAULT_CITY }).catch((err) => {
+        console.error("[home] getProducts failed:", err);
+        return [] as Product[];
+      }),
+      // A promo failure must never break the grocery home: no banner instead.
+      getPromoSlides().catch((err) => {
+        console.error("[home] getPromoSlides failed:", err);
+        return [] as PromoSlide[];
+      }),
+    ]);
 
   // Only vendors in the default city. No fallback to "all vendors": if there
   // are none, the section says so instead of showing other cities.
@@ -54,9 +62,11 @@ export default async function HomePage() {
       <div className="mx-auto max-w-6xl px-4 py-6">
         <HomeSegmentTabs />
 
-        <div className="mt-6">
-          <PromoBanner />
-        </div>
+        {promoSlides.length > 0 && (
+          <div className="mt-6">
+            <PromoBanner slides={promoSlides} />
+          </div>
+        )}
 
         <section className="py-8">
           <div className="mb-4 flex items-center justify-between">
