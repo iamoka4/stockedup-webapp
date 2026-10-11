@@ -17,7 +17,7 @@ export default function VendorDashboardPage() {
 
   function handleLogout() {
     logout();
-    router.replace("/merchant/login");
+    router.replace("/merchants/login");
     router.refresh();
   }
 

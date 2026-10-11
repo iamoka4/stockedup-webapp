@@ -321,7 +321,7 @@ export function MerchantOS({
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
-                href="/merchant/register"
+                href="/merchants/register"
                 className="inline-flex rounded-full bg-brand px-7 py-3.5 font-bold text-white transition hover:bg-brand-deep"
               >
                 Become a Merchant
