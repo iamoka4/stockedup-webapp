@@ -116,7 +116,7 @@ export function RegisterForm() {
         agreeToTerms: true,
       });
       // Full navigation so every provider re-reads the new vendor session.
-      window.location.assign("/merchant/onboarding");
+      window.location.assign("/merchants/onboarding");
     } catch (err) {
       setFormError(errorMessage(err));
       setBusy(false);
@@ -192,7 +192,7 @@ export function RegisterForm() {
       footer={
         <>
           Already a merchant?{" "}
-          <Link href="/merchant/login" className="font-semibold text-brand-deep underline">
+          <Link href="/merchants/login" className="font-semibold text-brand-deep underline">
             Log in
           </Link>
         </>

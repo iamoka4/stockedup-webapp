@@ -27,7 +27,7 @@ export function OnboardingFlow() {
   useEffect(() => {
     if (session === "loading") return;
     if (session === "none") {
-      router.replace("/merchant/login");
+      router.replace("/merchants/login");
       return;
     }
 
@@ -45,7 +45,7 @@ export function OnboardingFlow() {
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-          router.replace("/merchant/login");
+          router.replace("/merchants/login");
           return;
         }
         setLoadError(errorMessage(err));

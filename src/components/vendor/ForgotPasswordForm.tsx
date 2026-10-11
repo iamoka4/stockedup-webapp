@@ -93,7 +93,7 @@ export function ForgotPasswordForm() {
   }
 
   const loginFooter = (
-    <Link href="/merchant/login" className="font-semibold text-brand-deep underline">
+    <Link href="/merchants/login" className="font-semibold text-brand-deep underline">
       Back to login
     </Link>
   );
@@ -105,7 +105,7 @@ export function ForgotPasswordForm() {
         subtitle="Your password has been reset and you've been signed out on all devices. Log in with your new password."
       >
         <Link
-          href="/merchant/login"
+          href="/merchants/login"
           className="inline-flex w-full items-center justify-center rounded-full bg-brand px-7 py-3.5 font-bold text-white transition hover:bg-brand-deep"
         >
           Go to login

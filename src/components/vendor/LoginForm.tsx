@@ -37,7 +37,7 @@ export function LoginForm() {
       footer={
         <>
           New to StockedUp?{" "}
-          <Link href="/merchant/register" className="font-semibold text-brand-deep underline">
+          <Link href="/merchants/register" className="font-semibold text-brand-deep underline">
             Become a Merchant
           </Link>
         </>
@@ -65,7 +65,7 @@ export function LoginForm() {
         </Field>
         <div className="text-right text-sm">
           <Link
-            href="/merchant/forgot-password"
+            href="/merchants/forgot-password"
             className="font-semibold text-brand-deep underline underline-offset-4"
           >
             Forgot password?

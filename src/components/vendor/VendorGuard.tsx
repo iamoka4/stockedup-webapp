@@ -10,8 +10,8 @@ import { errorMessage } from "./ui";
 /**
  * Client-side gate for /vendor/*. Real enforcement is in the PHP API
  * (authenticateRequest('vendor')); this only decides what the person sees.
- *   not logged in as a vendor -> /merchant/login
- *   profile/location unfinished -> /merchant/onboarding
+ *   not logged in as a vendor -> /merchants/login
+ *   profile/location unfinished -> /merchants/onboarding
  */
 export function VendorGuard({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -23,7 +23,7 @@ export function VendorGuard({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (session === "loading") return;
     if (session === "none") {
-      router.replace("/merchant/login");
+      router.replace("/merchants/login");
       return;
     }
 
@@ -32,7 +32,7 @@ export function VendorGuard({ children }: { children: ReactNode }) {
       .then((p) => {
         if (cancelled) return;
         if (!isOnboardingComplete(p)) {
-          router.replace("/merchant/onboarding");
+          router.replace("/merchants/onboarding");
           return;
         }
         setStatus("ok");
@@ -40,7 +40,7 @@ export function VendorGuard({ children }: { children: ReactNode }) {
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof ApiError && (err.status === 401 || err.status === 403)) {
-          router.replace("/merchant/login");
+          router.replace("/merchants/login");
           return;
         }
         setMessage(errorMessage(err));
