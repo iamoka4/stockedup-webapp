@@ -5,6 +5,11 @@ import { useState } from "react";
 import { vendorLogin } from "@/lib/api/auth";
 import { AuthShell, ErrorBanner, Field, PasswordInput, PrimaryButton, errorMessage } from "./ui";
 
+// Where a merchant lands after a successful login. Must be a route that exists
+// under src/app/merchants/. The vendor guard sends unfinished vendors on to
+// onboarding from here.
+const POST_LOGIN_PATH = "/merchants/dashboard";
+
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -13,6 +18,7 @@ export function LoginForm() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (busy) return;
     setError(null);
     if (!email.trim() || !password) {
       setError("Enter your email and password.");
@@ -22,8 +28,7 @@ export function LoginForm() {
     try {
       await vendorLogin(email.trim().toLowerCase(), password);
       // Full navigation so every provider re-reads the new vendor session.
-      // The vendor guard sends unfinished vendors on to onboarding.
-      window.location.assign("/vendor/dashboard");
+      window.location.assign(POST_LOGIN_PATH);
     } catch (err) {
       setError(errorMessage(err));
       setBusy(false);

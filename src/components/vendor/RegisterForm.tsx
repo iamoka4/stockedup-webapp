@@ -203,7 +203,7 @@ export function RegisterForm() {
 
         <fieldset>
           <legend className="mb-3 text-sm font-semibold">What are you selling?</legend>
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
             {BUSINESS_TYPE_OPTIONS.map((o) => {
               const selected = values.businessType === o.value;
               return (
@@ -212,7 +212,7 @@ export function RegisterForm() {
                   type="button"
                   aria-pressed={selected}
                   onClick={() => set("businessType", o.value)}
-                  className={`rounded-2xl border-2 px-3 py-4 text-sm font-bold transition ${
+                  className={`min-w-0 rounded-2xl border-2 px-1 py-4 text-xs font-bold transition sm:px-3 sm:text-sm ${
                     selected
                       ? "border-brand bg-brand text-white"
                       : "border-line bg-bg hover:border-brand"

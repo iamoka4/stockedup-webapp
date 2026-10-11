@@ -79,3 +79,27 @@ export function needsLocation(p: ShopProfile): boolean {
 export function isOnboardingComplete(p: ShopProfile): boolean {
   return isProfileComplete(p) && !needsLocation(p);
 }
+
+// ─── Dashboard metrics ───────────────────────────────────────────────────────
+
+export interface OrderMetric {
+  metrics?: {
+    totalOrders?: number;
+    totalSales?: number;
+    pendingOrders?: number;
+    acceptedOrders?: number;
+    enrouteOrders?: number;
+    declinedOrders?: number;
+    deliveredOrders?: number;
+  };
+  rating?: { avgRating?: number; totalReviews?: number };
+  orders?: Array<Record<string, unknown>>;
+}
+
+export async function getOrdersMetric(): Promise<OrderMetric> {
+  const res = await apiRequest<OrderMetric | { data?: OrderMetric }>("/get-the-vendor-orders.php");
+  // The backend wraps the payload as { status, message, data: { metrics, rating, orders } }.
+  // Unwrap it here in case apiRequest hands back the raw JSON body.
+  if (res && typeof res === "object" && "data" in res && res.data) return res.data;
+  return res as OrderMetric;
+}
