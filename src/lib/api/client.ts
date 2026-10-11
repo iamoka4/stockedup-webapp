@@ -25,7 +25,13 @@ interface RequestOptions {
 
 let refreshInFlight: Promise<boolean> | null = null;
 
-async function refreshAccessToken(): Promise<boolean> {
+/**
+ * Refreshes the access token using the stored refresh token. Concurrent
+ * callers share one in-flight request: refresh tokens rotate, so a second
+ * parallel refresh with the same token would be rejected as revoked.
+ * Exported so auth.ts's refreshSession() uses this same path.
+ */
+export async function refreshAccessToken(): Promise<boolean> {
   const refresh_token = tokenStore.getRefreshToken();
   if (!refresh_token) return false;
 
@@ -57,6 +63,27 @@ async function refreshAccessToken(): Promise<boolean> {
     })();
   }
   return refreshInFlight;
+}
+
+/** Parses the PHP envelope and returns `data`, or throws ApiError. */
+async function unwrap<T>(res: Response): Promise<T> {
+  let json: ApiEnvelope<T>;
+  try {
+    json = await res.json();
+  } catch {
+    throw new ApiError("Unexpected server response", res.status);
+  }
+
+  // Most endpoints send status as the string "success"/"error", but at
+  // least one (get-vendor-details.php) sends the raw PHP boolean true/false
+  // instead. Accept both rather than assuming a single convention holds
+  // across every file on the backend.
+  const isSuccess = json.status === "success" || (json.status as unknown) === true;
+  if (!isSuccess) {
+    throw new ApiError(json.message || "Request failed", res.status);
+  }
+
+  return json.data as T;
 }
 
 export async function apiRequest<T>(
@@ -91,23 +118,39 @@ export async function apiRequest<T>(
     tokenStore.clear();
   }
 
-  let json: ApiEnvelope<T>;
-  try {
-    json = await res.json();
-  } catch {
-    throw new ApiError("Unexpected server response", res.status);
+  return unwrap<T>(res);
+}
+
+/**
+ * multipart/form-data POST (profile images, product images, documents).
+ * Deliberately sets NO Content-Type header: the browser must add it itself
+ * with the multipart boundary. Same refresh-and-retry behaviour as apiRequest.
+ */
+export async function apiUpload<T>(
+  path: string,
+  form: FormData,
+  _isRetry = false
+): Promise<T> {
+  const accessToken = tokenStore.getAccessToken();
+  const headers: Record<string, string> = {};
+  if (accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
+
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers,
+    body: form,
+    cache: "no-store",
+  });
+
+  if (res.status === 401 && accessToken && !_isRetry) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      return apiUpload<T>(path, form, true);
+    }
+    tokenStore.clear();
   }
 
-  // Most endpoints send status as the string "success"/"error", but at
-  // least one (get-vendor-details.php) sends the raw PHP boolean true/false
-  // instead. Accept both rather than assuming a single convention holds
-  // across every file on the backend.
-  const isSuccess = json.status === "success" || (json.status as unknown) === true;
-  if (!isSuccess) {
-    throw new ApiError(json.message || "Request failed", res.status);
-  }
-
-  return json.data as T;
+  return unwrap<T>(res);
 }
 
 /** GET with query params appended, for public/SSR-safe calls (no auth needed). */

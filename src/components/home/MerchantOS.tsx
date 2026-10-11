@@ -319,12 +319,20 @@ export function MerchantOS({
               StockedUp gives businesses the tools they need to sell online,
               manage their operations and understand their customers.
             </p>
-            <Link
-              href="#how-to-register"
-              className="mt-8 inline-flex rounded-full bg-brand px-7 py-3.5 font-bold text-white transition hover:bg-brand-deep"
-            >
-              Quick guide to become a merchant
-            </Link>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/merchant/register"
+                className="inline-flex rounded-full bg-brand px-7 py-3.5 font-bold text-white transition hover:bg-brand-deep"
+              >
+                Become a Merchant
+              </Link>
+              <Link
+                href="#how-to-register"
+                className="inline-flex rounded-full border border-line bg-bg-raised px-7 py-3.5 font-bold text-ink transition hover:border-brand"
+              >
+                Quick guide to become a merchant
+              </Link>
+            </div>
           </div>
           <PhoneMocks />
         </div>

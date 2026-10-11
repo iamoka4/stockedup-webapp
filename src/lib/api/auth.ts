@@ -1,5 +1,4 @@
-import { apiRequest } from "./client";
-import { API_BASE_URL } from "@/lib/config";
+import { apiRequest, refreshAccessToken } from "./client";
 import { tokenStore } from "@/lib/auth/tokenStore";
 import { guestToken } from "@/lib/guestToken";
 import type { AuthUser } from "./types";
@@ -49,18 +48,55 @@ interface VendorLoginResponse {
 }
 
 /**
- * Vendor login only — there's no vendor web dashboard yet (customer-facing
- * PWA was the phase 1 priority), so this exists purely so the login link
- * mirrored from the mobile app isn't a dead end. It authenticates for real
- * against vendor-login.php and stores a valid session; what happens after
- * login is a "coming soon" message rather than a dashboard, until that
- * work is scoped.
+ * Vendor login. Authenticates against vendor-login.php and stores a vendor
+ * session (role "vendor"). After a successful login, callers should read the
+ * vendor's onboarding state and send them to /vendor/dashboard, or to the
+ * next incomplete onboarding step.
+ *
+ * The token store holds one session at a time, so logging in as a vendor
+ * replaces any buyer session in this browser (and vice versa). Someone who is
+ * both a customer and a vendor logs in again to switch.
  */
 export async function vendorLogin(email: string, password: string): Promise<AuthUser> {
   const data = await apiRequest<VendorLoginResponse>("/vendor-login.php", {
     method: "POST",
     skipAuth: true,
     body: { email, password },
+  });
+  tokenStore.set(data.token, data.refresh_token, "vendor");
+  return data.vendor;
+}
+
+interface VendorRegisterResponse {
+  token: string;
+  refresh_token: string;
+  vendor: AuthUser;
+}
+
+/**
+ * Creates a vendor account via vendor-register.php and logs the vendor in
+ * (the endpoint returns a token pair). Flow:
+ *   sendOtp(email, "signup", "vendor") -> verifyOtp(...) -> vendorRegister(...)
+ * Only call this after verifyOtp has succeeded: the server independently
+ * checks for a verified signup OTP for this email within the last 30 minutes.
+ */
+export async function vendorRegister(input: {
+  businessType: "grocery" | "restaurant" | "supermarket";
+  fullName: string;
+  email: string;
+  phone?: string;
+  businessName: string;
+  businessAddress: string;
+  city: string;
+  state: string;
+  password: string;
+  confirmPassword: string;
+  agreeToTerms: true;
+}): Promise<AuthUser> {
+  const data = await apiRequest<VendorRegisterResponse>("/vendor-register.php", {
+    method: "POST",
+    skipAuth: true,
+    body: { ...input, otp_verified: true },
   });
   tokenStore.set(data.token, data.refresh_token, "vendor");
   return data.vendor;
@@ -109,7 +145,19 @@ export function verifyOtp(
 }
 
 export function logout(): void {
+  // Capture the refresh token first, clear the local session immediately so
+  // the UI responds at once, then tell the server to delete this device's
+  // refresh token in the background. A network failure is ignored: the local
+  // session is already gone.
+  const refresh_token = tokenStore.getRefreshToken();
   tokenStore.clear();
+  if (refresh_token) {
+    apiRequest("/logout.php", {
+      method: "POST",
+      skipAuth: true,
+      body: { refresh_token },
+    }).catch(() => {});
+  }
   // Deliberately not clearing the guest token here — logging out should let
   // the person keep browsing/shopping as a guest without losing their cart.
 }
@@ -135,23 +183,12 @@ export function resetPassword(
   });
 }
 
-/** Direct fetch, not apiRequest, since there's no token to attach yet. */
+/**
+ * Delegates to the shared, de-duplicated refresh in client.ts. Refresh tokens
+ * rotate (the old one is revoked on use), so two overlapping refresh calls
+ * would make the second fail and log the user out. Everything must go
+ * through the single in-flight refresh.
+ */
 export async function refreshSession(): Promise<boolean> {
-  const refresh_token = tokenStore.getRefreshToken();
-  if (!refresh_token) return false;
-  const res = await fetch(`${API_BASE_URL}/refresh-token.php`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh_token }),
-  });
-  const json = await res.json();
-  if (json.status === "success" && json.data?.token) {
-    tokenStore.set(
-      json.data.token,
-      json.data.refresh_token,
-      json.data.user?.role === "vendor" ? "vendor" : "buyer"
-    );
-    return true;
-  }
-  return false;
+  return refreshAccessToken();
 }
