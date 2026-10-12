@@ -48,8 +48,6 @@ export default function AnalyticsReportPage() {
 
   const totalOrders = data?.total_orders ?? 0;
   const monthly = data?.monthlyData ?? [];
-  const topProducts = data?.top_products ?? [];
-  const recentOrders = data?.recent_orders ?? [];
   const maxRevenue = Math.max(...monthly.map((m) => m.revenue), 1);
   // The API returns all 12 months (Jan–Dec), so highlight the current month;
   // for any other length fall back to the last bar.
@@ -186,61 +184,6 @@ export default function AnalyticsReportPage() {
               )}
             </section>
 
-            {/* Top products */}
-            <section className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-base font-bold text-gray-800">Top Products</h2>
-              {topProducts.length === 0 ? (
-                <p className="py-6 text-center text-sm text-gray-400">
-                  No completed sales in this period yet.
-                </p>
-              ) : (
-                <ol className="divide-y divide-gray-100">
-                  {topProducts.map((p, i) => (
-                    <li key={p.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
-                      <span className="w-5 text-center text-sm font-bold text-gray-400">{i + 1}</span>
-                      <ProductThumb name={p.name} src={p.image_path} />
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-gray-900">{p.name}</p>
-                        <p className="text-xs text-gray-500">
-                          {p.units_sold} sold · {naira(p.price)} each
-                        </p>
-                      </div>
-                      <span className="shrink-0 text-sm font-bold text-gray-800">{naira(p.revenue)}</span>
-                    </li>
-                  ))}
-                </ol>
-              )}
-            </section>
-
-            {/* Recent orders */}
-            <section className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-base font-bold text-gray-800">Recent Orders</h2>
-              {recentOrders.length === 0 ? (
-                <p className="py-6 text-center text-sm text-gray-400">
-                  Completed, paid orders will show up here.
-                </p>
-              ) : (
-                <ul className="divide-y divide-gray-100">
-                  {recentOrders.map((o) => (
-                    <li key={o.order_id} className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-gray-900">
-                          {o.customer_name?.trim() || "Customer"}
-                        </p>
-                        <p className="truncate text-xs text-gray-500">
-                          #{o.order_uid} · {o.date}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-1">
-                        <span className="text-sm font-bold text-gray-800">{naira(o.subtotal)}</span>
-                        <StatusPill status={o.status} />
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
             {/* Orders breakdown */}
             <section className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
               <h2 className="mb-4 text-base font-bold text-gray-800">Orders Breakdown</h2>
@@ -370,43 +313,6 @@ function ProductStat({
       </span>
       <span className="text-xs text-gray-500">{label}</span>
     </div>
-  );
-}
-
-function ProductThumb({ name, src }: { name: string; src: string | null }) {
-  const [failed, setFailed] = useState(false);
-  // Only render absolute URLs; relative image_path values would 404 against
-  // the web app's own origin. See note: resolve with your API/media base URL.
-  const usable = !!src && /^https?:\/\//i.test(src) && !failed;
-  return usable ? (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src as string}
-      alt=""
-      onError={() => setFailed(true)}
-      className="size-11 shrink-0 rounded-lg bg-gray-100 object-cover"
-    />
-  ) : (
-    <span
-      aria-hidden
-      className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-brand/10 text-base font-bold text-brand"
-    >
-      {name.trim().charAt(0).toUpperCase() || "?"}
-    </span>
-  );
-}
-
-function StatusPill({ status }: { status: string }) {
-  const key = status.toLowerCase();
-  const done = key === "completed" || key === "delivered";
-  return (
-    <span
-      className={`rounded-full px-2 py-0.5 text-[11px] font-semibold capitalize ${
-        done ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"
-      }`}
-    >
-      {key}
-    </span>
   );
 }
 

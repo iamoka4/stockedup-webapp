@@ -133,26 +133,6 @@ export interface VendorAnalytics {
     in_stock?: number;
     out_of_stock?: number;
   };
-  top_products?: AnalyticsTopProduct[];
-  recent_orders?: AnalyticsRecentOrder[];
-}
-
-export interface AnalyticsTopProduct {
-  id: number;
-  name: string;
-  image_path: string | null;
-  price: number;
-  units_sold: number;
-  revenue: number;
-}
-
-export interface AnalyticsRecentOrder {
-  order_id: number;
-  order_uid: string;
-  subtotal: number;
-  status: string;
-  date: string; // already formatted, e.g. "Oct 12, 2026"
-  customer_name: string;
 }
 
 export function getVendorAnalytics(period: AnalyticsPeriod): Promise<VendorAnalytics> {
