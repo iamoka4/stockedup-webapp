@@ -11,6 +11,7 @@ import { LocationDropdown } from "@/components/LocationDropdown";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { MobileMenu } from "@/components/MobileMenu";
 import { useUiStore } from "@/store/uiStore";
+import { isMerchantPortalPath } from "@/lib/merchantPortal";
 import { useState } from "react";
 
 const MINIMAL_HEADER_PATHS = ["/", "/merchants", "/riders"];
@@ -42,6 +43,13 @@ export function Header() {
     if (city) params.set("city", city);
     router.push(`/search?${params.toString()}`);
   }
+
+  // Logged-in merchant pages (dashboard, orders, menu, onboarding…) are a
+  // vendor-facing app with their own bottom tab bar, so the public header
+  // is not shown there. The /merchants landing page and the merchant
+  // login / register / forgot-password pages keep it.
+  // This must stay AFTER all the hooks above.
+  if (isMerchantPortalPath(pathname)) return null;
 
   // Landing-page header: logo + login only. Every other page keeps the full
   // header (search, location, cart) so shopping and checkout stay reachable.
