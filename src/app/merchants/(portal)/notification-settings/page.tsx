@@ -70,7 +70,7 @@ function Switch({
       }`}
     >
       <span
-        className={`absolute left-0.5 top-0.5 size-[22px] rounded-full bg-white shadow transition-transform ${
+        className={`absolute left-0.5 top-0.5 size-5.5 rounded-full bg-white shadow transition-transform ${
           checked ? "translate-x-5" : "translate-x-0"
         }`}
       />
@@ -206,7 +206,7 @@ export default function MerchantNotificationSettingsPage() {
                       label={item.label}
                     />
                   </div>
-                  {idx < PREFERENCE_ROWS.length - 1 && <div className="ml-[52px] h-px bg-[#F0F0F0]" />}
+                  {idx < PREFERENCE_ROWS.length - 1 && <div className="ml-13 h-px bg-[#F0F0F0]" />}
                 </div>
               ))}
             </div>

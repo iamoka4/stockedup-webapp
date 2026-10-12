@@ -223,7 +223,7 @@ function AddonGroupsEditor({
           + Add Group
         </button>
       </div>
-      <p className="mt-1.5 text-xs leading-[17px] text-gray-400">
+      <p className="mt-1.5 text-xs leading-4.25 text-gray-400">
         Group extras customers choose from at checkout — e.g. &ldquo;Choose your protein&rdquo; or
         &ldquo;Add-ons&rdquo;. Each option can carry its own price.
       </p>
@@ -572,7 +572,7 @@ function ProductModal({
                   value={form.extras}
                   onChange={(e) => setForm((f) => ({ ...f, extras: e.target.value }))}
                 />
-                <p className="mt-1.5 text-xs leading-[17px] text-gray-400">
+                <p className="mt-1.5 text-xs leading-4.25 text-gray-400">
                   Free-text note shown on the item — for priced, selectable extras customers actually
                   add to their order, use Addon Groups below instead.
                 </p>
@@ -1100,7 +1100,7 @@ function ProductsView() {
                   <img
                     src={resolveImage(p.image)}
                     alt=""
-                    className="min-h-[110px] w-[100px] shrink-0 self-stretch bg-gray-100 object-cover"
+                    className="min-h-27.5 w-[100px] shrink-0 self-stretch bg-gray-100 object-cover"
                   />
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 p-3">
                     <div>

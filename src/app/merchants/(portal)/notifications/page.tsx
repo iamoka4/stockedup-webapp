@@ -92,7 +92,7 @@ function NotificationModal({
         <p className="mb-4 text-xs text-[#BDBDBD]">{timeAgo(item.created_at)}</p>
 
         <div className="mb-6 max-h-[220px] w-full overflow-y-auto">
-          <p className="whitespace-pre-line text-center text-sm leading-[22px] text-[#555]">
+          <p className="whitespace-pre-line text-center text-sm leading-5.5 text-[#555]">
             {item.body}
           </p>
         </div>
@@ -150,13 +150,13 @@ function NotificationRow({
       </span>
       <span className="min-w-0 flex-1">
         <span
-          className={`mb-[3px] block truncate text-sm ${
+          className={`mb-0.75 block truncate text-sm ${
             item.is_read ? "font-medium text-[#444]" : "font-bold text-[#1A1A2E]"
           }`}
         >
           {item.title}
         </span>
-        <span className="mb-[5px] line-clamp-2 block text-[13px] leading-[18px] text-[#777]">
+        <span className="mb-1.25 line-clamp-2 block text-[13px] leading-4.5 text-[#777]">
           {item.body}
         </span>
         <span className="block text-[11px] text-[#BDBDBD]">{timeAgo(item.created_at)}</span>
@@ -266,7 +266,7 @@ export default function MerchantNotificationsPage() {
           <div className="flex flex-1 items-center justify-center gap-2">
             <h1 className="text-xl font-bold text-white">Notifications</h1>
             {unreadCount > 0 && (
-              <span className="flex h-[22px] min-w-[22px] items-center justify-center rounded-full bg-[#FF3B30] px-[5px] text-xs font-bold text-white">
+              <span className="flex h-[22px] min-w-5.5 items-center justify-center rounded-full bg-[#FF3B30] px-1.25 text-xs font-bold text-white">
                 {unreadCount}
               </span>
             )}
@@ -310,7 +310,7 @@ export default function MerchantNotificationsPage() {
           <div className="mt-4 overflow-hidden rounded-2xl bg-white">
             {notifications.map((n, i) => (
               <div key={n.id}>
-                {i > 0 && <div className="ml-[72px] h-px bg-[#F0F0F0]" />}
+                {i > 0 && <div className="ml-18 h-px bg-[#F0F0F0]" />}
                 <NotificationRow item={n} onPress={handlePress} />
               </div>
             ))}

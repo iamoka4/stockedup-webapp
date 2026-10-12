@@ -8,6 +8,7 @@ import { getOrdersMetric, getShopProfile } from "@/lib/api/vendor";
 import { getUnreadNotificationCount } from "@/lib/api/notifications";
 import { errorMessage } from "@/components/vendor/ui";
 import { VendorIcon, type VendorIconName } from "@/components/vendor/icons";
+import { StoreStatusCard } from "@/components/vendor/StoreStatusCard";
 
 // Flip to true once src/app/merchants/(portal)/notifications/page.tsx exists.
 const NOTIFICATIONS_PAGE_READY = true;
@@ -280,14 +281,14 @@ export default function MerchantHomePage() {
         {ordersError && (
           <div
             role="alert"
-            className="mx-[15px] mt-[15px] rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="mx-3.75 mt-3.75 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           >
             {ordersError}
           </div>
         )}
 
         {/* ── Total Sales Card ── */}
-        <div className="m-[15px] rounded-[20px] bg-brand p-5 shadow-[0_4px_12px_rgba(255,122,0,0.3)]">
+        <div className="m-3.75 rounded-[20px] bg-brand p-5 shadow-[0_4px_12px_rgba(255,122,0,0.3)]">
           <div className="mb-5 flex items-start justify-between">
             <div>
               <p className="mb-2 text-sm text-white/80">Total Sales</p>
@@ -313,7 +314,7 @@ export default function MerchantHomePage() {
         </div>
 
         {/* ── Stats Grid ── */}
-        <div className="grid grid-cols-2 gap-3 px-[15px]">
+        <div className="grid grid-cols-2 gap-3 px-3.75">
           <StatCard icon="clipboard" color="#FF7A00" value={metrics?.totalOrders ?? 0} label="Total Orders" />
           <StatCard icon="clock" color="#FF9500" value={metrics?.pendingOrders ?? 0} label="Pending" />
           <StatCard icon="package" color="#FF3B30" value={metrics?.declinedOrders ?? 0} label="Declined" />
@@ -326,16 +327,17 @@ export default function MerchantHomePage() {
           />
         </div>
 
-        {/* Store Status card (restaurants/supermarkets only) goes here once ported. */}
+        {/* ── Store Status (restaurant/supermarket only — hides itself for grocery) ── */}
+        <StoreStatusCard />
 
         {/* ── Quick Actions ── */}
-        <div className="mt-6 px-[15px]">
+        <div className="mt-6 px-3.75">
           <h2 className="mb-4 text-lg font-bold text-[#222]">Quick Actions</h2>
           <div className="grid grid-cols-4 gap-2">
             {QUICK_ACTIONS.map((a) => {
               const body = (
                 <>
-                  <span className="flex size-[68px] items-center justify-center rounded-full bg-brand/10 text-brand sm:size-20">
+                  <span className="flex size-17 items-center justify-center rounded-full bg-brand/10 text-brand sm:size-20">
                     <VendorIcon name={a.icon} className="size-8 sm:size-9" strokeWidth={1.7} />
                   </span>
                   <span className="mt-2.5 text-center text-[13px] font-bold leading-tight text-[#222] sm:text-sm">
@@ -359,7 +361,7 @@ export default function MerchantHomePage() {
         </div>
 
         {/* ── Recent Orders ── */}
-        <div className="mt-6 px-[15px]">
+        <div className="mt-6 px-3.75">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-lg font-bold text-[#222]">Recent Orders</h2>
             <Link href="/merchants/orders" className="text-sm font-semibold text-brand">
@@ -374,7 +376,7 @@ export default function MerchantHomePage() {
           ) : orders.length === 0 ? (
             <div className="flex flex-col items-center rounded-2xl border border-[#e0e0e0] bg-white p-10 text-center">
               <span className="text-[#ddd]">
-                <VendorIcon name="packageEmpty" className="size-[60px]" strokeWidth={1.4} />
+                <VendorIcon name="packageEmpty" className="size-15" strokeWidth={1.4} />
               </span>
               <p className="mt-4 text-lg font-semibold text-[#333]">No Orders Yet</p>
               <p className="mt-2 text-sm text-[#999]">
@@ -388,7 +390,7 @@ export default function MerchantHomePage() {
 
         {/* ── Upcoming Scheduled Orders ── */}
         {hasSchedulingSupport && (
-          <div className="mt-6 px-[15px]">
+          <div className="mt-6 px-3.75">
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-lg font-bold text-[#222]">Upcoming Scheduled Orders</h2>
               <Link href="/merchants/orders?tab=Scheduled" className="text-sm font-semibold text-brand">

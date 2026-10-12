@@ -257,10 +257,10 @@ function OrderCard({
                     <img
                       src={image}
                       alt=""
-                      className="size-[50px] shrink-0 rounded-lg bg-gray-200 object-cover"
+                      className="size-12.5 shrink-0 rounded-lg bg-gray-200 object-cover"
                     />
                   ) : (
-                    <span className="flex size-[50px] shrink-0 items-center justify-center rounded-lg bg-gray-100 text-lg">
+                    <span className="flex size-12.5 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-lg">
                       🛍️
                     </span>
                   )}
@@ -272,7 +272,7 @@ function OrderCard({
                 </div>
 
                 {addons.length > 0 && (
-                  <div className="ml-[62px] mt-1.5 space-y-1 rounded-lg bg-[#FFF8F0] p-2">
+                  <div className="ml-15.5 mt-1.5 space-y-1 rounded-lg bg-[#FFF8F0] p-2">
                     {addons.map((a, aIdx) => (
                       <div key={aIdx} className="flex justify-between gap-2 text-xs text-[#8A5A00]">
                         <span className="flex-1 truncate">
@@ -285,7 +285,7 @@ function OrderCard({
                 )}
 
                 {prod.special_request && (
-                  <p className="ml-[62px] mt-1.5 text-xs italic text-gray-600">
+                  <p className="ml-15.5 mt-1.5 text-xs italic text-gray-600">
                     📝 &ldquo;{prod.special_request}&rdquo;
                   </p>
                 )}

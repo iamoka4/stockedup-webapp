@@ -150,7 +150,7 @@ export default function WalletPage() {
       )}
 
       {/* Main balance card */}
-      <div className="mt-5 rounded-[20px] bg-brand p-[22px] text-white shadow-lg">
+      <div className="mt-5 rounded-[20px] bg-brand p-5.5 text-white shadow-lg">
         <div className="mb-5 flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
             <p className="mb-1.5 text-[13px] font-semibold text-white/75">Available Balance</p>
@@ -164,11 +164,11 @@ export default function WalletPage() {
                 aria-label={balanceVisible ? "Hide balance" : "Show balance"}
                 className="p-1 text-white/80"
               >
-                <WalletIcon name={balanceVisible ? "eye" : "eye-off"} className="size-[18px]" />
+                <WalletIcon name={balanceVisible ? "eye" : "eye-off"} className="size-4.5" />
               </button>
             </div>
           </div>
-          <span className="flex size-[52px] shrink-0 items-center justify-center rounded-full bg-white/15 text-white/60">
+          <span className="flex size-13 shrink-0 items-center justify-center rounded-full bg-white/15 text-white/60">
             <WalletIcon name="credit-card" className="size-7" />
           </span>
         </div>
@@ -197,8 +197,8 @@ export default function WalletPage() {
         </div>
 
         {/* Bank account info */}
-        <div className="mb-[18px] flex items-center gap-1.5 text-xs font-medium text-white/75">
-          <WalletIcon name="briefcase" className="size-[13px]" />
+        <div className="mb-4.5 flex items-center gap-1.5 text-xs font-medium text-white/75">
+          <WalletIcon name="briefcase" className="size-3.25" />
           <span>
             {hasBankAccount
               ? `${bank?.bank_name}  •  ${bank?.account_number}`
@@ -213,7 +213,7 @@ export default function WalletPage() {
               href="/merchants/wallet/withdraw"
               className={`${actionBtn} border border-white/30 bg-white/25 text-white`}
             >
-              <WalletIcon name="upload" className="size-[15px]" />
+              <WalletIcon name="upload" className="size-3.75" />
               Withdraw
             </Link>
           ) : (
@@ -221,7 +221,7 @@ export default function WalletPage() {
               aria-disabled
               className={`${actionBtn} cursor-not-allowed border border-white/30 bg-white/25 text-white opacity-50`}
             >
-              <WalletIcon name="upload" className="size-[15px]" />
+              <WalletIcon name="upload" className="size-3.75" />
               Withdraw
             </span>
           )}
@@ -229,7 +229,7 @@ export default function WalletPage() {
             href="/merchants/wallet/bank-account"
             className={`${actionBtn} bg-white text-brand-deep`}
           >
-            <WalletIcon name="plus-circle" className="size-[15px]" />
+            <WalletIcon name="plus-circle" className="size-3.75" />
             {hasBankAccount ? "Update Bank" : "Add Bank"}
           </Link>
         </div>
@@ -274,7 +274,7 @@ export default function WalletPage() {
                         isCredit ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
                       }`}
                     >
-                      <WalletIcon name={isCredit ? "arrow-down-left" : "arrow-up-right"} className="size-[18px]" />
+                      <WalletIcon name={isCredit ? "arrow-down-left" : "arrow-up-right"} className="size-4.5" />
                     </span>
                     <div className="min-w-0 flex-1">
                       <p className="mb-0.5 truncate text-sm font-semibold text-gray-900">{item.description}</p>

@@ -12,7 +12,7 @@ const generateIdempotencyKey = () =>
 function Banner({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-100 p-3 text-[13px] font-semibold text-amber-800">
-      <WalletIcon name="alert-triangle" className="size-[15px] shrink-0" />
+      <WalletIcon name="alert-triangle" className="size-3.75 shrink-0" />
       <span className="flex-1">{children}</span>
     </div>
   );
@@ -79,7 +79,7 @@ export default function WithdrawPage() {
             <WalletIcon name="check-circle" className="size-14" />
           </span>
           <h2 className="text-2xl font-extrabold text-gray-900">Withdrawal Initiated!</h2>
-          <p className="max-w-sm text-sm leading-[21px] text-gray-500">
+          <p className="max-w-sm text-sm leading-5.25 text-gray-500">
             Your withdrawal of {formatAmount(numericAmount)} has been submitted successfully. Funds
             will arrive in your bank account within the next 24 hours.
           </p>
@@ -184,8 +184,8 @@ export default function WithdrawPage() {
 
           {/* Info */}
           <div className="flex items-start gap-2.5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-blue-700">
-            <WalletIcon name="info" className="mt-0.5 size-[15px] shrink-0 text-blue-500" />
-            <p className="flex-1 text-[13px] leading-[19px]">
+            <WalletIcon name="info" className="mt-0.5 size-3.75 shrink-0 text-blue-500" />
+            <p className="flex-1 text-[13px] leading-4.75">
               Withdrawals are processed within the next 24 hours. Minimum withdrawal is ₦100. A
               transfer fee applies.
             </p>
@@ -219,7 +219,7 @@ export default function WithdrawPage() {
               "Processing…"
             ) : (
               <>
-                <WalletIcon name="upload" className="size-[18px]" />
+                <WalletIcon name="upload" className="size-4.5" />
                 Withdraw {canWithdraw ? formatAmount(numericAmount) : ""}
               </>
             )}

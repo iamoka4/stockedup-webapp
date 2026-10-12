@@ -60,7 +60,7 @@ export default function WalletSettingsPage() {
                   <span className="mb-0.5 block text-[15px] font-bold text-gray-900">{item.title}</span>
                   <span className="block text-xs text-gray-400">{item.subtitle}</span>
                 </span>
-                <WalletIcon name="chevron-right" className="size-[18px] text-gray-300" />
+                <WalletIcon name="chevron-right" className="size-4.5 text-gray-300" />
               </Link>
             ))}
           </div>

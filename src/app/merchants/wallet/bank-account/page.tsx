@@ -205,14 +205,14 @@ export default function BankAccountPage() {
           {hasPendingRequest && pendingRequest && (
             <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
               <div className="flex items-start gap-3">
-                <span className="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
                   <WalletIcon name="clock" />
                 </span>
                 <div className="flex-1">
                   <p className="text-sm font-extrabold text-amber-800">
                     {justSubmitted ? "Submitted for review" : "Awaiting review"}
                   </p>
-                  <p className="mt-0.5 text-xs leading-[17px] text-amber-700">
+                  <p className="mt-0.5 text-xs leading-4.25 text-amber-700">
                     Your current bank account below stays active until this is approved
                   </p>
                 </div>
@@ -229,7 +229,7 @@ export default function BankAccountPage() {
             <div className="space-y-3 rounded-2xl border border-green-200 bg-white p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex size-[42px] shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
+                  <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
                     <WalletIcon name="briefcase" />
                   </span>
                   <div>
@@ -238,7 +238,7 @@ export default function BankAccountPage() {
                   </div>
                 </div>
                 <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-[11px] font-bold text-green-700">
-                  <WalletIcon name="check" className="size-[11px]" />
+                  <WalletIcon name="check" className="size-2.75" />
                   Verified
                 </span>
               </div>
@@ -266,7 +266,7 @@ export default function BankAccountPage() {
               <h2 className="text-base font-extrabold text-gray-900">
                 {hasSavedAccount ? "Update Bank Account" : "Add Bank Account"}
               </h2>
-              <p className="text-[13px] leading-[19px] text-gray-500">
+              <p className="text-[13px] leading-4.75 text-gray-500">
                 Select your bank and enter your account number. Your account name will be verified
                 automatically.
                 {hasSavedAccount
@@ -280,7 +280,7 @@ export default function BankAccountPage() {
                 <button
                   type="button"
                   onClick={() => setBankModalOpen(true)}
-                  className={`${inputCls} relative flex min-h-[50px] items-center pr-10 text-left`}
+                  className={`${inputCls} relative flex min-h-12.5 items-center pr-10 text-left`}
                 >
                   <span className={`truncate ${bankName ? "text-gray-900" : "text-gray-400"}`}>
                     {bankName || "Select a bank..."}
@@ -304,11 +304,11 @@ export default function BankAccountPage() {
                   {resolving && (
                     <span
                       aria-label="Verifying"
-                      className="absolute right-3.5 top-3.5 size-[18px] animate-spin rounded-full border-2 border-brand border-t-transparent"
+                      className="absolute right-3.5 top-3.5 size-4.5 animate-spin rounded-full border-2 border-brand border-t-transparent"
                     />
                   )}
                   {resolved && !resolving && (
-                    <WalletIcon name="check-circle" className="absolute right-3.5 top-3.5 size-[18px] text-green-600" />
+                    <WalletIcon name="check-circle" className="absolute right-3.5 top-3.5 size-4.5 text-green-600" />
                   )}
                 </div>
                 {resolveError && <p className="mt-1.5 text-xs font-medium text-red-600">{resolveError}</p>}
@@ -318,7 +318,7 @@ export default function BankAccountPage() {
               <div>
                 <label className={labelCls}>Account Name</label>
                 <div
-                  className={`${inputCls} flex min-h-[50px] items-center ${
+                  className={`${inputCls} flex min-h-12.5 items-center ${
                     resolved ? "border-green-200 bg-green-50" : ""
                   }`}
                 >
@@ -336,8 +336,8 @@ export default function BankAccountPage() {
 
               {/* Info */}
               <div className="flex items-start gap-2.5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-blue-700">
-                <WalletIcon name="shield" className="mt-0.5 size-[15px] shrink-0 text-blue-500" />
-                <p className="flex-1 text-[13px] leading-[19px]">
+                <WalletIcon name="shield" className="mt-0.5 size-3.75 shrink-0 text-blue-500" />
+                <p className="flex-1 text-[13px] leading-4.75">
                   Your account details are verified securely with Paystack, then reviewed before
                   becoming active — this protects your payouts if your account is ever compromised.
                 </p>
@@ -353,7 +353,7 @@ export default function BankAccountPage() {
                   "Submitting…"
                 ) : (
                   <>
-                    <WalletIcon name="save" className="size-[18px]" />
+                    <WalletIcon name="save" className="size-4.5" />
                     {hasSavedAccount ? "Submit for Review" : "Submit Bank Account"}
                   </>
                 )}
@@ -417,7 +417,7 @@ export default function BankAccountPage() {
             </div>
 
             <div className="m-4 flex shrink-0 items-center rounded-xl border border-gray-200 bg-gray-100 px-3">
-              <WalletIcon name="search" className="mr-2 size-[18px] text-gray-400" />
+              <WalletIcon name="search" className="mr-2 size-4.5 text-gray-400" />
               <input
                 autoFocus
                 className="h-12 min-w-0 flex-1 bg-transparent text-[15px] text-gray-900 outline-none placeholder:text-gray-400"
@@ -451,7 +451,7 @@ export default function BankAccountPage() {
                         {item.label}
                       </span>
                       {bankCode === item.value && (
-                        <WalletIcon name="check" className="size-[18px] text-brand-deep" />
+                        <WalletIcon name="check" className="size-4.5 text-brand-deep" />
                       )}
                     </button>
                   </li>
