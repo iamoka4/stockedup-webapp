@@ -110,7 +110,7 @@ export default function MerchantMenuPage() {
           title: "Analytics & Reports",
           subtitle: "View sales performance insights",
           href: "/merchants/analytics",
-          ready: false,
+          ready: true,
         },
         {
           id: "referral-analytics",
@@ -118,7 +118,7 @@ export default function MerchantMenuPage() {
           title: "Referral Analytics",
           subtitle: "Track referrals and rewards performance",
           href: "/merchants/referrals",
-          ready: false,
+          ready: true,
         },
         {
           id: "shop-location",

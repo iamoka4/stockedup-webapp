@@ -8,6 +8,9 @@ import { apiGet, apiRequest, apiUpload } from "./client";
  */
 export const UPDATE_LOCATION_PATH = "/update-vendor-location.php";
 
+/** GET get-vendor-analytics.php?period=1|7|30|all */
+export const ANALYTICS_PATH = "/get-vendor-analytics.php";
+
 export interface ShopProfile {
   business_name?: string | null;
   shop_name?: string | null;
@@ -106,6 +109,98 @@ export async function getOrdersMetric(): Promise<OrderMetric> {
   // Unwrap it here in case apiRequest hands back the raw JSON body.
   if (res && typeof res === "object" && "data" in res && res.data) return res.data;
   return res as OrderMetric;
+}
+
+// ─── Analytics & reports ─────────────────────────────────────────────────────
+
+// "1" = Today, "7" = This Week, "30" = This Month, "all" = no date filter
+export type AnalyticsPeriod = "1" | "7" | "30" | "all";
+
+export interface VendorAnalytics {
+  totalRevenue?: number;
+  total_orders?: number;
+  paid_orders?: number;
+  pending_orders?: number;
+  completed_orders?: number;
+  rejected_orders?: number;
+  average_order_value?: number | string;
+  acceptance_rate?: number | string;
+  pendingRevenue?: number;
+  customers?: number;
+  monthlyData?: Array<{ month: string; revenue: number; order_count?: number }>;
+  product_overview?: {
+    total_products?: number;
+    in_stock?: number;
+    out_of_stock?: number;
+  };
+  top_products?: AnalyticsTopProduct[];
+  recent_orders?: AnalyticsRecentOrder[];
+}
+
+export interface AnalyticsTopProduct {
+  id: number;
+  name: string;
+  image_path: string | null;
+  price: number;
+  units_sold: number;
+  revenue: number;
+}
+
+export interface AnalyticsRecentOrder {
+  order_id: number;
+  order_uid: string;
+  subtotal: number;
+  status: string;
+  date: string; // already formatted, e.g. "Oct 12, 2026"
+  customer_name: string;
+}
+
+export function getVendorAnalytics(period: AnalyticsPeriod): Promise<VendorAnalytics> {
+  return apiGet<VendorAnalytics>(ANALYTICS_PATH, { period });
+}
+
+// ─── Referrals ───────────────────────────────────────────────────────────────
+
+export interface ReferralFunnel {
+  total_qr_scans: number;
+  total_referral_link_clicks: number;
+  new_customers_acquired: number;
+  first_orders: number;
+  repeat_orders: number;
+  total_revenue: number;
+}
+
+export interface ReferralConversionRates {
+  scan_or_click_to_signup_pct: number;
+  signup_to_first_order_pct: number;
+}
+
+export interface ReferralSourceBreakdown {
+  source: string;
+  event_type: "qr_scan" | "link_click";
+  count: number;
+}
+
+export interface ReferralAnalytics {
+  funnel: ReferralFunnel;
+  conversion_rates: ReferralConversionRates;
+  by_source: ReferralSourceBreakdown[];
+}
+
+export interface ReferralInfo {
+  referral_code: string;
+  referral_link: string;
+  qr_code_url: string;
+  generated: boolean;
+}
+
+export function getReferralAnalytics(): Promise<ReferralAnalytics> {
+  return apiRequest<ReferralAnalytics>("/get-referral-analytics.php");
+}
+
+/** Returns the vendor's existing referral link/QR, generating one on first call. */
+export function generateReferral(): Promise<ReferralInfo> {
+  return apiRequest<ReferralInfo>("/generate-referral.php", { method: "POST" });
 }
 
 // ─── Order status (accept / reject) ──────────────────────────────────────────
