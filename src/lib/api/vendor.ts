@@ -103,3 +103,30 @@ export async function getOrdersMetric(): Promise<OrderMetric> {
   if (res && typeof res === "object" && "data" in res && res.data) return res.data;
   return res as OrderMetric;
 }
+
+// ─── Order status (accept / reject) ──────────────────────────────────────────
+
+export type OrderStatus = "pending" | "accepted" | "rejected" | "enroute" | "completed";
+
+/**
+ * Mirrors the mobile useUpdateOrderStatus hook (POST /update-order-status.php).
+ * The vendor only accepts or rejects; later statuses come from the rider app.
+ * apiRequest already unwraps the { status, message, data } envelope and throws
+ * ApiError (with the backend's message) when status isn't "success".
+ */
+export function updateOrderStatus(payload: {
+  orderId: number;
+  vendorOrderId?: number;
+  status: OrderStatus;
+  rejectionReason?: string;
+}): Promise<unknown> {
+  return apiRequest<unknown>("/update-order-status.php", {
+    method: "POST",
+    body: {
+      order_id: payload.orderId,
+      vendor_order_id: payload.vendorOrderId,
+      status: payload.status.toLowerCase(),
+      rejection_reason: payload.rejectionReason ?? null,
+    },
+  });
+}

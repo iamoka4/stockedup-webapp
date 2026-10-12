@@ -93,7 +93,7 @@ export default function MerchantMenuPage() {
           subtitle: "Track and fulfill customer orders",
           badge: pending > 0 ? `${pending} New` : null,
           badgeClass: "bg-red-500",
-          href: "/merchants/orders",
+          href: "/merchants/order-management",
           ready: true,
         },
         {

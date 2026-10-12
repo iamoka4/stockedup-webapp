@@ -44,6 +44,13 @@ type Order = {
 
 const naira = (n: number) => `₦${(n ?? 0).toLocaleString("en-NG")}`;
 
+// Relative image paths from the backend need the site origin (same as mobile).
+function resolveImage(src?: string) {
+  if (!src) return "";
+  if (src.startsWith("http")) return src;
+  return `https://stockedup.africa/${src.startsWith("/") ? src.slice(1) : src}`;
+}
+
 function statusInfo(status: string) {
   switch (status?.toLowerCase()) {
     case "pending":
@@ -117,7 +124,7 @@ function OrderCard({ order }: { order: Order }) {
           <div className="space-y-3">
             {items.map((prod, i) => {
               const name = prod.name || prod.product_name || `Product #${prod.product_id}`;
-              const image = prod.image_url || prod.image;
+              const image = resolveImage(prod.image_url || prod.image);
               const addons = prod.addons ?? [];
               return (
                 <div key={i}>
