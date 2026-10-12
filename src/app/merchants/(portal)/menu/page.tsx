@@ -157,7 +157,7 @@ export default function MerchantMenuPage() {
           title: "Notification Settings",
           subtitle: "Manage your push notifications",
           href: "/merchants/notification-settings",
-          ready: false,
+          ready: true,
         },
       ],
     },

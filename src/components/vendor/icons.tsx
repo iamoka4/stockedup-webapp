@@ -18,7 +18,7 @@ const PATHS = {
   ),
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
 
-  // Menu screen
+  // Menu, home and notifications screens
   wallet: (
     <>
       <rect x="3" y="6" width="18" height="14" rx="2" />
@@ -37,10 +37,29 @@ const PATHS = {
       <path d="M3 8l9 5 9-5M12 13v8" />
     </>
   ),
+  packagePlus: (
+    <>
+      <path d="M20 11V8l-8-5-8 5v8l8 5 3-1.9" />
+      <path d="M4 8l8 5 8-5M12 13v8" />
+      <path d="M19 15v6M16 18h6" />
+    </>
+  ),
+  packageEmpty: (
+    <>
+      <path d="M21 8l-9-5-9 5v8l9 5 9-5z" />
+      <path d="M3 8l9 5 9-5" />
+    </>
+  ),
   clipboard: (
     <>
       <rect x="5" y="4" width="14" height="17" rx="2" />
       <path d="M9 4h6v3H9zM9 12h6M9 16h6" />
+    </>
+  ),
+  receipt: (
+    <>
+      <path d="M6 2h12v20l-3-2-3 2-3-2-3 2z" />
+      <path d="M9 7h6M9 11h6" />
     </>
   ),
   calendar: (
@@ -49,7 +68,22 @@ const PATHS = {
       <path d="M3 10h18M8 3v4M16 3v4" />
     </>
   ),
+  clock: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </>
+  ),
+  trending: <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />,
   chart: <path d="M4 20V10M10 20V4M16 20v-8M22 20H2" />,
+  barChart: (
+    <>
+      <path d="M3 21h18" />
+      <rect x="5" y="14" width="3" height="7" rx="0.6" />
+      <rect x="10.5" y="9" width="3" height="12" rx="0.6" />
+      <rect x="16" y="4" width="3" height="17" rx="0.6" />
+    </>
+  ),
   people: (
     <>
       <circle cx="9" cy="8" r="3.5" />
@@ -70,6 +104,28 @@ const PATHS = {
     </>
   ),
   bell: <path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4zM10 21h4" />,
+  bellOff: <path d="M6 16v-5a6 6 0 0 1 9-5.2M18 11v5l2 2H6M10 21h4M3 3l18 18" />,
+  tag: (
+    <>
+      <path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" />
+      <circle cx="7.5" cy="7.5" r="1.5" />
+    </>
+  ),
+  bagPlus: (
+    <>
+      <path d="M5 8h14l-1 13H6z" />
+      <path d="M9 8a3 3 0 0 1 6 0M12 12v5M9.5 14.5h5" />
+    </>
+  ),
+  cart: (
+    <>
+      <circle cx="9" cy="20" r="1.5" />
+      <circle cx="18" cy="20" r="1.5" />
+      <path d="M2 3h3l2.7 12.4a1 1 0 0 0 1 .8h9.3a1 1 0 0 0 1-.8L21 7H6" />
+    </>
+  ),
+  arrowLeft: <path d="M19 12H5M11 6l-6 6 6 6" />,
+  arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
   logout: (
     <>
       <path d="M9 4H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h4" />
@@ -85,16 +141,19 @@ export function VendorIcon({
   name,
   className = "size-6",
   strokeWidth = 1.9,
+  fill = false,
 }: {
   name: VendorIconName;
   className?: string;
   strokeWidth?: number;
+  /** Solid version of the symbol (e.g. the filled bell when there are unread notifications). */
+  fill?: boolean;
 }) {
   return (
     <svg
       viewBox="0 0 24 24"
       className={className}
-      fill="none"
+      fill={fill ? "currentColor" : "none"}
       stroke="currentColor"
       strokeWidth={strokeWidth}
       strokeLinecap="round"
