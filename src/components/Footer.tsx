@@ -98,7 +98,8 @@ function FooterColumn({
 const LINK = "transition-colors hover:text-white";
 
 const COLUMNS = [
-  { id: "footer-shop", label: "Shop", order: 1, links: [
+    { id: "footer-shop", label: "Shop", order: 1, links: [
+    ["Home", "/"],
     ["Food", R.food], ["Groceries", R.groceries],
     ["Supermarkets", R.supermarkets], ["Local Shops", R.shops],
   ]},
