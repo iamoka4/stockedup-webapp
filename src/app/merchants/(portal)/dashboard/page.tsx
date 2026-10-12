@@ -59,7 +59,7 @@ function getStatusColor(status?: string) {
 
 // Same four actions as mobile. Only routes that exist are clickable; the rest show "Soon".
 const QUICK_ACTIONS: { icon: VendorIconName; title: string; href: string; ready: boolean }[] = [
-  { icon: "packagePlus", title: "Add Product", href: "/merchants/products?openAdd=true", ready: false },
+  { icon: "packagePlus", title: "Add Product", href: "/merchants/products?openAdd=true", ready: true },
   { icon: "receipt", title: "Orders", href: "/merchants/orders", ready: true },
   { icon: "barChart", title: "Analytics", href: "/merchants/analytics", ready: false },
   { icon: "wallet", title: "Wallet", href: "/merchants/wallet", ready: false },
