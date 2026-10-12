@@ -44,7 +44,7 @@ const SoonBadge = () => (
     title="Coming soon"
     className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-500"
   >
-    Change · Soon
+    Contact support
   </span>
 );
 
