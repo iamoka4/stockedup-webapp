@@ -10,13 +10,21 @@ type Tab = {
   icon: VendorIconName;
   // Set to true as each page gets built. Unbuilt tabs show greyed out instead of 404ing.
   ready: boolean;
+  // Other routes that should keep this tab highlighted.
+  alsoActive?: string[];
 };
 
 // Same four tabs, order and symbols as the mobile vendor app:
 // Home, Shop, Orders, Menu.
 const TABS: Tab[] = [
   { label: "Home", href: "/merchants/dashboard", icon: "home", ready: true },
-  { label: "Shop", href: "/merchants/shop-profile", icon: "shop", ready: true },
+  {
+    label: "Shop",
+    href: "/merchants/shop",
+    icon: "shop",
+    ready: true,
+    alsoActive: ["/merchants/shop-profile"],
+  },
   { label: "Orders", href: "/merchants/orders", icon: "orders", ready: true },
   { label: "Menu", href: "/merchants/menu", icon: "menu", ready: true },
 ];
@@ -32,7 +40,9 @@ export function VendorBottomNav() {
     >
       <ul className="mx-auto grid max-w-2xl grid-cols-4">
         {TABS.map((tab) => {
-          const focused = pathname === tab.href || pathname.startsWith(tab.href + "/");
+          const focused = [tab.href, ...(tab.alsoActive ?? [])].some(
+            (p) => pathname === p || pathname.startsWith(p + "/")
+          );
 
           const inner = (
             <>

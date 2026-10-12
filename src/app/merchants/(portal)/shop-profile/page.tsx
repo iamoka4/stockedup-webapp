@@ -42,14 +42,14 @@ export default function ShopProfilePage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6 px-4 py-6">
+    <div className="mx-auto max-w-2xl space-y-6 px-4 pb-28 pt-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold">Shop profile</h1>
+        <h1 className="font-display text-2xl font-bold">Edit shop</h1>
         <Link
-          href="/merchants/dashboard"
+          href="/merchants/shop"
           className="text-sm font-semibold text-brand-deep underline underline-offset-4"
         >
-          Back to dashboard
+          Back to shop
         </Link>
       </div>
 
