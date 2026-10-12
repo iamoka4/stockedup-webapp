@@ -58,7 +58,7 @@ export default function MerchantMenuPage() {
           title: "Wallet",
           subtitle: "View balance and transactions",
           href: "/merchants/wallet",
-          ready: false,
+          ready: true,
         },
       ],
     },

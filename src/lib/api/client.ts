@@ -15,6 +15,8 @@ export class ApiError extends Error {
 interface RequestOptions {
   method?: "GET" | "POST";
   body?: unknown;
+  /** Extra request headers (e.g. Idempotency-Key). Applied last, so they win over the defaults. */
+  headers?: Record<string, string>;
   /** Attach Authorization if logged in, else X-Guest-Token. Used by cart endpoints. */
   withIdentity?: boolean;
   /** Attach Authorization only; 401s are not retried via refresh (login/register themselves). */
@@ -90,7 +92,7 @@ export async function apiRequest<T>(
   path: string,
   opts: RequestOptions = {}
 ): Promise<T> {
-  const { method = "GET", body, withIdentity, skipAuth, _isRetry } = opts;
+  const { method = "GET", body, headers: extraHeaders, withIdentity, skipAuth, _isRetry } = opts;
 
   const headers: Record<string, string> = { "Content-Type": "application/json" };
 
@@ -101,6 +103,8 @@ export async function apiRequest<T>(
     const gt = guestToken.get();
     if (gt) headers["X-Guest-Token"] = gt;
   }
+
+  if (extraHeaders) Object.assign(headers, extraHeaders);
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
