@@ -126,7 +126,7 @@ export default function MerchantMenuPage() {
           title: "Shop Location",
           subtitle: "Update your shop's pin on the map",
           href: "/merchants/shop-location",
-          ready: false,
+          ready: true,
         },
       ],
     },
@@ -141,7 +141,7 @@ export default function MerchantMenuPage() {
           badge: totalReviews > 0 ? avgRating.toFixed(1) : null,
           badgeClass: "bg-amber-500",
           href: "/merchants/reviews",
-          ready: false,
+          ready: true,
         },
         {
           id: "support",
@@ -149,7 +149,7 @@ export default function MerchantMenuPage() {
           title: "Support",
           subtitle: "Get assistance and contact us",
           href: "/merchants/support",
-          ready: false,
+          ready: true,
         },
         {
           id: "notification-settings",

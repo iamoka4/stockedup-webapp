@@ -1,12 +1,7 @@
 import { apiGet, apiRequest, apiUpload } from "./client";
 
-/**
- * ⚠ SET THIS to the real filename of the update-location PHP endpoint
- * (the one that validates latitude/longitude/city and updates vendors).
- * I couldn't see its name or the useUpdateVendorLocation hook, so this
- * is a placeholder.
- */
-export const UPDATE_LOCATION_PATH = "/update-vendor-location.php";
+/** POST update_location.php (same endpoint the mobile useUpdateVendorLocation hook uses) */
+export const UPDATE_LOCATION_PATH = "/update_location.php";
 
 /** GET get-vendor-analytics.php?period=1|7|30|all */
 export const ANALYTICS_PATH = "/get-vendor-analytics.php";
@@ -348,4 +343,44 @@ export function deleteProduct(productId: number, vendorId?: number | string | nu
     method: "POST",
     body: { product_id: productId, ...(vendorId != null ? { vendor_id: vendorId } : {}) },
   });
+}
+
+// ─── Reviews ─────────────────────────────────────────────────────────────────
+
+export interface VendorReview {
+  id: number;
+  user_id: number;
+  product_id: number;
+  rating: number;
+  review_text: string;
+  review_date: string;
+  created_at: string;
+  status: string;
+  product_name?: string;
+  customer_name?: string;
+}
+
+// The mobile app reads data.data.reviews. Depending on whether apiRequest strips
+// the { status, message, data } envelope, the reviews sit at `reviews` or
+// `data.reviews`, so both shapes are handled.
+type ReviewsPayload = { reviews?: VendorReview[]; data?: { reviews?: VendorReview[] } };
+
+/** GET get-vendor-reviews.php?vendor_id=X (the endpoint requires vendor_id) */
+export async function getVendorReviews(
+  vendorId?: number | string | null,
+): Promise<VendorReview[]> {
+  let id = vendorId;
+  if (id == null || id === "") {
+    const profile = await getShopProfile();
+    id = profile.vendor_id;
+  }
+  if (id == null || id === "") {
+    throw new Error("Could not determine your vendor ID. Please log in again.");
+  }
+
+  const res = await apiGet<ReviewsPayload>("/get-vendor-reviews.php", {
+    vendor_id: String(id),
+  });
+  const reviews = res?.reviews ?? res?.data?.reviews;
+  return Array.isArray(reviews) ? reviews : [];
 }
