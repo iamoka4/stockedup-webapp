@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { ApiError } from "@/lib/api/client";
 import { getOrdersMetric, getShopProfile } from "@/lib/api/vendor";
 import { getUnreadNotificationCount } from "@/lib/api/notifications";
 import { errorMessage } from "@/components/vendor/ui";
@@ -136,6 +138,7 @@ function OrderCard({ order, scheduled = false }: { order: Order; scheduled?: boo
 // ─── Page ────────────────────────────────────────────────────────────────────
 
 export default function MerchantHomePage() {
+  const router = useRouter();
   const [name, setName] = useState("");
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(false);
@@ -159,6 +162,18 @@ export default function MerchantHomePage() {
   const load = useCallback(async () => {
     const [profile, metric] = await Promise.allSettled([getShopProfile(), getOrdersMetric()]);
 
+    // Session missing or expired: go to login instead of showing a broken dashboard.
+    const authFailed = [profile, metric].some(
+      (r) =>
+        r.status === "rejected" &&
+        r.reason instanceof ApiError &&
+        (r.reason.status === 401 || r.reason.status === 403),
+    );
+    if (authFailed) {
+      router.replace("/merchants/login");
+      return;
+    }
+
     if (profile.status === "fulfilled") {
       const p = profile.value as { business_name?: string; shop_name?: string; name?: string };
       setName(p.business_name ?? p.shop_name ?? p.name ?? "");
@@ -179,7 +194,7 @@ export default function MerchantHomePage() {
     setOrdersLoading(false);
 
     loadUnread();
-  }, [loadUnread]);
+  }, [loadUnread, router]);
 
   useEffect(() => {
     load();
