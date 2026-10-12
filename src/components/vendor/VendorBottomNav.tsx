@@ -16,7 +16,7 @@ type Tab = {
 // Home, Shop, Orders, Menu.
 const TABS: Tab[] = [
   { label: "Home", href: "/merchants/dashboard", icon: "home", ready: true },
-  { label: "Shop", href: "/merchants/shop", icon: "shop", ready: false },
+  { label: "Shop", href: "/merchants/shop-profile", icon: "shop", ready: true },
   { label: "Orders", href: "/merchants/orders", icon: "orders", ready: true },
   { label: "Menu", href: "/merchants/menu", icon: "menu", ready: true },
 ];

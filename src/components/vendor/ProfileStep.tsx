@@ -37,9 +37,12 @@ function addressFrom(profile: ShopProfile): string {
 export function ProfileStep({
   profile,
   onSaved,
+  submitLabel = "Save profile & continue",
 }: {
   profile: ShopProfile;
   onSaved: () => void;
+  /** Button text. Onboarding keeps the default; the edit page passes "Save changes". */
+  submitLabel?: string;
 }) {
   const cityInfo = findCityFromText(profile.city ?? "");
   const cityLabel = cityInfo?.label ?? profile.city ?? "";
@@ -104,6 +107,8 @@ export function ProfileStep({
       onSaved();
     } catch (err) {
       setError(errorMessage(err));
+    } finally {
+      // Reset on success too: on the edit page the form stays mounted.
       setBusy(false);
     }
   }
@@ -214,7 +219,7 @@ export function ProfileStep({
       </section>
 
       <PrimaryButton type="submit" busy={busy}>
-        Save profile &amp; continue
+        {submitLabel}
       </PrimaryButton>
     </form>
   );
