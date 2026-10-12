@@ -384,3 +384,30 @@ export async function getVendorReviews(
   const reviews = res?.reviews ?? res?.data?.reviews;
   return Array.isArray(reviews) ? reviews : [];
 }
+
+// ─── Personal information ────────────────────────────────────────────────────
+
+/** GET /get-vendor-info.php — the shape the mobile useGetVendorInfo hook reads. */
+export interface VendorInfo {
+  name: string;
+  shop_name: string;
+  shop_logo: string | null;
+  description: string;
+  phoneNumber: string;
+  email: string;
+  shopAddress: string;
+  city: string;
+  state: string;
+}
+
+export function getVendorInfo(): Promise<VendorInfo> {
+  return apiRequest<VendorInfo>("/get-vendor-info.php");
+}
+
+/**
+ * POST /update-vendor-info.php — same endpoint as the mobile useUpdateVendorInfo hook.
+ * The logo is excluded: images are saved from the Shop page (save-shop-profile.php).
+ */
+export function updateVendorInfo(payload: Omit<VendorInfo, "shop_logo">): Promise<unknown> {
+  return apiRequest<unknown>("/update-vendor-info.php", { method: "POST", body: payload });
+}

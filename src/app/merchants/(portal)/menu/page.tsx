@@ -71,7 +71,7 @@ export default function MerchantMenuPage() {
           title: "Personal Information",
           subtitle: "Update your profile details",
           href: "/merchants/personal-information",
-          ready: false,
+          ready: true,
         },
       ],
     },
