@@ -34,7 +34,7 @@ export default function MerchantMenuPage() {
   useEffect(() => {
     getOrdersMetric()
       .then(setMetric)
-      .catch(() => {});
+      .catch(() => { });
   }, []);
 
   const pending = metric?.metrics?.pendingOrders ?? 0;
@@ -84,7 +84,7 @@ export default function MerchantMenuPage() {
           title: "Product Listing",
           subtitle: "Manage your products inventory",
           href: "/merchants/products",
-          ready: false,
+          ready: true,
         },
         {
           id: "orders",
@@ -179,24 +179,21 @@ export default function MerchantMenuPage() {
   ];
 
   function Row({ item }: { item: MenuItem }) {
-    const rowBase = `flex items-center gap-3.5 rounded-2xl border p-3.5 ${
-      item.highlight ? "border-amber-400 bg-[#FFFDF5]" : "border-line bg-white"
-    }`;
+    const rowBase = `flex items-center gap-3.5 rounded-2xl border p-3.5 ${item.highlight ? "border-amber-400 bg-[#FFFDF5]" : "border-line bg-white"
+      }`;
 
     const body = (
       <>
         <span
-          className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${
-            item.highlight ? "bg-[#FFF9E6] text-amber-500" : "bg-brand text-white"
-          }`}
+          className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${item.highlight ? "bg-[#FFF9E6] text-amber-500" : "bg-brand text-white"
+            }`}
         >
           <VendorIcon name={item.icon} />
         </span>
         <span className="min-w-0 flex-1">
           <span
-            className={`block text-[15px] font-bold ${
-              item.highlight ? "text-[#B8860B]" : "text-gray-900"
-            }`}
+            className={`block text-[15px] font-bold ${item.highlight ? "text-[#B8860B]" : "text-gray-900"
+              }`}
           >
             {item.title}
           </span>
@@ -210,9 +207,8 @@ export default function MerchantMenuPage() {
           ) : (
             item.badge && (
               <span
-                className={`rounded-full px-2.5 py-1 text-[11px] font-bold text-white ${
-                  item.badgeClass ?? "bg-brand"
-                }`}
+                className={`rounded-full px-2.5 py-1 text-[11px] font-bold text-white ${item.badgeClass ?? "bg-brand"
+                  }`}
               >
                 {item.badge}
               </span>

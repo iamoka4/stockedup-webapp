@@ -1,13 +1,13 @@
 import { apiRequest } from "./client";
 
 /**
- * ⚠ SET THIS to the endpoint the mobile app's useGetVendorProducts hook calls.
- * Open base/api/vendors/products/useGetVendorProducts.ts in the app and copy
- * the string inside its apiClient.get("...") call, keeping the leading "/".
- * The mobile screen reads `data.products`, and this code accepts either
- * { products: [...] } or a plain array.
+ * Same endpoint the mobile app's useGetVendorProducts hook calls
+ * (note the underscores). It returns { counts, products } for the signed-in
+ * vendor, and this code accepts either { products: [...] } or a plain array.
+ * The older /get-vendor-products.php (hyphens) is the customer-facing list: it
+ * needs a vendor_id and answers { data: [...] }, which this helper can't read.
  */
-export const VENDOR_PRODUCTS_PATH = "/get-vendor-products.php";
+export const VENDOR_PRODUCTS_PATH = "/get_vendor_products.php";
 
 export interface VendorProduct {
   id: string | number;

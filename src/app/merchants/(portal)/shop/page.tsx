@@ -48,8 +48,13 @@ export default function ShopPage() {
         !profileError && <p className="text-ink-soft">Loading shop…</p>
       )}
 
-      {/* addHref / viewAllHref: set these to the product pages once they exist. */}
-      <ShopProducts products={products} error={productsError} />
+      {/* "+ Add Product" opens the Add modal on the product listing page (same flow as mobile). */}
+      <ShopProducts
+        products={products}
+        error={productsError}
+        addHref="/merchants/products?openAdd=true"
+        viewAllHref="/merchants/products"
+      />
     </div>
   );
 }
