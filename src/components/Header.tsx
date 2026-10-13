@@ -10,6 +10,7 @@ import { useAuthModalStore } from "@/store/authModalStore";
 import { LocationDropdown } from "@/components/LocationDropdown";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { MobileMenu } from "@/components/MobileMenu";
+import { NotificationBell } from "@/components/NotificationBell";
 import { useUiStore } from "@/store/uiStore";
 import { isMerchantPortalPath } from "@/lib/merchantPortal";
 import { useState } from "react";
@@ -71,6 +72,7 @@ export function Header() {
 
           {user ? (
             <div className="flex items-center gap-2">
+              <NotificationBell variant="onBrand" className="hidden sm:flex" />
               <Link
                 href="/shop"
                 className="rounded-full border-2 border-white px-5 py-2.5 text-sm font-bold text-white transition hover:bg-white hover:text-brand-deep"
@@ -142,6 +144,7 @@ export function Header() {
                 </button>
               </>
             )}
+            {user && <NotificationBell />}
             <CartLink count={cart?.count ?? 0} />
           </div>
         </div>
@@ -226,6 +229,8 @@ export function Header() {
             <AppStoreBadges />
           </div>
 
+          {user && <NotificationBell className="hidden md:flex" />}
+
           <CartLink count={cart?.count ?? 0} />
         </div>
       </div>
@@ -233,7 +238,7 @@ export function Header() {
       <div className="flex items-center justify-between border-t border-line px-4 py-2 md:hidden">
         <LocationDropdown compact />
 
-        {!user && (
+        {!user ? (
           <button
             type="button"
             onClick={() => openLogin()}
@@ -241,6 +246,8 @@ export function Header() {
           >
             Sign in
           </button>
+        ) : (
+          <NotificationBell size="sm" className="flex md:hidden" />
         )}
       </div>
 
