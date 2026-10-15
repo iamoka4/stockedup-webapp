@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { getProduct } from "@/lib/api/products";
+// TODO: use the file that actually exports getCategories (the one you pasted).
+import { getCategories } from "@/lib/api/categories";
 import { StampBadge } from "@/components/StampBadge";
 import { AddToCartPanel } from "./AddToCartPanel";
+import { RelatedProducts } from "./RelatedProducts";
 import { Suspense } from "react";
 import { DEFAULT_CITY } from "@/lib/config";
 import { TrackProductView } from "./TrackProductView";
@@ -22,6 +25,20 @@ async function fetchProduct(id: string) {
   } catch (err) {
     console.error(`[product ${id}] fetchProduct failed:`, err);
     return null;
+  }
+}
+
+// The product stores its category as an id; analytics (like the app) wants
+// the readable name. Falls back to the raw value if categories can't load.
+async function resolveCategoryName(raw: string): Promise<string> {
+  if (!raw) return "";
+  try {
+    // getCategories() resolves to { categories: Category[] }
+    const { categories } = await getCategories();
+    const match = (categories as any[]).find((c) => String(c.id) === String(raw));
+    return match?.name ?? match?.category_name ?? String(raw);
+  } catch {
+    return String(raw);
   }
 }
 
@@ -51,6 +68,8 @@ export default async function ProductDetailPage({ params }: Props) {
   // Backend may send stock as a string ("12"), so normalize it.
   const stockCount = Number(product.stock ?? 0) || 0;
   const lowStock = product.in_stock && stockCount > 0 && stockCount <= 10;
+
+  const categoryName = await resolveCategoryName(String(product.category ?? ""));
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8">
@@ -102,9 +121,21 @@ export default async function ProductDetailPage({ params }: Props) {
             stock={stockCount}
             addonGroups={product.addon_groups ?? []}
           />
-          <TrackProductView productId={product.id} />
+          <TrackProductView
+            productId={product.id}
+            name={product.name}
+            price={Number(product.price)}
+            category={categoryName}
+            vendorName={product.vendor.name}
+          />
         </div>
       </div>
+
+      {/* Goes well with this — hidden while a cart line is being edited.
+          Suspense is required because it reads ?editCartId via useSearchParams. */}
+      <Suspense fallback={null}>
+        <RelatedProducts productId={product.id} showSimilar={false} />
+      </Suspense>
 
       {related_products.length > 0 && (
         <div className="mt-14">
