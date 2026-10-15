@@ -114,13 +114,19 @@ export default async function ProductDetailPage({ params }: Props) {
             <p className="mt-4 text-sm leading-relaxed text-ink-soft">{product.description}</p>
           )}
 
-          <AddToCartPanel
-            productId={product.id}
-            inStock={product.in_stock}
-            price={product.price}
-            stock={stockCount}
-            addonGroups={product.addon_groups ?? []}
-          />
+          {/* AddToCartPanel reads ?editCartId via useSearchParams, so it
+              needs its own Suspense boundary on this statically rendered page. */}
+          <Suspense
+            fallback={<div className="mt-6 h-40 animate-pulse rounded-2xl bg-brand-tint" />}
+          >
+            <AddToCartPanel
+              productId={product.id}
+              inStock={product.in_stock}
+              price={product.price}
+              stock={stockCount}
+              addonGroups={product.addon_groups ?? []}
+            />
+          </Suspense>
           <TrackProductView
             productId={product.id}
             name={product.name}
