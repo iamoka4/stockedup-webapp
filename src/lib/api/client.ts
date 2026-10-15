@@ -67,13 +67,39 @@ export async function refreshAccessToken(): Promise<boolean> {
   return refreshInFlight;
 }
 
+/**
+ * Message for a reply that isn't JSON at all: a firewall / hosting error page,
+ * an upload that was too big, or a PHP fatal error (which sends an empty body).
+ */
+function nonJsonMessage(status: number, body: string): string {
+  if (status === 403 && /blocked/i.test(body)) {
+    return "Your request was blocked by the website's firewall. Please try again, and contact support if it keeps happening.";
+  }
+  if (status === 413) return "That upload is too large. Try a smaller photo.";
+  if (status === 429) return "Too many requests. Please wait a moment and try again.";
+  if (status >= 500) return `The server ran into a problem (error ${status}). Please try again.`;
+  return `Unexpected server response (error ${status}).`;
+}
+
 /** Parses the PHP envelope and returns `data`, or throws ApiError. */
 async function unwrap<T>(res: Response): Promise<T> {
+  const text = await res.text();
+
   let json: ApiEnvelope<T>;
   try {
-    json = await res.json();
+    json = JSON.parse(text);
   } catch {
-    throw new ApiError("Unexpected server response", res.status);
+    // Not JSON. Log what actually came back so it can be diagnosed from the
+    // browser console / Network tab instead of guessing.
+    console.error(
+      `[api] non-JSON response (HTTP ${res.status}) from ${res.url}:`,
+      text.slice(0, 500)
+    );
+    // A 401/403 that is not JSON did not come from the API's own auth check
+    // (those are always JSON), so it must not be treated as "session expired":
+    // report it as a gateway problem (502) so login redirects don't trigger.
+    const status = res.status === 401 || res.status === 403 ? 502 : res.status;
+    throw new ApiError(nonJsonMessage(res.status, text), status);
   }
 
   // Most endpoints send status as the string "success"/"error", but at
