@@ -9,6 +9,7 @@ import { useUpdateCart } from "@/lib/hooks/useUpdateCart"; // adjust path
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
 import { useProcessingFee } from "@/app/checkout/useProcessingFee"; // adjust path
+import { CartSuggestions } from "@/components/cart/CartSuggestions";
 import type { CartItem } from "@/lib/api/types";
 
 const DELIVERY_FEE = 0; // same as mobile: real fee is quoted at checkout
@@ -236,6 +237,10 @@ export default function CartPage() {
           <CartItemRow key={item.id} item={item} />
         ))}
       </ul>
+
+      {/* "Forgot something?" — suggestions based on everything in the cart.
+          Renders nothing when there are none. */}
+      <CartSuggestions />
 
       <section className="mt-6 rounded-2xl border border-line bg-bg-raised p-4">
         <h2 className="text-sm font-bold text-ink">Order summary</h2>

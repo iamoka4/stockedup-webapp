@@ -1,19 +1,20 @@
 "use client";
 // src/app/products/[id]/RelatedProducts.tsx
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Check, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart } from "@/lib/api/cart";
+import { trackEvent } from "@/lib/analytics";
 
 const API_BASE = "https://api.stockedup.africa";
 
 type Product = {
   id: number;
   vendor_id: number;
-  business_type: string;
+  business_type?: string;
   name: string;
   price: string | number;
   unit?: string;
@@ -71,6 +72,19 @@ export function RelatedProducts({ productId, showSimilar = true }: Props) {
     return () => ctrl.abort();
   }, [productId, editing]);
 
+  // Impressions: once per product, only when something is actually shown.
+  const shownRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!data || shownRef.current === productId) return;
+    if (!data.complementary.length && !data.similar.length) return;
+    shownRef.current = productId;
+    trackEvent("related_products_shown", {
+      source_product_id: String(productId),
+      complementary_count: data.complementary.length,
+      similar_count: data.similar.length,
+    });
+  }, [data, productId]);
+
   if (editing) return null;
   if (loading) return <Skeleton />;
   if (!data) return null;
@@ -84,18 +98,35 @@ export function RelatedProducts({ productId, showSimilar = true }: Props) {
 
   return (
     <div className="mt-14 space-y-10">
-      <Row title="Goes well with this" items={data.complementary} quickAdd />
-      <Row title="You may also like" items={similar} />
+      <SuggestionRow
+        title="Goes well with this"
+        section="complementary"
+        sourceProductId={productId}
+        items={data.complementary}
+        quickAdd
+      />
+      <SuggestionRow
+        title="You may also like"
+        section="similar"
+        sourceProductId={productId}
+        items={similar}
+      />
     </div>
   );
 }
 
-function Row({
+export function SuggestionRow({
   title,
+  section,
+  sourceProductId,
+  origin = "product_page",
   items,
   quickAdd,
 }: {
   title: string;
+  section: "complementary" | "similar" | "cart";
+  sourceProductId?: number;
+  origin?: "product_page" | "cart";
   items: Product[];
   quickAdd?: boolean;
 }) {
@@ -113,14 +144,26 @@ function Row({
     onSuccess: (_d, p) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
       setAdded((s) => ({ ...s, [p.id]: true }));
+      trackEvent("related_product_added", {
+        ...(sourceProductId ? { source_product_id: String(sourceProductId) } : {}),
+        product_id: String(p.id),
+        name: p.name,
+        price: Number(p.price),
+        section,
+        origin,
+      });
+      trackEvent("add_to_cart", {
+        product_id: String(p.id),
+        name: p.name,
+        price: Number(p.price),
+        quantity: 1,
+      });
     },
     onError: (e) => {
       // e.g. the cart already holds the other kind of order
       // (meals vs groceries): show the server's own message.
       setError(
-        e instanceof Error
-          ? e.message
-          : "Couldn't add this item. Please try again.",
+        e instanceof Error ? e.message : "Couldn't add this item. Please try again.",
       );
     },
     onSettled: () => setBusyId(null),
@@ -139,7 +182,20 @@ function Row({
             key={p.id}
             className="w-40 shrink-0 snap-start rounded-2xl border border-line bg-bg-raised p-3 sm:w-48"
           >
-            <Link href={`/products/${p.id}`} className="block">
+            <Link
+              href={`/products/${p.id}`}
+              className="block"
+              onClick={() =>
+                trackEvent("related_product_tapped", {
+                  ...(sourceProductId
+                    ? { source_product_id: String(sourceProductId) }
+                    : {}),
+                  product_id: String(p.id),
+                  section,
+                  origin,
+                })
+              }
+            >
               <div className="aspect-square overflow-hidden rounded-xl bg-brand-tint">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img

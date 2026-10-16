@@ -1,4 +1,5 @@
 "use client";
+// src/app/products/[id]/AddToCartPanel.tsx
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -6,6 +7,7 @@ import { Check, Minus, Pencil, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart, removeCartItem } from "@/lib/api/cart";
 import { useCart } from "@/lib/hooks/useCart";
+import { trackEvent } from "@/lib/analytics";
 import type { AddonGroup, AddonOption, SelectedAddon } from "@/lib/api/types";
 
 // Change this if your cart route is different.
@@ -22,6 +24,7 @@ const formatPrice = (n: number) => "₦" + n.toLocaleString("en-NG");
 
 interface Props {
   productId: number;
+  name: string; // used for the add_to_cart analytics event
   inStock: boolean;
   price: number;
   stock?: number;
@@ -30,6 +33,7 @@ interface Props {
 
 export function AddToCartPanel({
   productId,
+  name,
   inStock,
   price,
   stock,
@@ -242,6 +246,17 @@ export function AddToCartPanel({
     },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["cart"] });
+
+      // Same standard event the app sends. Edits ("update") are not new adds.
+      if (vars.action !== "update") {
+        trackEvent("add_to_cart", {
+          product_id: String(productId),
+          name,
+          price: Number(price),
+          quantity,
+        });
+      }
+
       if (vars.action === "buyNow" || vars.action === "update") {
         // Only navigate once the cart change has really succeeded.
         router.push(CART_HREF);
