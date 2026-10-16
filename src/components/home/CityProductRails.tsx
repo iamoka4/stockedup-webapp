@@ -7,10 +7,15 @@ import { useUiStore } from "@/store/uiStore";
 import { cityLabel } from "@/lib/cities";
 import type { Product } from "@/lib/api/types";
 
-// Same category list the mobile app uses to separate drinks from featured items.
+// Same category list the mobile app uses to separate drinks from other items.
 const DRINK_CATEGORIES = ["drinks", "water", "soft drinks", "beer & alcohol"];
 const isDrink = (p: Product) =>
   DRINK_CATEGORIES.includes((p.category || "").trim().toLowerCase());
+
+// get-products.php returns the vendor's business_type on every product
+// (Product.business_type in lib/api/types.ts).
+const isRestaurantMeal = (p: Product) =>
+  p.business_type === "restaurant" && !isDrink(p);
 
 // Deterministic shuffle (same seed = same order), so the server render and the
 // browser agree and there is no hydration mismatch. The order changes when the
@@ -74,30 +79,32 @@ function RailOrEmpty({
   );
 }
 
-/** Everything except drinks, for the selected city. */
-export function FeaturedProductsSection({
+/**
+ * What Are You Having Today? — meals from onboarded restaurants, for the
+ * selected city. Drinks are left out here; they appear under Trending Drinks.
+ * Hidden when the city has no restaurant meals.
+ */
+export function RestaurantMealsSection({
   initialProducts,
 }: {
   initialProducts: Product[];
 }) {
   const label = cityLabel(useUiStore((s) => s.city));
-  const { products, isFetching } = useCityFilteredProducts({ initialProducts });
-  const featured = useMemo(
-    () => seededShuffle(products.filter((p) => !isDrink(p)), `${label}-featured`),
+  const { products } = useCityFilteredProducts({ initialProducts });
+  const meals = useMemo(
+    () => seededShuffle(products.filter(isRestaurantMeal), `${label}-meals`),
     [products, label]
   );
-  return (
-    <RailOrEmpty
-      title="Featured Products"
-      products={featured}
-      rows={3}
-      fetching={isFetching}
-      label={label}
-    />
-  );
+
+  if (meals.length === 0) return null;
+  return <ProductRail title="What Are You Having Today?" products={meals} rows={2} />;
 }
 
-/** Mobile's no-history fallback (up to 20), for the selected city. */
+/**
+ * What's Everyone Buying? — the former Popular Demand rail, logic unchanged
+ * (mobile's no-history fallback, up to 20). Restaurant meals and drinks can
+ * appear here.
+ */
 export function PopularDemandSection({
   initialProducts,
 }: {
@@ -111,12 +118,41 @@ export function PopularDemandSection({
   );
   return (
     <RailOrEmpty
-      title="🔥 Popular Demand"
+      title="🔥 What's Everyone Buying?"
       titleClassName="text-orange-600"
       products={popular}
       rows={2}
       fetching={isFetching}
       label={label}
+    />
+  );
+}
+
+/**
+ * Trending Drinks, repositioned. Same selection as the mobile app: every drink
+ * product in the city (drinks, water, soft drinks, beer & alcohol), restaurant
+ * drinks included, shuffled, up to 20. It reads the shared city product list,
+ * so it makes no extra request. Hidden when the city has no drinks.
+ */
+export function TrendingDrinksSection({
+  initialProducts,
+}: {
+  initialProducts: Product[];
+}) {
+  const label = cityLabel(useUiStore((s) => s.city));
+  const { products } = useCityFilteredProducts({ initialProducts });
+  const drinks = useMemo(
+    () => seededShuffle(products.filter(isDrink), `${label}-drinks`).slice(0, 20),
+    [products, label]
+  );
+
+  if (drinks.length === 0) return null;
+  return (
+    <ProductRail
+      title="🥤 Trending Drinks"
+      titleClassName="text-sky-500"
+      products={drinks}
+      rows={2}
     />
   );
 }

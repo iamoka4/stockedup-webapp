@@ -4,18 +4,19 @@ import { getCategories } from "@/lib/api/categories";
 import { getVendors } from "@/lib/api/vendors";
 import { getProducts } from "@/lib/api/products";
 import { getPromoSlides } from "@/lib/api/promo";
+import { getRestaurants, getSupermarkets } from "@/lib/api/vendor-listing";
+import type { VendorListingItem } from "@/lib/api/vendor-listing";
 import type { Product } from "@/lib/api/types";
 import type { PromoSlide } from "@/lib/api/promo";
-import { HomeSegmentTabs } from "@/components/home/HomeSegmentTabs";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { CategoryScroller } from "@/components/home/CategoryScroller";
 import { PopularVendorsSection } from "@/components/home/PopularVendorsSection";
+import { VendorListingRail } from "@/components/home/VendorListingRail";
 import {
-  FeaturedProductsSection,
+  RestaurantMealsSection,
+  TrendingDrinksSection,
   PopularDemandSection,
 } from "@/components/home/CityProductRails";
-import { RecommendedSection } from "@/components/home/RecommendedSection";
-import { TrendingDrinksSection } from "@/components/home/TrendingDrinksSection";
 import { HotProductsSection } from "@/components/home/HotProductsSection";
 import { DEFAULT_CITY } from "@/lib/config";
 
@@ -30,13 +31,23 @@ export const metadata: Metadata = {
 
 const normalizeCity = (s: string) => s.toLowerCase().replace(/\s+/g, "");
 
-// Mobile home screen, section for section:
-//   Groceries / Restaurants / Supermarkets tabs -> promo banner -> Categories ->
-//   Vendors -> Featured Products -> Recommended For You -> Trending Drinks ->
-//   Popular Demand -> Best Sellers (HotProductsSection).
+// Homepage, section for section (matches the mobile Home screen):
+//   Promo banner -> Categories -> Restock Your Kitchen (grocery vendors) ->
+//   Recharge Your Belly (restaurants) -> Supermarket Picks (supermarkets) ->
+//   What Are You Having Today? (restaurant meals) -> Trending Drinks ->
+//   What's Everyone Buying? (Popular Demand) -> Best Sellers.
+// The Groceries / Restaurants / Supermarkets tabs no longer appear here; they
+// live on the vendors pages (see VendorTypeTabs).
 // The notification bell lives in the site header (see NotificationBell).
 export default async function ShopPage() {
-  const [{ categories }, { vendors }, products, promoSlides] = await Promise.all([
+  const [
+    { categories },
+    { vendors },
+    products,
+    promoSlides,
+    restaurants,
+    supermarkets,
+  ] = await Promise.all([
     getCategories().catch((err) => {
       console.error("[shop] getCategories failed:", err);
       return { categories: [] };
@@ -54,6 +65,14 @@ export default async function ShopPage() {
       console.error("[shop] getPromoSlides failed:", err);
       return [] as PromoSlide[];
     }),
+    getRestaurants(DEFAULT_CITY).catch((err) => {
+      console.error("[shop] restaurants failed:", err);
+      return [] as VendorListingItem[];
+    }),
+    getSupermarkets(DEFAULT_CITY).catch((err) => {
+      console.error("[shop] supermarkets failed:", err);
+      return [] as VendorListingItem[];
+    }),
   ]);
 
   // Only vendors in the default city, no fallback to other cities.
@@ -63,10 +82,8 @@ export default async function ShopPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
-      <HomeSegmentTabs />
-
       {promoSlides.length > 0 && (
-        <div className="mt-6">
+        <div>
           <PromoBanner slides={promoSlides} />
         </div>
       )}
@@ -84,15 +101,39 @@ export default async function ShopPage() {
         <CategoryScroller categories={categories} />
       </section>
 
-      <PopularVendorsSection initialVendors={cityVendors} />
+      {/* 4. Restock Your Kitchen: grocery vendors (renamed Popular vendors) */}
+      <PopularVendorsSection
+        title="Restock Your Kitchen"
+        viewAllHref="/vendors"
+        initialVendors={cityVendors}
+      />
 
-      <FeaturedProductsSection initialProducts={products} />
+      {/* 5. Refill Your Belly: restaurant business cards */}
+      <VendorListingRail
+        businessType="restaurant"
+        title="Refill Your Belly"
+        viewAllHref="/restaurants"
+        initialItems={restaurants}
+      />
 
-      <RecommendedSection initialProducts={products} />
+      {/* 6. Supermarket Picks: supermarket business cards */}
+      <VendorListingRail
+        businessType="supermarket"
+        title="Supermarket Picks"
+        viewAllHref="/supermarkets"
+        initialItems={supermarkets}
+      />
+
+      {/* 7. What Are You Having Today?: restaurant meals (no drinks) */}
+      <RestaurantMealsSection initialProducts={products} />
+
+      {/* 8. Trending Drinks: repositioned, logic unchanged */}
       <TrendingDrinksSection initialProducts={products} />
 
+      {/* 9. What's Everyone Buying?: Popular Demand, heading renamed */}
       <PopularDemandSection initialProducts={products} />
 
+      {/* 10. Best Sellers */}
       <HotProductsSection />
     </div>
   );

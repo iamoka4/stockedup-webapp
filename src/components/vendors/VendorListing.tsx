@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import type { VendorListingItem } from "@/lib/api/vendor-listing";
 import { useCityVendorListing } from "@/lib/hooks/useCityVendorListing";
+import { VendorTypeTabs } from "@/components/vendors/VendorTypeTabs";
 
 type BusinessType = "restaurant" | "supermarket";
 type ViewMode = "list" | "grid";
@@ -43,7 +44,9 @@ const COPY = {
 
 const naira = (n: number) => `₦${n.toLocaleString("en-NG")}`;
 
-function VendorCard({
+// Exported so the homepage rails (Recharge Your Belly, Supermarket Picks)
+// reuse the exact same card.
+export function VendorListingCard({
   item,
   grid,
   FallbackIcon,
@@ -53,6 +56,8 @@ function VendorCard({
   FallbackIcon: typeof Store;
 }) {
   const isOpen = item.status === "open";
+  // Grocery vendors have no live status, so the badge is only drawn when known.
+  const hasStatus = item.status === "open" || item.status === "closed";
   const rating = item.rating?.average ?? null;
   const fee = item.delivery?.estimate ?? null;
 
@@ -82,13 +87,15 @@ function VendorCard({
             </span>
           )}
 
-          <span
-            className={`absolute left-2.5 top-2.5 rounded-md px-2 py-0.5 text-[9px] font-black tracking-wide text-white shadow ${
-              isOpen ? "bg-emerald-500" : "bg-red-500"
-            }`}
-          >
-            {isOpen ? "OPEN" : "CLOSED"}
-          </span>
+          {hasStatus && (
+            <span
+              className={`absolute left-2.5 top-2.5 rounded-md px-2 py-0.5 text-[9px] font-black tracking-wide text-white shadow ${
+                isOpen ? "bg-emerald-500" : "bg-red-500"
+              }`}
+            >
+              {isOpen ? "OPEN" : "CLOSED"}
+            </span>
+          )}
 
           <div className="absolute -bottom-5 left-4 size-12 rounded-lg bg-white p-0.5 shadow-md">
             {item.logo ? (
@@ -287,6 +294,13 @@ export function VendorListing({
         </div>
       </header>
 
+      {/* Groceries / Restaurants / Supermarkets tabs */}
+      <div className="mx-auto max-w-6xl px-4 pt-4">
+        <VendorTypeTabs
+          active={businessType === "restaurant" ? "restaurants" : "supermarkets"}
+        />
+      </div>
+
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-4">
         {isError && cityItems.length === 0 ? (
           <p className="py-20 text-center text-sm text-red-500">
@@ -312,7 +326,7 @@ export function VendorListing({
             }
           >
             {visible.map((item) => (
-              <VendorCard
+              <VendorListingCard
                 key={item.id}
                 item={item}
                 grid={grid}

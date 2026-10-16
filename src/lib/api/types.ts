@@ -19,6 +19,11 @@ export interface Vendor {
   state: string;
   city: string;
   average_rating: number;
+  /** Profile picture (vendors.shop_logo). */
+  logo: string | null;
+  /** Cover photo (vendors.store_image). */
+  cover_image: string | null;
+  /** Legacy alias of `logo`, kept by get-vendors.php for older clients. */
   image: string | null;
 }
 
@@ -82,6 +87,11 @@ export interface Product {
   stock: string | number;
   image: string;
   vendor_id: number;
+  /**
+   * The owning vendor's business type, returned by get-products.php.
+   * Used by the homepage to pick restaurant meals.
+   */
+  business_type?: "grocery" | "restaurant" | "supermarket" | string;
 }
 
 // ── Add-ons (Extras) ────────────────────────────────────────────────────────
