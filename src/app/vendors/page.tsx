@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { getVendors } from "@/lib/api/vendors";
 import { VendorGridClient } from "./VendorGridClient";
-import { VendorTypeTabs } from "@/components/vendors/VendorTypeTabs";
 import { DEFAULT_CITY } from "@/lib/config";
 
 export const revalidate = 60;
@@ -17,14 +16,7 @@ export default async function VendorsPage() {
     return { vendors: [] };
   });
 
-  return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      {/* Groceries is this page; Restaurants and Supermarkets link to their own routes */}
-      <div className="mb-8">
-        <VendorTypeTabs active="groceries" />
-      </div>
-
-      <VendorGridClient initialVendors={vendors} />
-    </div>
-  );
+  // VendorGridClient renders the full page (header, tabs and cards) so this
+  // route matches the Restaurants and Supermarkets pages exactly.
+  return <VendorGridClient initialVendors={vendors} />;
 }
