@@ -7,11 +7,16 @@ import {
   getNotifications,
   markAllNotificationsRead,
   markNotificationRead,
-  type VendorNotification as Notification,
+  type VendorNotification,
 } from "@/lib/api/notifications";
 import { VendorIcon, type VendorIconName } from "@/components/vendor/icons";
 import { errorMessage } from "@/components/vendor/ui";
 import { useAuthModalStore } from "@/store/authModalStore";
+
+// image_url comes from get-notifications.php. Declared here so this page works
+// even before the shared VendorNotification type is updated; once you add
+// `image_url?: string | null` there, this intersection is harmless.
+type Notification = VendorNotification & { image_url?: string | null };
 
 // ─── Where "View Details" goes (mirrors the mobile buyer navigation) ─────────
 
@@ -39,6 +44,7 @@ function getNotificationIcon(type: string): { icon: VendorIconName; color: strin
     case "ORDER_UPDATE":
       return { icon: "receipt", color: "#007AFF", bg: "#EAF3FF" };
     case "PROMOTION":
+    case "PROMO":
       return { icon: "tag", color: "#FE7C09", bg: "#FFF3EA" };
     case "NEW_PRODUCT":
       return { icon: "bagPlus", color: "#34C759", bg: "#EAFAF0" };
@@ -63,6 +69,26 @@ function timeAgo(value: string): string {
   const day = Math.floor(hr / 24);
   if (day < 7) return `${day} day${day === 1 ? "" : "s"} ago`;
   return new Date(t).toLocaleDateString("en-NG", { day: "numeric", month: "short", year: "numeric" });
+}
+
+// ─── Notification image ──────────────────────────────────────────────────────
+// Renders nothing if the URL fails to load, so a broken link never leaves an
+// empty box. Plain <img> on purpose: the URLs are absolute and next/image would
+// need the host whitelisted in next.config.
+
+function NotificationImage({ src, className }: { src: string; className: string }) {
+  const [failed, setFailed] = useState(false);
+  if (failed) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      onError={() => setFailed(true)}
+      className={className}
+    />
+  );
 }
 
 // ─── Detail dialog ───────────────────────────────────────────────────────────
@@ -94,11 +120,11 @@ function NotificationModal({
       onClick={onClose}
     >
       <div
-        className="flex w-full max-w-sm flex-col items-center rounded-3xl bg-white p-6 shadow-2xl"
+        className="flex max-h-[90vh] w-full max-w-sm flex-col items-center overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <span
-          className="mb-4 flex size-16 items-center justify-center rounded-full"
+          className="mb-4 flex size-16 shrink-0 items-center justify-center rounded-full"
           style={{ backgroundColor: icon.bg, color: icon.color }}
         >
           <VendorIcon name={icon.icon} className="size-7" />
@@ -106,6 +132,13 @@ function NotificationModal({
 
         <h2 className="mb-1.5 text-center text-[17px] font-bold text-[#1A1A2E]">{item.title}</h2>
         <p className="mb-4 text-xs text-[#BDBDBD]">{timeAgo(item.created_at)}</p>
+
+        {item.image_url ? (
+          <NotificationImage
+            src={item.image_url}
+            className="mb-4 h-40 w-full shrink-0 rounded-xl bg-[#F0F0F0] object-cover"
+          />
+        ) : null}
 
         <div className="mb-6 max-h-[220px] w-full overflow-y-auto">
           <p className="whitespace-pre-line text-center text-sm leading-[22px] text-[#555]">
@@ -177,6 +210,12 @@ function NotificationRow({
         </span>
         <span className="block text-[11px] text-[#BDBDBD]">{timeAgo(item.created_at)}</span>
       </span>
+      {item.image_url ? (
+        <NotificationImage
+          src={item.image_url}
+          className="ml-2.5 size-12 shrink-0 rounded-lg bg-[#F0F0F0] object-cover"
+        />
+      ) : null}
       <VendorIcon name="chevron" className="ml-1.5 size-4 shrink-0 text-[#D0D0D0]" />
     </button>
   );
