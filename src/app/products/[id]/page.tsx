@@ -6,7 +6,7 @@ import { getProduct } from "@/lib/api/products";
 // TODO: use the file that actually exports getCategories (the one you pasted).
 import { getCategories } from "@/lib/api/categories";
 import { StampBadge } from "@/components/StampBadge";
-import { AddToCartPanel } from "./AddToCartPanel";
+import { ProductPurchase } from "./ProductPurchase";
 import { RelatedProducts } from "./RelatedProducts";
 import { Suspense } from "react";
 import { DEFAULT_CITY } from "@/lib/config";
@@ -103,25 +103,25 @@ export default async function ProductDetailPage({ params }: Props) {
             {lowStock && <StampBadge tone="clay">Only {stockCount} left</StampBadge>}
           </div>
 
-          <p className="tabular mt-5 font-display text-3xl font-semibold text-ink">
-            ₦{product.price.toLocaleString()}
-            <span className="ml-1 font-body text-sm font-normal text-ink-soft">
-              / {product.unit}
-            </span>
-          </p>
-
-          {product.description && (
-            <p className="mt-4 text-sm leading-relaxed text-ink-soft">{product.description}</p>
-          )}
-
-          <AddToCartPanel
+          {/* Price, description and add-to-cart. The price is re-fetched in the
+              browser for logged-in customers so promotions made for specific
+              customers show up for them (the server render can't see the login). */}
+          <ProductPurchase
+            key={product.id}
             productId={product.id}
             name={product.name}
             inStock={product.in_stock}
-            price={product.price}
+            unit={product.unit}
+            basePrice={product.price}
+            baseOriginalPrice={product.original_price ?? null}
             stock={stockCount}
             addonGroups={product.addon_groups ?? []}
-          />
+          >
+            {product.description && (
+              <p className="mt-4 text-sm leading-relaxed text-ink-soft">{product.description}</p>
+            )}
+          </ProductPurchase>
+
           <TrackProductView
             productId={product.id}
             name={product.name}
@@ -153,7 +153,14 @@ export default async function ProductDetailPage({ params }: Props) {
                   <img src={r.image} alt={r.name} className="h-full w-full object-cover" />
                 </div>
                 <p className="mt-2 line-clamp-2 text-sm font-medium text-ink">{r.name}</p>
-                <p className="tabular text-sm text-ink-soft">₦{r.price.toLocaleString()}</p>
+                <p className="tabular text-sm text-ink-soft">
+                  ₦{r.price.toLocaleString()}
+                  {r.original_price ? (
+                    <span className="ml-1 text-xs line-through opacity-60">
+                      ₦{r.original_price.toLocaleString()}
+                    </span>
+                  ) : null}
+                </p>
               </Link>
             ))}
           </div>

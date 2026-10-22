@@ -7,9 +7,12 @@ import { useSearchParams } from "next/navigation";
 import { Check, Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart } from "@/lib/api/cart";
+import { apiGet } from "@/lib/api/client";
 import { trackEvent } from "@/lib/analytics";
 
-const API_BASE = "https://api.stockedup.africa";
+// Only used to complete image paths that arrive without a host (the API
+// normally sends full https:// URLs already).
+const SITE_BASE = "https://stockedup.africa";
 
 type Product = {
   id: number;
@@ -29,7 +32,7 @@ const formatPrice = (n: string | number) =>
   "₦" + Number(n).toLocaleString("en-NG");
 
 const imgUrl = (path: string) =>
-  path.startsWith("http") ? path : `${API_BASE}/${path.replace(/^\//, "")}`;
+  path.startsWith("http") ? path : `${SITE_BASE}/${path.replace(/^\//, "")}`;
 
 interface Props {
   productId: number;
@@ -50,26 +53,26 @@ export function RelatedProducts({ productId, showSimilar = true }: Props) {
       setLoading(false);
       return undefined;
     }
-    const ctrl = new AbortController();
+    let cancelled = false;
     setLoading(true);
     setData(null);
-    fetch(`${API_BASE}/get-related-products.php?product_id=${productId}`, {
-      signal: ctrl.signal,
-    })
-      .then((r) => r.json())
-      .then((j) => {
-        if (j?.status === "success" && j.data) {
-          setData({
-            complementary: j.data.complementary ?? [],
-            similar: j.data.similar ?? [],
-          });
-        }
+    // apiGet goes to the real API base (…/backend/api), sends the customer's
+    // login token when there is one, and unwraps the response envelope.
+    apiGet<Partial<Related>>("/get-related-products.php", { product_id: productId })
+      .then((d) => {
+        if (cancelled) return;
+        setData({
+          complementary: d?.complementary ?? [],
+          similar: d?.similar ?? [],
+        });
       })
       .catch(() => {}) // suggestions are optional: fail silently
       .finally(() => {
-        if (!ctrl.signal.aborted) setLoading(false);
+        if (!cancelled) setLoading(false);
       });
-    return () => ctrl.abort();
+    return () => {
+      cancelled = true;
+    };
   }, [productId, editing]);
 
   // Impressions: once per product, only when something is actually shown.

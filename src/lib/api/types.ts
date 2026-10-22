@@ -77,11 +77,23 @@ export interface VendorDetailsResponse {
   };
 }
 
+/** Promotion details the API attaches while a promotion applies to this shopper. */
+export interface ProductPromotion {
+  id: number;
+  /** ISO-8601 UTC timestamp. */
+  ends_at: string | null;
+  per_customer_limit: number;
+}
+
 export interface Product {
   id: number;
   name: string;
   description: string;
+  /** What this shopper pays now: the promotional price while a promotion applies to them. */
   price: number;
+  /** The normal price. Only present while a promotion applies to this shopper. */
+  original_price?: number | null;
+  promotion?: ProductPromotion | null;
   unit: string;
   category: string;
   stock: string | number;
@@ -123,7 +135,11 @@ export interface ProductDetail {
   vendor_id: number;
   name: string;
   description: string;
+  /** What this shopper pays now: the promotional price while a promotion applies to them. */
   price: number;
+  /** The normal price. Only present while a promotion applies to this shopper. */
+  original_price?: number | null;
+  promotion?: ProductPromotion | null;
   unit: string;
   category: string;
   image: string;
@@ -164,6 +180,7 @@ export interface ProductDetailResponse {
     id: number;
     name: string;
     price: number;
+    original_price?: number | null;
     unit: string;
     image: string;
   }[];
