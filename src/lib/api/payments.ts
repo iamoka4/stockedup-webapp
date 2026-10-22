@@ -37,6 +37,11 @@ export interface CheckoutMetadata {
   delivery_fee?: number;
   voucher_code?: string | null;
   discount_amount?: number;
+  /**
+   * True when the customer is claiming the first-order discount. The server
+   * verifies eligibility itself and works out the amount; this is only a claim.
+   */
+  first_order_discount?: boolean;
   order_type?: "instant" | "scheduled";
   scheduled_for?: string | null;
   scheduled_slot_id?: string | null;
