@@ -13,25 +13,31 @@ import { VendorIcon, type VendorIconName } from "@/components/vendor/icons";
 import { errorMessage } from "@/components/vendor/ui";
 import { useAuthModalStore } from "@/store/authModalStore";
 
-// image_url comes from get-notifications.php. Declared here so this page works
-// even before the shared VendorNotification type is updated; once you add
-// `image_url?: string | null` there, this intersection is harmless.
-type Notification = VendorNotification & { image_url?: string | null };
+// image_url and reference_id come from get-notifications.php. Declared here so
+// this page works even before the shared VendorNotification type is updated;
+// once you add them there, this intersection is harmless.
+type Notification = VendorNotification & {
+  image_url?: string | null;
+  reference_id?: number | null;
+};
 
-// ─── Where "View Details" goes (mirrors the mobile buyer navigation) ─────────
+// ─── Where the action button goes (mirrors the mobile buyer navigation) ──────
 
 // TODO: set this to your buyer orders page if it isn't /account.
 const BUYER_ORDERS_PATH = "/account";
 const SHOP_PATH = "/shop";
 
-function destinationFor(type: string): string | null {
-  switch (type) {
+function destinationFor(item: Notification): string | null {
+  switch (item.type) {
     case "ORDER_UPDATE":
     case "REVIEW_REMINDER":
       return BUYER_ORDERS_PATH;
     case "PROMOTION":
     case "NEW_PRODUCT":
       return SHOP_PATH;
+    case "PROMO":
+      // Product promotions carry the product id; plain announcements don't.
+      return item.reference_id ? `/products/${item.reference_id}` : null;
     default:
       return null;
   }
@@ -103,7 +109,8 @@ function NotificationModal({
   onNavigate: (path: string) => void;
 }) {
   const icon = getNotificationIcon(item.type);
-  const destination = destinationFor(item.type);
+  const destination = destinationFor(item);
+  const isProductPromo = item.type === "PROMO" && !!item.reference_id;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -153,7 +160,7 @@ function NotificationModal({
               onClick={() => onNavigate(destination)}
               className="flex items-center justify-center gap-2 rounded-[14px] bg-brand py-3.5 text-[15px] font-bold text-white"
             >
-              View Details
+              {isProductPromo ? "Buy Now" : "View Details"}
               <VendorIcon name="arrowRight" className="size-4" />
             </button>
           )}

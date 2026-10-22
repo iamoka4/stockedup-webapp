@@ -242,6 +242,10 @@ export default function CheckoutPage() {
           idempotency_key,
           use_wallet_balance: paymentMethod === "wallet",
           voucher_code: voucherCode,
+          // The server works out the voucher and first-order amounts itself.
+          // It only needs to know whether this customer is claiming the
+          // first-order discount (it verifies eligibility on its side).
+          first_order_discount: firstOrderApplied > 0,
           discount_amount: combinedDiscount,
           order_type: selectedSlot ? "scheduled" : "instant",
           scheduled_for: selectedSlot?.datetime ?? null,
