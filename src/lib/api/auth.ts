@@ -102,6 +102,12 @@ export async function vendorRegister(input: {
   return data.vendor;
 }
 
+/**
+ * referralCode: a friend's code typed by the customer (customer-to-customer).
+ * vendorRef:    the code carried silently from a vendor's referral link/QR.
+ * A customer is referred by one or the other, never both; register.php
+ * enforces that, and the register forms only send the one that applies.
+ */
 export async function register(input: {
   firstName: string;
   lastName: string;
@@ -111,6 +117,7 @@ export async function register(input: {
   confirmPassword: string;
   otp_verified: boolean;
   referralCode?: string;
+  vendorRef?: string;
 }): Promise<RegisterResponse> {
   return apiRequest<RegisterResponse>("/register.php", {
     method: "POST",

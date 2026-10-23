@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Eye, EyeOff, UserPlus } from "lucide-react";
@@ -8,6 +8,7 @@ import { sendOtp, register, login } from "@/lib/api/auth";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { ApiError } from "@/lib/api/client";
 import { OtpStep } from "@/components/auth/OtpStep";
+import { clearVendorRef, getVendorRef } from "@/lib/vendorRef";
 
 type Step = "form" | "otp" | "registering";
 
@@ -26,6 +27,16 @@ export function RegisterForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
+
+  // Code carried from a vendor's referral link/QR. When present, this customer
+  // was referred by a vendor, so the friend-code box is hidden (and vice versa).
+  const [vendorRef, setVendorRef] = useState<string | null>(null);
+  const [refChecked, setRefChecked] = useState(false);
+
+  useEffect(() => {
+    setVendorRef(getVendorRef());
+    setRefChecked(true);
+  }, []);
 
   const { setUser } = useAuth();
   const router = useRouter();
@@ -70,8 +81,11 @@ export function RegisterForm() {
         password: form.password,
         confirmPassword: form.confirmPassword,
         otp_verified: true,
+        // One referrer only: a typed friend's code, or the vendor link/QR.
         referralCode: form.referralCode || undefined,
+        vendorRef: !form.referralCode && vendorRef ? vendorRef : undefined,
       });
+      clearVendorRef();
       // register.php doesn't return tokens itself, so log in right after —
       // this also runs login.php's guest-cart-merge against whatever the
       // person already added to cart while browsing as a guest.
@@ -218,15 +232,18 @@ export function RegisterForm() {
             </div>
           </Field>
 
-          <Field label="Referral Code (Optional)">
-            <input
-              value={form.referralCode}
-              onChange={(e) => update("referralCode", e.target.value.toUpperCase())}
-              placeholder="Enter referral code"
-              className="input w-full"
-              style={{ textTransform: "uppercase" }}
-            />
-          </Field>
+          {/* Friend-code box: hidden for customers who arrived via a vendor link/QR */}
+          {refChecked && !vendorRef && (
+            <Field label="Referral Code (Optional)">
+              <input
+                value={form.referralCode}
+                onChange={(e) => update("referralCode", e.target.value.toUpperCase())}
+                placeholder="Enter referral code"
+                className="input w-full"
+                style={{ textTransform: "uppercase" }}
+              />
+            </Field>
+          )}
 
           {error && <p className="text-sm text-clay">{error}</p>}
 

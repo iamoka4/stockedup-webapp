@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Star } from "lucide-react";
 import { getVendorDetails } from "@/lib/api/vendors";
 import { StampBadge } from "@/components/StampBadge";
+import VendorRefCapture from "@/components/vendor/VendorRefCapture";
 import { VendorProductGrid } from "./VendorProductGrid";
 import { DEFAULT_CITY } from "@/lib/config";
 import { extractVendorId } from "@/lib/utils/slug";
@@ -53,6 +54,9 @@ export default async function VendorDetailPage({ params }: Props) {
 
   return (
     <div>
+      {/* Saves ?ref=CODE from a vendor referral link/QR so sign-up can credit this vendor */}
+      <VendorRefCapture />
+
       <div className="border-b border-line bg-bg-raised">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-4 py-8 sm:flex-row sm:items-center">
           <div className="h-24 w-24 shrink-0 overflow-hidden rounded-2xl border border-line bg-indigo-tint">
