@@ -36,11 +36,21 @@ function destinationFor(item: Notification): string | null {
     case "NEW_PRODUCT":
       return SHOP_PATH;
     case "PROMO":
-      // Product promotions carry the product id; plain announcements don't.
+      // Product promotions / new-product announcements carry the product id;
+      // plain announcements don't.
       return item.reference_id ? `/products/${item.reference_id}` : null;
+    case "NEW_VENDOR":
+      // New vendor / restaurant announcements carry the vendor id.
+      return item.reference_id ? `/vendors/${item.reference_id}` : null;
     default:
       return null;
   }
+}
+
+function actionLabel(item: Notification): string {
+  if (item.type === "PROMO" && item.reference_id) return "Buy Now";
+  if (item.type === "NEW_VENDOR" && item.reference_id) return "View Store";
+  return "View Details";
 }
 
 // ─── Helpers (same icon/colour per type as mobile) ───────────────────────────
@@ -51,6 +61,7 @@ function getNotificationIcon(type: string): { icon: VendorIconName; color: strin
       return { icon: "receipt", color: "#007AFF", bg: "#EAF3FF" };
     case "PROMOTION":
     case "PROMO":
+    case "NEW_VENDOR":
       return { icon: "tag", color: "#FE7C09", bg: "#FFF3EA" };
     case "NEW_PRODUCT":
       return { icon: "bagPlus", color: "#34C759", bg: "#EAFAF0" };
@@ -110,7 +121,6 @@ function NotificationModal({
 }) {
   const icon = getNotificationIcon(item.type);
   const destination = destinationFor(item);
-  const isProductPromo = item.type === "PROMO" && !!item.reference_id;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -160,7 +170,7 @@ function NotificationModal({
               onClick={() => onNavigate(destination)}
               className="flex items-center justify-center gap-2 rounded-[14px] bg-brand py-3.5 text-[15px] font-bold text-white"
             >
-              {isProductPromo ? "Buy Now" : "View Details"}
+              {actionLabel(item)}
               <VendorIcon name="arrowRight" className="size-4" />
             </button>
           )}
