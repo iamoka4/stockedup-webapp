@@ -1,74 +1,114 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getDeliveryFee } from "@/lib/api/addresses";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { getDeliveryQuote, type DeliveryQuote } from "@/lib/api/addresses";
 import type { Coordinates } from "@/lib/hooks/useGeolocation";
 
-interface VendorFee {
-  vendor_id: number;
-  total: number;
-  distance_km: number;
-}
-
 /**
- * delivery-fee.php takes a single vendor_id per call, so a multi-vendor
- * cart needs one call per vendor — still necessary, since each vendor's
- * individual delivery eligibility (out-of-range check) has to be
- * validated separately; any one ineligible vendor should still surface
- * an error here, same as processOrder() enforces server-side.
+ * ONE delivery quote for the whole cart, the same call the mobile app makes.
  *
- * FIX: the order-level delivery fee is no longer the SUM of every
- * vendor's quote. Per StockedUp policy, a multi-vendor order is still
- * ONE delivery leg from the buyer's side and must be priced as ONE quote
- * — matching processOrder() in OrderController.php, which takes the
- * MINIMUM quote across the order's vendors as the actual charge (see its
- * comments re: order #57, where the old summing logic overcharged
- * ₦4,000 instead of ₦2,000 for a 2-vendor cart). This hook was still
- * summing, so checkout was showing a phantom total the customer would
- * never actually be charged. Take the minimum here too so the estimate
- * shown at checkout matches what processOrder() will actually charge.
+ * Before, this hook asked for a separate estimate per vendor, showed the lowest,
+ * and sent no quote id, so the backend charged a fee worked out from a
+ * different configuration than the one shown. Now the customer sees the fee of
+ * a locked KoulriaGo quote and the quote_id goes to the backend with the
+ * payment, which charges exactly that quote.
+ *
+ * A quote only stays valid for a limited time (15 minutes by default), so the
+ * hook refreshes it in the background and offers ensureFresh() for the moment
+ * the customer taps Pay. Ages are measured with the browser clock from the time
+ * the quote was fetched, so no server time zone is involved.
  */
+const AUTO_REFRESH_MS = 8 * 60 * 1000; // refresh well before a 15-minute quote runs out
+const STALE_AFTER_MS = 10 * 60 * 1000; // a quote older than this is refreshed before paying
+
 export function useDeliveryFees(vendorIds: number[], coords: Coordinates | null) {
-  const [fees, setFees] = useState<VendorFee[]>([]);
+  const [quote, setQuote] = useState<DeliveryQuote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!coords || vendorIds.length === 0) {
-      // Resetting fees when the dependency set becomes empty is the sync
-      // this effect exists for (no coords / no items means no fee to show).
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setFees([]);
-      return;
+  const fetchedAt = useRef<number>(0);
+  const requestId = useRef<number>(0);
+  const idsRef = useRef<number[]>(vendorIds);
+  idsRef.current = vendorIds;
+
+  const idsKey = [...vendorIds].sort((a, b) => a - b).join(",");
+  const lat = coords ? coords.latitude : null;
+  const lng = coords ? coords.longitude : null;
+
+  const fetchQuote = useCallback(async (): Promise<DeliveryQuote | null> => {
+    const ids = idsRef.current;
+
+    if (lat === null || lng === null || ids.length === 0) {
+      setQuote(null);
+      return null;
     }
-    let cancelled = false;
+
+    const id = ++requestId.current;
     setLoading(true);
     setError(null);
 
-    Promise.all(
-      vendorIds.map((id) =>
-        getDeliveryFee(id, coords.latitude, coords.longitude).then((r) => ({
-          vendor_id: id,
-          total: r.total,
-          distance_km: r.distance_km,
-        }))
-      )
-    )
-      .then((results) => {
-        if (!cancelled) setFees(results);
-      })
-      .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : "Couldn't calculate delivery fee");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    try {
+      const q = await getDeliveryQuote(ids, lat, lng);
 
-    return () => {
-      cancelled = true;
-    };
-  }, [coords, vendorIds.join(",")]); // eslint-disable-line react-hooks/exhaustive-deps
+      if (id === requestId.current) {
+        setQuote(q);
+        fetchedAt.current = Date.now();
+      }
 
-  const total = fees.length > 0 ? Math.min(...fees.map((f) => f.total)) : 0;
-  return { fees, total, loading, error };
+      return q;
+    } catch (err) {
+      if (id === requestId.current) {
+        setQuote(null);
+        setError(err instanceof Error ? err.message : "Couldn't calculate delivery fee");
+      }
+
+      return null;
+    } finally {
+      if (id === requestId.current) {
+        setLoading(false);
+      }
+    }
+  }, [idsKey, lat, lng]);
+
+  // A new quote whenever the cart's vendors or the delivery location change.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchQuote();
+  }, [fetchQuote]);
+
+  // Keep the quote fresh while the customer is on the page.
+  useEffect(() => {
+    if (lat === null || lng === null || idsKey === "") return;
+
+    const timer = setInterval(() => {
+      void fetchQuote();
+    }, AUTO_REFRESH_MS);
+
+    return () => clearInterval(timer);
+  }, [fetchQuote, lat, lng, idsKey]);
+
+  /**
+   * Call right before paying. Returns the quote to pay with, and whether a new
+   * one had to be fetched because the old one was getting old.
+   */
+  const ensureFresh = useCallback(async (): Promise<{ quote: DeliveryQuote | null; refreshed: boolean }> => {
+    const stale = !quote || Date.now() - fetchedAt.current > STALE_AFTER_MS;
+
+    if (!stale) {
+      return { quote, refreshed: false };
+    }
+
+    const q = await fetchQuote();
+    return { quote: q, refreshed: true };
+  }, [quote, fetchQuote]);
+
+  return {
+    quote,
+    quoteId: quote ? quote.quote_id : null,
+    total: quote ? quote.total : 0,
+    loading,
+    error,
+    refresh: fetchQuote,
+    ensureFresh,
+  };
 }

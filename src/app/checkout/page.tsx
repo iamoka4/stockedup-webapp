@@ -10,15 +10,13 @@ import { useAuthModalStore } from "@/store/authModalStore";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { AREA_GROUPS } from "@/lib/constants/cityCoords";
 import { useDeliveryFees } from "./useDeliveryFees";
-import { useProcessingFee } from "./useProcessingFee";
+import { useCheckoutQuote } from "./useCheckoutQuote";
 import { AddressPanel } from "./AddressPanel";
 import { PaymentMethodPanel, type PaymentMethod } from "./PaymentMethodPanel";
 import { VoucherPanel } from "./VoucherPanel";
 import { SchedulingPanel } from "./SchedulingPanel";
 import { ConfirmModal } from "./ConfirmModal";
-import { calculateOrderTotal } from "@/lib/checkout/fees";
-import { initializePayment, verifyPayment } from "@/lib/api/payments";
-import { checkFirstOrderDiscount } from "@/lib/api/discounts";
+import { initializePayment, verifyPayment, type CheckoutItem } from "@/lib/api/payments";
 import { getWallet } from "@/lib/api/wallet";
 import type { UserAddress, CartItemAddon } from "@/lib/api/types";
 import type { DeliverySlot } from "@/lib/api/scheduling";
@@ -44,20 +42,13 @@ export default function CheckoutPage() {
   const [voucherCode, setVoucherCode] = useState<string | null>(null);
   const [voucherDiscount, setVoucherDiscount] = useState(0);
 
-  const [firstOrderEligible, setFirstOrderEligible] = useState(false);
-  const [firstOrderDiscount, setFirstOrderDiscount] = useState(0);
-  const [firstOrderMinimum, setFirstOrderMinimum] = useState(0);
-
   const [selectedSlot, setSelectedSlot] = useState<DeliverySlot | null>(null);
   const [isVendorClosed, setIsVendorClosed] = useState(false);
 
   // Manual location fallback — shown when geolocation is denied/unsupported.
-  // geo.setManual already existed in useGeolocation but was never wired
-  // into this UI. Originally this was a raw lat/lng form, but that meant
-  // nothing to most customers — an "area" dropdown (same named areas and
-  // coordinates as the mobile app's CITY_COORDS) is the primary fallback
-  // now; raw coordinates are still available but tucked behind an
-  // "advanced" toggle for the rare case an area isn't listed.
+  // An "area" dropdown (same named areas and coordinates as the mobile app's
+  // CITY_COORDS) is the primary fallback; raw coordinates are still available
+  // behind an "advanced" toggle for the rare case an area isn't listed.
   const [selectedAreaLabel, setSelectedAreaLabel] = useState("");
   const [showAdvancedManual, setShowAdvancedManual] = useState(false);
   const [manualLat, setManualLat] = useState("");
@@ -72,14 +63,19 @@ export default function CheckoutPage() {
   );
   const primaryVendorId = vendorIds[0] ?? null;
 
-  const { total: deliveryFee, loading: feeLoading, error: feeError } = useDeliveryFees(
-    vendorIds,
-    geo.coords
-  );
+  // ONE locked delivery quote for the whole cart (the same call the mobile app
+  // makes). Its id goes to the checkout quote below and to the payment, so the
+  // backend charges exactly the fee shown here.
+  const {
+    quoteId: deliveryQuoteId,
+    total: deliveryFee,
+    loading: feeLoading,
+    error: feeError,
+    ensureFresh,
+  } = useDeliveryFees(vendorIds, geo.coords);
 
-  // Subtotal now includes add-ons, same as the mobile app: base price x
-  // quantity plus each add-on's server-computed total_price. Falls back to
-  // the cart's own subtotal if the line items sum to zero.
+  // Used only for the voucher panel's minimum-order check. Every amount the
+  // customer is charged comes from the backend quote below.
   const subtotal = useMemo(() => {
     const computed = (cart?.items ?? []).reduce((sum, i) => {
       const addonsTotal = (i.addons ?? []).reduce(
@@ -91,15 +87,60 @@ export default function CheckoutPage() {
     return computed > 0 ? computed : cart?.subtotal ?? 0;
   }, [cart?.items, cart?.subtotal]);
 
-  const firstOrderApplied = firstOrderEligible && subtotal >= firstOrderMinimum ? firstOrderDiscount : 0;
-  const combinedDiscount = voucherDiscount + firstOrderApplied;
+  // Same item shape the mobile app sends: base unit price (add-ons excluded),
+  // add-ons as { addon_option_id, quantity }, and the per-item special request.
+  // Add-ons whose option the vendor has since deleted (null id) are dropped,
+  // since there is no live option left to attach to the order. Built once and
+  // used for both the quote and the payment so they cannot differ.
+  const checkoutItems = useMemo<CheckoutItem[]>(
+    () =>
+      (cart?.items ?? []).map((i) => {
+        const addons = (i.addons ?? [])
+          .filter(
+            (a): a is CartItemAddon & { addon_option_id: number } => a.addon_option_id !== null
+          )
+          .map((a) => ({
+            addon_option_id: a.addon_option_id,
+            quantity: a.quantity,
+          }));
 
-  // Processing fee now comes from the live processing_fee_tiers config
-  // (System Config → Processing Fees) via processing-fee.php, not a
-  // hardcoded local copy — see lib/checkout/fees.ts for why that matters.
-  const { fee: processingFee, loading: feeCalcLoading, error: processingFeeError } = useProcessingFee(subtotal);
+        return {
+          product_id: i.product_id,
+          quantity: i.quantity,
+          price: i.price,
+          ...(addons.length > 0 ? { addons } : {}),
+          ...(i.special_request ? { special_request: i.special_request } : {}),
+        };
+      }),
+    [cart?.items]
+  );
 
-  const { total } = calculateOrderTotal(subtotal, deliveryFee, combinedDiscount, processingFee);
+  const {
+    quote,
+    loading: quoteLoading,
+    error: quoteError,
+  } = useCheckoutQuote({
+    enabled: !!geo.coords && !!deliveryQuoteId,
+    items: checkoutItems,
+    latitude: geo.coords?.latitude,
+    longitude: geo.coords?.longitude,
+    quoteId: deliveryQuoteId,
+    voucherCode,
+  });
+
+  const total = quote?.total ?? 0;
+  const standardDeliveryFee = quote?.delivery.standard_fee ?? 0;
+  const deliveryDiscount = quote?.delivery.discount ?? 0;
+  const deliveryCharge = quote?.delivery.charge ?? 0;
+  const promo = quote?.promotion;
+
+  // The server is the judge of vouchers: if it rejects one, drop it here too.
+  useEffect(() => {
+    if (quote?.voucher_error && voucherCode) {
+      setVoucherCode(null);
+      setVoucherDiscount(0);
+    }
+  }, [quote?.voucher_error, voucherCode]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -118,17 +159,6 @@ export default function CheckoutPage() {
     if (!user) return;
     getWallet()
       .then((w) => setWalletBalance(w.balance))
-      .catch(() => {});
-  }, [user]);
-
-  useEffect(() => {
-    if (!user) return;
-    checkFirstOrderDiscount()
-      .then((d) => {
-        setFirstOrderEligible(d.eligible);
-        setFirstOrderDiscount(d.discount_amount);
-        setFirstOrderMinimum(d.minimum_subtotal);
-      })
       .catch(() => {});
   }, [user]);
 
@@ -176,14 +206,17 @@ export default function CheckoutPage() {
   const readyToPay =
     !!selectedAddress &&
     !!geo.coords &&
+    !!deliveryQuoteId &&
     !feeLoading &&
-    !feeCalcLoading &&
+    !!quote &&
+    !quoteLoading &&
+    !quoteError &&
     !paying &&
     (!isVendorClosed || !!selectedSlot) &&
     !(paymentMethod === "wallet" && walletBalance <= 0);
 
   async function handlePay() {
-    if (!selectedAddress || !geo.coords || !cart) return;
+    if (!selectedAddress || !geo.coords || !cart || !quote) return;
     setPayError(null);
 
     const customerLatitude = geo.coords.latitude;
@@ -202,51 +235,43 @@ export default function CheckoutPage() {
     setPaying(true);
     setShowConfirm(false);
 
+    // A delivery quote only lives for a limited time. If the one on screen is
+    // getting old, get a fresh one before paying. When its fee is unchanged the
+    // total shown is still right and the payment goes ahead with the new quote;
+    // if the fee moved, the customer reviews the new total first.
+    const feeShown = deliveryFee;
+    const fresh = await ensureFresh();
+
+    if (!fresh.quote || !fresh.quote.quote_id) {
+      setPayError("We couldn't confirm your delivery fee. Please try again.");
+      setPaying(false);
+      return;
+    }
+
+    if (fresh.refreshed && Math.abs(fresh.quote.total - feeShown) > 0.5) {
+      setPayError("Your delivery fee was updated. Please review your total and tap Pay again.");
+      setPaying(false);
+      return;
+    }
+
+    const quoteIdToPay = fresh.quote.quote_id;
+
     const shipping_address = [selectedAddress.line1, selectedAddress.line2, selectedAddress.city, selectedAddress.state]
       .filter(Boolean)
       .join(", ");
 
     const idempotency_key = generateIdempotencyKey();
 
-    // Same item shape the mobile app sends: base unit price (add-ons
-    // excluded), add-ons as { addon_option_id, quantity } with the cart's
-    // quantity passed through as-is, and the per-item special request.
-    // Add-ons whose option the vendor has since deleted (null id) are
-    // dropped, since there is no live option left to attach to the order.
-    const items = cart.items.map((i) => {
-      const addons = (i.addons ?? [])
-        .filter(
-          (a): a is CartItemAddon & { addon_option_id: number } => a.addon_option_id !== null
-        )
-        .map((a) => ({
-          addon_option_id: a.addon_option_id,
-          quantity: a.quantity,
-        }));
-
-      return {
-        product_id: i.product_id,
-        quantity: i.quantity,
-        price: i.price,
-        ...(addons.length > 0 ? { addons } : {}),
-        ...(i.special_request ? { special_request: i.special_request } : {}),
-      };
-    });
-
     try {
       const result = await initializePayment(
-        total,
+        Math.round(total),
         {
-          items,
+          items: checkoutItems,
           shipping_address,
-          delivery_fee: deliveryFee,
+          quote_id: quoteIdToPay,
           idempotency_key,
           use_wallet_balance: paymentMethod === "wallet",
           voucher_code: voucherCode,
-          // The server works out the voucher and first-order amounts itself.
-          // It only needs to know whether this customer is claiming the
-          // first-order discount (it verifies eligibility on its side).
-          first_order_discount: firstOrderApplied > 0,
-          discount_amount: combinedDiscount,
           order_type: selectedSlot ? "scheduled" : "instant",
           scheduled_for: selectedSlot?.datetime ?? null,
           scheduled_slot_id: selectedSlot?.slot_id ?? null,
@@ -487,34 +512,43 @@ export default function CheckoutPage() {
           longer reads customer_notes. Notes are per item (special_request),
           written on the product details page and sent with each item. */}
 
-      {firstOrderEligible && subtotal >= firstOrderMinimum && (
+      {/* Delivery promotion messages come from the backend. */}
+      {promo?.status === "applied" && (
         <div className="mt-8 rounded-2xl border border-brand-deep/20 bg-brand-warm/40 p-4">
-          <p className="text-sm font-medium text-brand-deep">
-            🎉 Welcome to StockedUp! ₦{firstOrderDiscount.toLocaleString("en-NG")} has been applied to your first order.
-          </p>
+          <p className="text-sm font-medium text-brand-deep">🎉 {promo.message || promo.title}</p>
+          {promo.description && <p className="mt-1 text-xs text-ink-soft">{promo.description}</p>}
         </div>
       )}
-      {firstOrderEligible && subtotal < firstOrderMinimum && (
-        <p className="mt-4 text-xs text-ink-soft">
-          Add ₦{(firstOrderMinimum - subtotal).toLocaleString("en-NG")} more to unlock your first-order discount.
-        </p>
+      {promo?.status === "below_minimum" && promo.message && (
+        <p className="mt-4 text-xs text-ink-soft">{promo.message}</p>
       )}
 
       <section className="mt-8 rounded-2xl border border-line bg-bg-raised p-4">
-        <Row label="Subtotal" value={subtotal} />
-        <Row label="Processing fee" value={feeCalcLoading ? null : processingFee} />
-        <Row label="Delivery fee" value={feeLoading ? null : deliveryFee} />
-        {voucherDiscount > 0 && <Row label="Voucher discount" value={-voucherDiscount} />}
-        {firstOrderApplied > 0 && <Row label="First order discount" value={-firstOrderApplied} />}
+        <Row label="Subtotal" value={quote ? quote.items_subtotal : null} />
+        <Row label="Processing fee" value={quote ? quote.processing_fee : null} />
+        {deliveryDiscount > 0 ? (
+          <div className="flex items-center justify-between py-1 text-sm">
+            <span className="text-ink-soft">Delivery fee</span>
+            <span className="tabular flex items-center gap-2">
+              <s className="text-xs text-ink-soft">₦{standardDeliveryFee.toLocaleString()}</s>
+              <span className="font-semibold text-leaf">
+                {deliveryCharge <= 0 ? "FREE" : `₦${deliveryCharge.toLocaleString()}`}
+              </span>
+            </span>
+          </div>
+        ) : (
+          <Row label="Delivery fee" value={quote ? deliveryCharge : feeLoading ? null : null} />
+        )}
+        {quote && quote.voucher_discount > 0 && <Row label="Voucher discount" value={-quote.voucher_discount} />}
         <div className="mt-3 flex items-center justify-between border-t border-line pt-3">
           <span className="font-semibold text-ink">Total</span>
           <span className="tabular font-display text-xl font-semibold text-ink">
-            ₦{total.toLocaleString()}
+            {quote ? `₦${total.toLocaleString()}` : "—"}
           </span>
         </div>
       </section>
 
-      {processingFeeError && <p className="mt-4 text-sm text-clay">{processingFeeError}</p>}
+      {quoteError && <p className="mt-4 text-sm text-clay">{quoteError}</p>}
       {payError && <p className="mt-4 text-sm text-clay">{payError}</p>}
 
       <button
@@ -523,7 +557,13 @@ export default function CheckoutPage() {
         onClick={() => setShowConfirm(true)}
         className="mt-6 w-full rounded-full bg-brand py-3.5 text-sm font-semibold text-white hover:bg-brand-deep disabled:cursor-not-allowed disabled:bg-line disabled:text-ink-soft"
       >
-        {paying ? "Redirecting to payment…" : isVendorClosed ? "Schedule order" : `Pay ₦${total.toLocaleString()}`}
+        {paying
+          ? "Redirecting to payment…"
+          : isVendorClosed
+            ? "Schedule order"
+            : quote
+              ? `Pay ₦${total.toLocaleString()}`
+              : "Pay"}
       </button>
 
       <ConfirmModal
@@ -533,9 +573,9 @@ export default function CheckoutPage() {
         address={selectedAddress}
         slot={selectedSlot}
         notes=""
-        deliveryFee={deliveryFee}
+        deliveryFee={deliveryCharge}
         total={total}
-        firstOrderDiscount={firstOrderApplied}
+        firstOrderDiscount={0}
         paying={paying}
         isScheduled={!!selectedSlot}
       />

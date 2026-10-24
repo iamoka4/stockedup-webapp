@@ -24,6 +24,9 @@ export function saveUserAddress(input: {
  * their saved address — this mirrors how the mobile app calls it, since
  * user_addresses has no lat/lng. See useDeliveryFee() for the geolocation
  * + manual-pin fallback flow.
+ *
+ * Single-vendor estimate. Checkout no longer uses this: it asks for ONE quote
+ * for the whole cart with getDeliveryQuote() below, exactly like the mobile app.
  */
 export async function getDeliveryFee(
   vendor_id: number,
@@ -50,6 +53,56 @@ export async function getDeliveryFee(
   }
 
   return json as DeliveryFeeResult;
+}
+
+/**
+ * One consolidated delivery quote for every vendor in the cart (KoulriaGo
+ * multi-pickup pricing), the same call the mobile app makes. The returned
+ * quote_id MUST be sent with the payment: the backend locks that exact quote
+ * and charges its fee, so the fee shown at checkout is the fee charged.
+ */
+export interface DeliveryQuote {
+  eligible: boolean;
+  quote_id: string;
+  distance_km: number;
+  pickup_count: number;
+  pricing_method: string;
+  base_fee: number;
+  distance_fee: number;
+  pickup_fee: number;
+  total: number;
+  currency: string;
+  expires_at: string;
+}
+
+export async function getDeliveryQuote(
+  vendor_ids: number[],
+  customer_latitude: number,
+  customer_longitude: number
+): Promise<DeliveryQuote> {
+  const res = await fetch(`${API_BASE_URL}/delivery-fee.php`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      vendor_ids,
+      customer_latitude,
+      customer_longitude,
+    }),
+    cache: "no-store",
+  });
+
+  const json = await res.json();
+
+  if (!res.ok || json.error) {
+    throw new Error(
+      (typeof json.error === "string" ? json.error : json.error?.message) ||
+        "Couldn't calculate delivery fee"
+    );
+  }
+
+  return json as DeliveryQuote;
 }
 
 /**

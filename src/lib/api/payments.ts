@@ -30,18 +30,18 @@ export interface CheckoutMetadata {
   items: CheckoutItem[];
   shipping_address: string;
   /**
-   * Not used by the backend for pricing: processOrder() computes the
-   * delivery fee itself from vendor + customer coordinates. Kept only in
-   * case display/logging code still reads it.
+   * Not used by the backend for pricing: the backend works the delivery fee out
+   * itself (from quote_id when present). Kept only in case display/logging code
+   * still reads it.
    */
   delivery_fee?: number;
+  /**
+   * The id of the delivery quote the customer was shown (from delivery-fee.php).
+   * The backend locks this exact quote and charges its fee. Always send it.
+   */
+  quote_id?: string | null;
   voucher_code?: string | null;
   discount_amount?: number;
-  /**
-   * True when the customer is claiming the first-order discount. The server
-   * verifies eligibility itself and works out the amount; this is only a claim.
-   */
-  first_order_discount?: boolean;
   order_type?: "instant" | "scheduled";
   scheduled_for?: string | null;
   scheduled_slot_id?: string | null;
