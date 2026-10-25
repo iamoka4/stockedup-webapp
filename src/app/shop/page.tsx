@@ -116,10 +116,10 @@ export default async function ShopPage() {
         initialItems={restaurants}
       />
 
-      {/* 6. Supermarket Picks: supermarket business cards */}
+      {/* 6. Quick Mart Picks: supermarket business cards */}
       <VendorListingRail
         businessType="supermarket"
-        title="Supermarket Picks"
+        title="Quick Mart Picks"
         viewAllHref="/supermarkets"
         initialItems={supermarkets}
       />
