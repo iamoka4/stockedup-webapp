@@ -90,7 +90,10 @@ export default function AddressesPage() {
         {!showForm ? (
           <button
             type="button"
-            onClick={() => setShowForm(true)}
+            onClick={() => {
+              mutation.reset();
+              setShowForm(true);
+            }}
             className="rounded-2xl border border-dashed border-line py-3 text-sm font-medium text-brand-deep hover:border-brand"
           >
             + Add a new address
@@ -146,6 +149,17 @@ export default function AddressesPage() {
               />
               Set as default address
             </label>
+
+            {/* Without this, a failed save looked like nothing happened:
+                the button just went back to "Save address" with no message. */}
+            {mutation.isError && (
+              <p role="alert" className="text-sm text-clay">
+                {mutation.error instanceof ApiError && mutation.error.message
+                  ? mutation.error.message
+                  : "Couldn't save your address. Please check your connection and try again."}
+              </p>
+            )}
+
             <div className="mt-1 flex gap-2">
               <button
                 type="submit"
@@ -154,7 +168,14 @@ export default function AddressesPage() {
               >
                 {mutation.isPending ? "Saving…" : "Save address"}
               </button>
-              <button type="button" onClick={() => setShowForm(false)} className="text-sm text-ink-soft">
+              <button
+                type="button"
+                onClick={() => {
+                  mutation.reset();
+                  setShowForm(false);
+                }}
+                className="text-sm text-ink-soft"
+              >
                 Cancel
               </button>
             </div>
