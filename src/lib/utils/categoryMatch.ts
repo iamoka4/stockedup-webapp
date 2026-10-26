@@ -1,6 +1,6 @@
-// Forgiving category matching, plus an explicit map for restaurant meal
+// Forgiving category matching, an explicit map for restaurant meal
 // categories (their products are tagged with specific dishes, not the
-// category name).
+// category name), and hand-picked category images.
 
 const STOP = new Set(["and", "the", "of", "meal", "meals", "dish", "dishes"]);
 
@@ -89,4 +89,46 @@ export function mealCategoryMatches(
   const tags = MEAL_CATEGORY_TAGS[key];
   if (!tags) return categoryMatches(productCategory, [key]);
   return p === key || tags.includes(p);
+}
+
+// ── Hand-picked category images ──
+// For these meal categories, use a specific product's photo: the product from
+// that vendor whose name contains the dish. Text is compared with all spaces
+// and punctuation removed, so spelling like "King Fries" still matches.
+type ImageProduct = {
+  name?: string | null;
+  vendor_name?: string | null;
+  image?: string | null;
+  category?: string | null;
+};
+
+const squash = (s?: string | null) =>
+  (s ?? "").toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const MEAL_CATEGORY_IMAGE_PICKS: Record<string, { vendor: string; dish: string }> = {
+  breakfast: { vendor: "kingfries", dish: "spaghetti" },
+  soups: { vendor: "megzy", dish: "okrasoup" },
+  "combos & specials": { vendor: "egovin", dish: "basmatirice" },
+};
+
+// Image for a meal category: the hand-picked product if one is set and found,
+// otherwise the first matching product that has a photo.
+export function pickMealCategoryImage(
+  categoryName: string | null | undefined,
+  products: ImageProduct[],
+): string | null {
+  const pick = MEAL_CATEGORY_IMAGE_PICKS[norm(categoryName)];
+  if (pick) {
+    const hit = products.find(
+      (p) =>
+        p.image &&
+        squash(p.vendor_name).includes(pick.vendor) &&
+        squash(p.name).includes(pick.dish),
+    );
+    if (hit?.image) return hit.image;
+  }
+  const match = products.find(
+    (p) => p.image && mealCategoryMatches(p.category, categoryName),
+  );
+  return match?.image ?? null;
 }

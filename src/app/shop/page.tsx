@@ -19,7 +19,7 @@ import {
 } from "@/components/home/CityProductRails";
 import { HotProductsSection } from "@/components/home/HotProductsSection";
 import { DEFAULT_CITY } from "@/lib/config";
-import { mealCategoryMatches } from "@/lib/utils/categoryMatch";
+import { pickMealCategoryImage } from "@/lib/utils/categoryMatch";
 
 // Must be a literal here: Next.js can't read a re-exported revalidate value.
 export const revalidate = 60;
@@ -36,23 +36,20 @@ const normalizeCity = (s: string) => s.toLowerCase().replace(/\s+/g, "");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MealCategory = Record<string, any>;
 
-// Image for a meal category: first restaurant product in it that has a photo,
-// then the category's own image (may be empty).
+// Image for a meal category: a hand-picked product's photo where one is set
+// (breakfast, soups, combos), otherwise the first matching product's photo.
 function mealCategoryImage(
   c: MealCategory,
   mealProducts: Product[],
 ): string | null {
   const name = c.category_name ?? c.name ?? "";
-  const match = mealProducts.find(
-    (p) => p.image && mealCategoryMatches(p.category, name),
-  );
   // The API's own category image is just the uploads folder (no file name),
   // so only use it if it points at a real file.
   const own =
     typeof c.image === "string" && c.image && !c.image.endsWith("/")
       ? c.image
       : null;
-  return match?.image ?? own;
+  return pickMealCategoryImage(name, mealProducts) ?? own;
 }
 
 // Homepage, section for section (matches the mobile Home screen):
