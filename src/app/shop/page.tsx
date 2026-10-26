@@ -31,25 +31,67 @@ export const metadata: Metadata = {
 
 const normalizeCity = (s: string) => s.toLowerCase().replace(/\s+/g, "");
 
+// Loose shape: the API may return category_name or name.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MealCategory = Record<string, any>;
+
+const norm = (s?: string | null) => (s ?? "").trim().toLowerCase();
+
+// Does this product belong to one of the category's names? Exact match, or a
+// compound product category like "Rice & Stew" that contains one of them.
+function productMatches(p: Product, names: Set<string>): boolean {
+  const cat = norm(p.category);
+  if (!cat) return false;
+  if (names.has(cat)) return true;
+  if (cat.includes(" & ") || cat.includes(" and ")) {
+    return cat
+      .split(/\s*&\s*|\s+and\s+/i)
+      .some((part) => names.has(part.trim()));
+  }
+  return false;
+}
+
+// Image for a meal category: first restaurant product in it that has a photo,
+// then the category's own image (may be empty).
+function mealCategoryImage(
+  c: MealCategory,
+  mealProducts: Product[],
+): string | null {
+  const names = new Set<string>(
+    [
+      norm(c.category_name ?? c.name),
+      ...String(c.sub_categories ?? "")
+        .split(",")
+        .map((s) => norm(s)),
+    ].filter(Boolean),
+  );
+  const match = mealProducts.find((p) => p.image && productMatches(p, names));
+  return match?.image ?? c.image ?? null;
+}
+
 // Homepage, section for section (matches the mobile Home screen):
 //   Promo banner -> Categories -> Restock Your Kitchen (grocery vendors) ->
-//   Recharge Your Belly (restaurants) -> Supermarket Picks (supermarkets) ->
+//   Refill Your Belly (restaurants) -> Quick Mart Picks (supermarkets) ->
 //   What Are You Having Today? (restaurant meals) -> Trending Drinks ->
-//   What's Everyone Buying? (Popular Demand) -> Best Sellers.
-// The Groceries / Restaurants / Supermarkets tabs no longer appear here; they
-// live on the vendors pages (see VendorTypeTabs).
-// The notification bell lives in the site header (see NotificationBell).
+//   What's Everyone Buying? (Popular Demand) -> Explore Our Meal Categories ->
+//   Best Sellers.
 export default async function ShopPage() {
   const [
     { categories },
+    { categories: mealCategories },
     { vendors },
     products,
     promoSlides,
     restaurants,
     supermarkets,
   ] = await Promise.all([
-    getCategories().catch((err) => {
+    // Grocery categories only, so restaurant ones don't leak into this row.
+    getCategories("grocery").catch((err) => {
       console.error("[shop] getCategories failed:", err);
+      return { categories: [] };
+    }),
+    getCategories("restaurant").catch((err) => {
+      console.error("[shop] meal categories failed:", err);
       return { categories: [] };
     }),
     getVendors(DEFAULT_CITY).catch((err) => {
@@ -80,6 +122,17 @@ export default async function ShopPage() {
     (v) => normalizeCity(v.city || "") === normalizeCity(DEFAULT_CITY),
   );
 
+  // Meal categories, each with an image taken from one of its products.
+  // The explicit MealCategory types stop TypeScript from narrowing the
+  // spread result to `{ image: string | null }`.
+  const mealProducts = products.filter((p) => p.business_type === "restaurant");
+  const meals: MealCategory[] = ((mealCategories ?? []) as MealCategory[]).map(
+    (c): MealCategory => ({
+      ...c,
+      image: mealCategoryImage(c, mealProducts),
+    }),
+  );
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       {promoSlides.length > 0 && (
@@ -90,7 +143,9 @@ export default async function ShopPage() {
 
       <section className="py-8">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-ink sm:text-xl">Categories</h2>
+          <h2 className="font-display text-lg font-bold text-ink sm:text-xl">
+            Categories
+          </h2>
           <Link
             href="/categories"
             className="text-sm font-semibold text-brand-deep hover:underline"
@@ -101,7 +156,7 @@ export default async function ShopPage() {
         <CategoryScroller categories={categories} />
       </section>
 
-      {/* 4. Restock Your Kitchen: grocery vendors (renamed Popular vendors) */}
+      {/* 4. Restock Your Kitchen: grocery vendors */}
       <PopularVendorsSection
         title="Restock Your Kitchen"
         viewAllHref="/vendors"
@@ -127,13 +182,59 @@ export default async function ShopPage() {
       {/* 7. What Are You Having Today?: restaurant meals (no drinks) */}
       <RestaurantMealsSection initialProducts={products} />
 
-      {/* 8. Trending Drinks: repositioned, logic unchanged */}
+      {/* 8. Trending Drinks */}
       <TrendingDrinksSection initialProducts={products} />
 
-      {/* 9. What's Everyone Buying?: Popular Demand, heading renamed */}
+      {/* 9. What's Everyone Buying? */}
       <PopularDemandSection initialProducts={products} />
 
-      {/* 10. Best Sellers */}
+      {/* 10. Explore Our Meal Categories: image comes from a product in the category */}
+      {meals.length > 0 && (
+        <section className="py-6">
+          <h2 className="mb-4 font-display text-lg font-bold text-ink sm:text-xl">
+            Explore Our Meal Categories
+          </h2>
+          <div className="scrollbar-none flex snap-x gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {meals.map((c) => {
+              const name: string = c.category_name ?? c.name ?? "Category";
+              return (
+                <div
+                  key={c.id}
+                  className="w-[44vw] max-w-65 shrink-0 snap-start sm:w-56 lg:w-64"
+                >
+                  <Link
+                    href={`/food?category=${encodeURIComponent(name)}`}
+                    className="group block rounded-2xl border border-line bg-bg-raised p-2.5"
+                  >
+                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-brand-tint">
+                      {c.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={c.image}
+                          alt={name}
+                          loading="lazy"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                      ) : (
+                        <span className="grid size-full place-items-center text-4xl">
+                          🍽️
+                        </span>
+                      )}
+                      <div className="absolute inset-x-0 bottom-0 bg-black/45 px-3 py-2.5">
+                        <p className="line-clamp-1 font-body text-[15px] font-bold text-white">
+                          {name}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* 11. Best Sellers */}
       <HotProductsSection />
     </div>
   );

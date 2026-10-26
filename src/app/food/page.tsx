@@ -11,7 +11,29 @@ export const metadata: Metadata = {
 
 export const revalidate = 60;
 
-export default async function FoodPage() {
+type SearchParams = { category?: string };
+
+function matchesCategory(p: Product, wanted: string): boolean {
+  const cat = (p.category || "").trim().toLowerCase();
+  if (!cat) return false;
+  if (cat === wanted) return true;
+  if (cat.includes(" & ") || cat.includes(" and ")) {
+    return cat
+      .split(/\s*&\s*|\s+and\s+/i)
+      .some((part) => part.trim() === wanted);
+  }
+  return false;
+}
+
+export default async function FoodPage({
+  searchParams,
+}: {
+  // A Promise in Next 15, a plain object in Next 14. `await` handles both.
+  searchParams?: Promise<SearchParams> | SearchParams;
+}) {
+  const { category } = (await searchParams) ?? {};
+  const wanted = category?.trim().toLowerCase();
+
   let products: Product[] = [];
   let failed = false;
   try {
@@ -21,14 +43,26 @@ export default async function FoodPage() {
     failed = true;
   }
 
+  if (wanted) {
+    products = products.filter((p) => matchesCategory(p, wanted));
+  }
+
   return (
     <ProductListingPage
-      title="Food"
-      mainLabel="Meals"
-      intro="Cooked meals from restaurants and food vendors around you."
+      title={category?.trim() || "Food"}
+      mainLabel={category?.trim() || "Meals"}
+      intro={
+        wanted
+          ? `${category} meals from restaurants and food vendors around you.`
+          : "Cooked meals from restaurants and food vendors around you."
+      }
       products={products}
       failed={failed}
-      emptyText="No meals are listed yet. Check back soon."
+      emptyText={
+        wanted
+          ? `No ${category} meals are listed yet. Check back soon.`
+          : "No meals are listed yet. Check back soon."
+      }
     />
   );
 }
