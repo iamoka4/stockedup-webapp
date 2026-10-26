@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { getFoodProducts } from "@/lib/api/products";
 import { ProductListingPage } from "@/components/shop/ProductListingPage";
 import { DEFAULT_CITY } from "@/lib/config";
-import { categoryMatches } from "@/lib/utils/categoryMatch";
+import { mealCategoryMatches } from "@/lib/utils/categoryMatch";
 import type { Product } from "@/lib/api/types";
 
 export const metadata: Metadata = {
@@ -17,7 +17,6 @@ type SearchParams = { category?: string };
 export default async function FoodPage({
   searchParams,
 }: {
-  // A Promise in Next 15+, a plain object in Next 14. `await` handles both.
   searchParams?: Promise<SearchParams> | SearchParams;
 }) {
   const { category } = (await searchParams) ?? {};
@@ -32,10 +31,8 @@ export default async function FoodPage({
     failed = true;
   }
 
-  // Same matching rule as the image on the home page's meal category cards,
-  // so a card that shows a product always opens a list that contains it.
   if (wanted) {
-    products = products.filter((p) => categoryMatches(p.category, [wanted]));
+    products = products.filter((p) => mealCategoryMatches(p.category, wanted));
   }
 
   return (

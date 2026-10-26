@@ -19,7 +19,7 @@ import {
 } from "@/components/home/CityProductRails";
 import { HotProductsSection } from "@/components/home/HotProductsSection";
 import { DEFAULT_CITY } from "@/lib/config";
-import { categoryMatches, categoryNames } from "@/lib/utils/categoryMatch";
+import { mealCategoryMatches } from "@/lib/utils/categoryMatch";
 
 // Must be a literal here: Next.js can't read a re-exported revalidate value.
 export const revalidate = 60;
@@ -42,11 +42,17 @@ function mealCategoryImage(
   c: MealCategory,
   mealProducts: Product[],
 ): string | null {
-  const names = categoryNames(c);
+  const name = c.category_name ?? c.name ?? "";
   const match = mealProducts.find(
-    (p) => p.image && categoryMatches(p.category, names),
+    (p) => p.image && mealCategoryMatches(p.category, name),
   );
-  return match?.image ?? c.image ?? null;
+  // The API's own category image is just the uploads folder (no file name),
+  // so only use it if it points at a real file.
+  const own =
+    typeof c.image === "string" && c.image && !c.image.endsWith("/")
+      ? c.image
+      : null;
+  return match?.image ?? own;
 }
 
 // Homepage, section for section (matches the mobile Home screen):

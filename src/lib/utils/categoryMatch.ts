@@ -1,6 +1,6 @@
-// Forgiving category matching: ignores case, "&" / "and" and plurals, so a
-// category like "Combos & Specials" matches products tagged "Combo" or
-// "Specials", and "Grills & Barbecue" matches "Grill".
+// Forgiving category matching, plus an explicit map for restaurant meal
+// categories (their products are tagged with specific dishes, not the
+// category name).
 
 const STOP = new Set(["and", "the", "of", "meal", "meals", "dish", "dishes"]);
 
@@ -19,9 +19,8 @@ const tokens = (s?: string | null): string[] =>
     .filter((w) => w && !STOP.has(w))
     .map(stem);
 
-// names: the category's name plus any sub-categories.
-// A product matches when all of its category words appear in the category's
-// words, or all of the category's words appear in the product's.
+const norm = (s?: string | null) => (s ?? "").trim().toLowerCase();
+
 export function categoryMatches(
   productCategory: string | null | undefined,
   names: string[],
@@ -35,11 +34,59 @@ export function categoryMatches(
   });
 }
 
-// All the names a category can be matched by.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function categoryNames(c: any): string[] {
   return [
     c.category_name ?? c.name ?? "",
     ...String(c.sub_categories ?? "").split(","),
   ].filter((s) => s && s.trim());
+}
+
+// Meal category name -> product `category` tags that belong under it
+// (all lowercase). A product can appear under more than one category.
+const MEAL_CATEGORY_TAGS: Record<string, string[]> = {
+  "local dishes": [
+    "local dishes", "other local specialties", "ogbono", "oha", "egusi",
+    "okra", "bitterleaf", "nsala", "vegetable soup", "soups", "fufu",
+    "garri/eba", "semovita", "yam", "plantain", "native rice",
+  ],
+  "fast food": [
+    "fast food", "shawarma", "fries", "meat pie", "family packs",
+    "bbq chicken", "chicken",
+  ],
+  drinks: ["drinks", "soft drinks", "juice", "water"],
+  water: ["water"],
+  "rice & rice dishes": [
+    "rice & rice dishes", "fried rice", "jollof rice", "white rice",
+    "native rice",
+  ],
+  soups: [
+    "soups", "ogbono", "oha", "vegetable soup", "egusi", "okra",
+    "bitterleaf", "nsala",
+  ],
+  swallow: ["fufu", "garri/eba", "semovita"],
+  "proteins & meat": [
+    "chicken", "beef", "turkey", "fish", "assorted meat", "bbq chicken",
+  ],
+  "grills & bbq": ["barbecue", "bbq chicken"],
+  breakfast: ["breakfast", "breakfast combos"],
+  "snacks & pastries": [
+    "snacks & pastries", "meat pie", "doughnut", "chin chin", "fries",
+  ],
+  desserts: ["desserts", "parfait", "ice cream", "cakes"],
+  "combos & specials": ["lunch specials", "breakfast combos", "family packs"],
+};
+
+// Does a product belong to this meal category? Uses the map above; a category
+// that isn't in the map falls back to name matching.
+export function mealCategoryMatches(
+  productCategory: string | null | undefined,
+  categoryName: string | null | undefined,
+): boolean {
+  const p = norm(productCategory);
+  const key = norm(categoryName);
+  if (!p || !key) return false;
+  const tags = MEAL_CATEGORY_TAGS[key];
+  if (!tags) return categoryMatches(productCategory, [key]);
+  return p === key || tags.includes(p);
 }
