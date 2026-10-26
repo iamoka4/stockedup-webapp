@@ -19,6 +19,7 @@ import {
 } from "@/components/home/CityProductRails";
 import { HotProductsSection } from "@/components/home/HotProductsSection";
 import { DEFAULT_CITY } from "@/lib/config";
+import { categoryMatches, categoryNames } from "@/lib/utils/categoryMatch";
 
 // Must be a literal here: Next.js can't read a re-exported revalidate value.
 export const revalidate = 60;
@@ -35,37 +36,16 @@ const normalizeCity = (s: string) => s.toLowerCase().replace(/\s+/g, "");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MealCategory = Record<string, any>;
 
-const norm = (s?: string | null) => (s ?? "").trim().toLowerCase();
-
-// Does this product belong to one of the category's names? Exact match, or a
-// compound product category like "Rice & Stew" that contains one of them.
-function productMatches(p: Product, names: Set<string>): boolean {
-  const cat = norm(p.category);
-  if (!cat) return false;
-  if (names.has(cat)) return true;
-  if (cat.includes(" & ") || cat.includes(" and ")) {
-    return cat
-      .split(/\s*&\s*|\s+and\s+/i)
-      .some((part) => names.has(part.trim()));
-  }
-  return false;
-}
-
 // Image for a meal category: first restaurant product in it that has a photo,
 // then the category's own image (may be empty).
 function mealCategoryImage(
   c: MealCategory,
   mealProducts: Product[],
 ): string | null {
-  const names = new Set<string>(
-    [
-      norm(c.category_name ?? c.name),
-      ...String(c.sub_categories ?? "")
-        .split(",")
-        .map((s) => norm(s)),
-    ].filter(Boolean),
+  const names = categoryNames(c);
+  const match = mealProducts.find(
+    (p) => p.image && categoryMatches(p.category, names),
   );
-  const match = mealProducts.find((p) => p.image && productMatches(p, names));
   return match?.image ?? c.image ?? null;
 }
 
