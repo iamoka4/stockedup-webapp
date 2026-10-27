@@ -8,10 +8,22 @@
   orange (#FF7C09, carried over from the mobile app for consistency),
   a fresh-produce green for stock/availability states, and a night-market
   indigo used sparingly for vendor/premium accents.
+
+  Theming: the active theme is the data-theme attribute on <html>
+  ("light" | "dark"), set before first paint by ThemeScript and kept in
+  sync by ThemeProvider. Light values are the :root defaults below.
 */
+
+/* Lets Tailwind's `dark:` utilities follow our attribute (for the rare
+   one-off that isn't covered by a token). */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 :root {
+  color-scheme: light;
+
   --bg: #fbf7f0;
   --bg-raised: #ffffff;
+  --bg-elevated: #ffffff;
   --ink: #211a14;
   --ink-soft: #6b6053;
   --line: #e8dfd0;
@@ -34,9 +46,36 @@
   --font-data: var(--font-space-grotesk);
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #121614;
+  --bg-raised: #1c221f;
+  --bg-elevated: #252c28;
+  --ink: #f4f6f4;
+  --ink-soft: #b5bdb7;
+  --line: #343d37;
+
+  /* Brand orange is unchanged. */
+  --brand: #ff7c09;
+  --brand-deep: #c75d00;
+  --brand-tint: rgba(255, 124, 9, 0.16);
+
+  /* Accessible green for text/icons on dark surfaces. */
+  --leaf: #4cc38a;
+  --leaf-tint: rgba(76, 195, 138, 0.16);
+
+  --indigo: #4a2e73;
+  --indigo-tint: rgba(143, 115, 196, 0.18);
+
+  --clay: #e5736a;
+  --clay-tint: rgba(229, 115, 106, 0.16);
+}
+
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-raised: var(--bg-raised);
+  --color-bg-elevated: var(--bg-elevated);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-line: var(--line);
@@ -89,11 +128,16 @@ body {
 .input {
   border: 1px solid var(--line);
   background: var(--bg-raised);
+  color: var(--ink);
   border-radius: 0.75rem;
   padding: 0.65rem 0.85rem;
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.15s ease;
+}
+.input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.8;
 }
 .input:focus {
   border-color: var(--brand);
@@ -117,6 +161,17 @@ body {
   -webkit-box-shadow: 0 0 0px 1000px var(--bg-raised) inset;
   box-shadow: 0 0 0px 1000px var(--bg-raised) inset;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Dark theme: keep the logo legible on dark surfaces. The landing-page header
+   is orange and already puts the logo on a white pill, so it is excluded;
+   the footer logo is already on a white pill. */
+:root[data-theme="dark"] header:not(.bg-brand) img[alt="StockedUp Africa"],
+:root[data-theme="dark"] img.logo-plate {
+  background: #fff;
+  border-radius: 4px;
+  box-shadow: 0 0 0 4px #fff;
+  margin-inline: 4px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -6,6 +6,8 @@ import { Header } from "@/components/Header";
 import { AuthModal } from "@/components/auth/AuthModal";
 import { Footer } from "@/components/Footer";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeScript } from "@/components/ThemeScript";
 import { SITE_NAME, SITE_URL } from "@/lib/config";
 
 const fraunces = Fraunces({
@@ -55,17 +57,24 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    // suppressHydrationWarning: ThemeScript sets data-theme/style on <html>
+    // before React hydrates, which is intentional.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body
         className={`${fraunces.variable} ${inter.variable} ${spaceGrotesk.variable} antialiased`}
       >
-        <Providers>
-  <ServiceWorkerRegistration />
-  <AuthModal />
-  <Header />
-  <main className="min-h-[60vh]">{children}</main>
-  <Footer />
-</Providers>
+        <ThemeProvider>
+          <Providers>
+            <ServiceWorkerRegistration />
+            <AuthModal />
+            <Header />
+            <main className="min-h-[60vh]">{children}</main>
+            <Footer />
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

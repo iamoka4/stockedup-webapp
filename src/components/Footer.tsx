@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 import { HOME_ROUTES as R } from "@/components/home/routes";
+import { ThemeSelector } from "@/components/ThemeSelector";
 
 // lucide-react no longer exports brand/company logos, so these are small
 // inline SVGs (20px, currentColor) that pick up the same text/hover classes.
@@ -224,14 +225,17 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t border-white/15 px-4 py-5">
+            <div className="border-t border-white/15 px-4 py-5">
         <div className="mx-auto flex max-w-6xl flex-col items-center gap-3 text-xs text-white/75 sm:flex-row sm:justify-between">
           <span>
             © {new Date().getFullYear()} StockedUp Africa. All rights reserved.
           </span>
-          <Link href="/cookies" className={LINK}>
-            Cookies
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/cookies" className={LINK}>
+              Cookies
+            </Link>
+            <ThemeSelector />
+          </div>
         </div>
       </div>
     </footer>

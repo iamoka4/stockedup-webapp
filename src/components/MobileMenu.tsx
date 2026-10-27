@@ -8,6 +8,7 @@ import { createPortal } from "react-dom";
 import { AppStoreBadges } from "@/components/AppStoreBadges";
 import { LocationDropdown } from "@/components/LocationDropdown";
 import { NAV_LINKS } from "@/components/SiteNav";
+import { ThemeSelector } from "@/components/ThemeSelector";
 import type { AuthUser } from "@/lib/api/types";
 
 interface MobileMenuProps {
@@ -62,6 +63,7 @@ export function MobileMenu({ open, onClose, user, onLogin, onRegister, onLogout 
             alt="StockedUp Africa"
             width={128}
             height={32}
+            className="logo-plate"
             style={{ width: "auto", height: "32px" }}
           />
           <button
@@ -156,6 +158,14 @@ export function MobileMenu({ open, onClose, user, onLogin, onRegister, onLogout 
             Delivery location
           </p>
           <LocationDropdown />
+        </div>
+
+        {/* Appearance */}
+        <div className="border-b border-line px-4 py-4">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-soft">
+            Appearance
+          </p>
+          <ThemeSelector />
         </div>
 
         {/* Get the app */}

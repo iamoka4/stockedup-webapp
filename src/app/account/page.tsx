@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
+import { ThemeSelector } from "@/components/ThemeSelector";
 
 export default function AccountPage() {
   const { user, isLoading, logout } = useAuth();
@@ -73,12 +74,12 @@ export default function AccountPage() {
       href: "/account/referrals",
     },
     {
-  id: "change-password",
-  icon: <LockKeyhole size={20} />,
-  title: "Change Password",
-  subtitle: "Update your account password",
-  href: "/account/change-password",
-},
+      id: "change-password",
+      icon: <LockKeyhole size={20} />,
+      title: "Change Password",
+      subtitle: "Update your account password",
+      href: "/account/change-password",
+    },
     {
       id: "support",
       icon: <Headset size={20} />,
@@ -106,6 +107,14 @@ export default function AccountPage() {
         {menuItems.map((item) => (
           <AccountLink key={item.id} {...item} />
         ))}
+
+        <div className="rounded-2xl border border-line bg-bg-raised p-4">
+          <p className="text-sm font-medium text-ink">Appearance</p>
+          <p className="mb-3 mt-0.5 text-xs text-ink-soft">
+            Choose how StockedUp looks on this device
+          </p>
+          <ThemeSelector />
+        </div>
 
         <button
           type="button"
