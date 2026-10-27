@@ -40,7 +40,7 @@ export default function WalletSettingsPage() {
 
       {SECTIONS.map((section) => (
         <div key={section.title} className="mt-6">
-          <h2 className="mb-2.5 ml-1 text-xs font-bold uppercase tracking-wide text-gray-400">
+          <h2 className="mb-2.5 ml-1 text-xs font-bold uppercase tracking-wide text-gray-400 dark:text-ink-soft">
             {section.title}
           </h2>
           <div className="space-y-2.5">
@@ -48,7 +48,7 @@ export default function WalletSettingsPage() {
               <Link
                 key={item.id}
                 href={item.href}
-                className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3.5 shadow-sm transition hover:border-brand"
+                className="flex items-center gap-3 rounded-2xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised p-3.5 shadow-sm transition hover:border-brand"
               >
                 <span
                   className="flex size-11 shrink-0 items-center justify-center rounded-xl text-white"
@@ -57,8 +57,8 @@ export default function WalletSettingsPage() {
                   <WalletIcon name={item.icon} />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="mb-0.5 block text-[15px] font-bold text-gray-900">{item.title}</span>
-                  <span className="block text-xs text-gray-400">{item.subtitle}</span>
+                  <span className="mb-0.5 block text-[15px] font-bold text-gray-900 dark:text-ink">{item.title}</span>
+                  <span className="block text-xs text-gray-400 dark:text-ink-soft">{item.subtitle}</span>
                 </span>
                 <WalletIcon name="chevron-right" className="size-4.5 text-gray-300" />
               </Link>

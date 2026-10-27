@@ -73,11 +73,11 @@ export function StoreStatusCard() {
   }
 
   return (
-    <div className="mx-[15px] mt-[15px] rounded-2xl border border-[#e0e0e0] bg-white p-4">
+    <div className="mx-[15px] mt-[15px] rounded-2xl border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised p-4">
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          <p className="mb-0.5 text-[15px] font-bold text-[#222]">Store Status</p>
-          <p className="text-xs text-[#888]">
+          <p className="mb-0.5 text-[15px] font-bold text-[#222] dark:text-ink">Store Status</p>
+          <p className="text-xs text-[#888] dark:text-ink-soft">
             {isOpen
               ? "Open — visible to customers now"
               : "Temporarily closed — hidden until you reopen"}
@@ -87,14 +87,14 @@ export function StoreStatusCard() {
       </div>
 
       {error && (
-        <p role="alert" className="mt-2 text-xs font-medium text-red-600">
+        <p role="alert" className="mt-2 text-xs font-medium text-red-600 dark:text-clay">
           {error}
         </p>
       )}
 
       <Link
         href="/merchants/operating-hours"
-        className="mt-3 flex items-center gap-1.5 border-t border-[#f0f0f0] pt-3 text-[13px] font-semibold text-brand"
+        className="mt-3 flex items-center gap-1.5 border-t border-[#f0f0f0] dark:border-line pt-3 text-[13px] font-semibold text-brand"
       >
         <VendorIcon name="clock" className="size-4" />
         <span className="flex-1">Set Weekly Hours</span>

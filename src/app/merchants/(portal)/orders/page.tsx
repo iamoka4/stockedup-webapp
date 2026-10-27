@@ -88,12 +88,12 @@ function OrderCard({ order }: { order: Order }) {
   const isScheduled = order.order_type === "scheduled";
 
   return (
-    <div className="rounded-2xl border border-line bg-white p-5">
+    <div className="rounded-2xl border border-line bg-white dark:bg-bg-raised p-5">
       {/* Header row */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-bold">{order.customer_name}</p>
-          <p className="mt-1 text-sm text-gray-500">{order.date}</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-ink-soft">{order.date}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1.5">
           <span className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${s.bg}`}>
@@ -109,7 +109,7 @@ function OrderCard({ order }: { order: Order }) {
 
       {/* Order id + amount */}
       <div className="mt-4 flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-500">
+        <span className="text-sm font-medium text-gray-500 dark:text-ink-soft">
           {order.order_uid ? order.order_uid : `#${order.order_id}`}
         </span>
         <span className="text-base font-bold text-brand-deep">{naira(order.subtotal)}</span>
@@ -117,8 +117,8 @@ function OrderCard({ order }: { order: Order }) {
 
       {/* Items */}
       {items.length > 0 && (
-        <div className="mt-4 border-t border-gray-100 pt-4">
-          <p className="mb-3 text-xs font-bold uppercase text-gray-500">
+        <div className="mt-4 border-t border-gray-100 dark:border-line pt-4">
+          <p className="mb-3 text-xs font-bold uppercase text-gray-500 dark:text-ink-soft">
             Order Items ({items.length})
           </p>
           <div className="space-y-3">
@@ -134,18 +134,18 @@ function OrderCard({ order }: { order: Order }) {
                       <img
                         src={image}
                         alt=""
-                        className="size-11 shrink-0 rounded-lg bg-gray-100 object-cover"
+                        className="size-11 shrink-0 rounded-lg bg-gray-100 dark:bg-bg-elevated object-cover"
                       />
                     ) : (
-                      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-lg">
+                      <span className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-bg-elevated text-lg">
                         🛍️
                       </span>
                     )}
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-gray-800">{name}</p>
-                      <p className="text-[13px] text-gray-500">Qty: {prod.quantity}</p>
+                      <p className="truncate text-sm font-semibold text-gray-800 dark:text-ink">{name}</p>
+                      <p className="text-[13px] text-gray-500 dark:text-ink-soft">Qty: {prod.quantity}</p>
                     </div>
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-ink">
                       {naira(prod.price ?? 0)}
                     </p>
                   </div>
@@ -164,7 +164,7 @@ function OrderCard({ order }: { order: Order }) {
                   )}
 
                   {prod.special_request && (
-                    <p className="ml-14 mt-1.5 text-xs italic text-gray-600">
+                    <p className="ml-14 mt-1.5 text-xs italic text-gray-600 dark:text-ink-soft">
                       📝 &ldquo;{prod.special_request}&rdquo;
                     </p>
                   )}
@@ -176,15 +176,15 @@ function OrderCard({ order }: { order: Order }) {
       )}
 
       {/* Customer note */}
-      <div className="mt-4 flex items-start gap-2 border-t border-gray-100 pt-3">
+      <div className="mt-4 flex items-start gap-2 border-t border-gray-100 dark:border-line pt-3">
         <span className="text-sm">📝</span>
         <div className="min-w-0 flex-1">
-          <p className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-gray-500">
+          <p className="mb-0.5 text-[11px] font-bold uppercase tracking-wide text-gray-500 dark:text-ink-soft">
             Customer Note
           </p>
           <p
             className={`text-[13px] leading-5 ${
-              order.customer_notes ? "text-gray-800" : "italic text-gray-400"
+              order.customer_notes ? "text-gray-800 dark:text-ink" : "italic text-gray-400 dark:text-ink-soft"
             }`}
           >
             {order.customer_notes ?? "No note for this order"}
@@ -260,7 +260,7 @@ function OrdersView() {
             type="button"
             onClick={() => setActiveTab(tab)}
             className={`my-0.5 flex-1 rounded-xl py-2.5 text-sm font-semibold transition ${
-              activeTab === tab ? "bg-brand text-black" : "text-gray-500"
+              activeTab === tab ? "bg-brand text-black" : "text-gray-500 dark:text-ink-soft"
             }`}
           >
             {tab}
@@ -284,13 +284,13 @@ function OrdersView() {
 
       <div className="mt-4">
         {loading ? (
-          <p className="py-10 text-center text-gray-500">Loading orders...</p>
+          <p className="py-10 text-center text-gray-500 dark:text-ink-soft">Loading orders...</p>
         ) : error ? (
-          <p role="alert" className="py-10 text-center font-semibold text-red-600">
+          <p role="alert" className="py-10 text-center font-semibold text-red-600 dark:text-clay">
             Failed to load orders
           </p>
         ) : filtered.length === 0 ? (
-          <p className="py-10 text-center font-medium text-gray-500">
+          <p className="py-10 text-center font-medium text-gray-500 dark:text-ink-soft">
             No {activeTab.toLowerCase()} orders found
           </p>
         ) : (

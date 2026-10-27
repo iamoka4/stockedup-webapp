@@ -224,7 +224,7 @@ export function RegisterForm() {
             })}
           </div>
           {errors.businessType && (
-            <p role="alert" className="mt-2 text-xs text-red-600">
+            <p role="alert" className="mt-2 text-xs text-red-600 dark:text-clay">
               {errors.businessType}
             </p>
           )}
@@ -355,7 +355,7 @@ export function RegisterForm() {
             </span>
           </label>
           {errors.agreeToTerms && (
-            <p role="alert" className="mt-1 text-xs text-red-600">
+            <p role="alert" className="mt-1 text-xs text-red-600 dark:text-clay">
               {errors.agreeToTerms}
             </p>
           )}

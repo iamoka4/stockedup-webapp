@@ -202,11 +202,11 @@ function OrderCard({
   const actionsDisabled = busy || (isScheduled && locked);
 
   return (
-    <div className="rounded-2xl bg-white p-4 shadow-sm">
+    <div className="rounded-2xl bg-white dark:bg-bg-raised p-4 shadow-sm">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="truncate text-[15px] font-bold text-gray-900">{order.customer_name}</p>
-          <p className="mt-0.5 text-xs text-gray-400">{order.date || order.created_at}</p>
+          <p className="truncate text-[15px] font-bold text-gray-900 dark:text-ink">{order.customer_name}</p>
+          <p className="mt-0.5 text-xs text-gray-400 dark:text-ink-soft">{order.date || order.created_at}</p>
         </div>
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span
@@ -234,7 +234,7 @@ function OrderCard({
       )}
 
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-400 dark:text-ink-soft">
           {order.order_uid ? order.order_uid : `#${order.order_id}`}
         </span>
         <span className="text-lg font-bold text-orange-500">{naira(order.subtotal)}</span>
@@ -242,7 +242,7 @@ function OrderCard({
 
       {items.length > 0 && (
         <div className="mt-3 space-y-2.5 rounded-xl bg-[#f9f9f9] p-3">
-          <p className="text-xs font-bold uppercase text-gray-400">
+          <p className="text-xs font-bold uppercase text-gray-400 dark:text-ink-soft">
             Order Items ({items.length})
           </p>
           {items.map((prod, idx) => {
@@ -257,18 +257,18 @@ function OrderCard({
                     <img
                       src={image}
                       alt=""
-                      className="size-12.5 shrink-0 rounded-lg bg-gray-200 object-cover"
+                      className="size-12.5 shrink-0 rounded-lg bg-gray-200 dark:bg-bg-elevated object-cover"
                     />
                   ) : (
-                    <span className="flex size-12.5 shrink-0 items-center justify-center rounded-lg bg-gray-100 text-lg">
+                    <span className="flex size-12.5 shrink-0 items-center justify-center rounded-lg bg-gray-100 dark:bg-bg-elevated text-lg">
                       🛍️
                     </span>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-gray-800">{name}</p>
-                    <p className="text-[13px] text-gray-500">Qty: {prod.quantity}</p>
+                    <p className="truncate text-sm font-semibold text-gray-800 dark:text-ink">{name}</p>
+                    <p className="text-[13px] text-gray-500 dark:text-ink-soft">Qty: {prod.quantity}</p>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900">{naira(prod.price ?? 0)}</p>
+                  <p className="text-sm font-semibold text-gray-900 dark:text-ink">{naira(prod.price ?? 0)}</p>
                 </div>
 
                 {addons.length > 0 && (
@@ -285,7 +285,7 @@ function OrderCard({
                 )}
 
                 {prod.special_request && (
-                  <p className="ml-15.5 mt-1.5 text-xs italic text-gray-600">
+                  <p className="ml-15.5 mt-1.5 text-xs italic text-gray-600 dark:text-ink-soft">
                     📝 &ldquo;{prod.special_request}&rdquo;
                   </p>
                 )}
@@ -347,12 +347,12 @@ function RejectModal({
         aria-modal="true"
         aria-labelledby="reject-title"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-t-3xl bg-white p-6 pb-9 sm:rounded-3xl"
+        className="w-full max-w-md rounded-t-3xl bg-white dark:bg-bg-raised p-6 pb-9 sm:rounded-3xl"
       >
-        <h2 id="reject-title" className="mb-1 text-lg font-extrabold text-gray-900">
+        <h2 id="reject-title" className="mb-1 text-lg font-extrabold text-gray-900 dark:text-ink">
           Reason for Rejection
         </h2>
-        <p className="mb-5 text-[13px] text-gray-400">
+        <p className="mb-5 text-[13px] text-gray-400 dark:text-ink-soft">
           Please select a reason before rejecting this order.
         </p>
 
@@ -365,19 +365,19 @@ function RejectModal({
                 type="button"
                 onClick={() => setReason(r)}
                 className={`flex w-full items-center gap-3 rounded-xl border-[1.5px] px-3.5 py-3 text-left transition ${
-                  active ? "border-orange-500 bg-[#fff0e6]" : "border-transparent bg-[#f8f8f8]"
+                  active ? "border-orange-500 bg-[#fff0e6]" : "border-transparent bg-[#f8f8f8] dark:bg-bg"
                 }`}
               >
                 <span
                   className={`flex size-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                    active ? "border-orange-500" : "border-gray-300"
+                    active ? "border-orange-500" : "border-gray-300 dark:border-line"
                   }`}
                 >
                   {active && <span className="size-2.5 rounded-full bg-orange-500" />}
                 </span>
                 <span
                   className={`flex-1 text-sm ${
-                    active ? "font-semibold text-gray-900" : "text-gray-600"
+                    active ? "font-semibold text-gray-900 dark:text-ink" : "text-gray-600 dark:text-ink-soft"
                   }`}
                 >
                   {r}
@@ -391,7 +391,7 @@ function RejectModal({
           <button
             type="button"
             onClick={onCancel}
-            className="flex-1 rounded-xl bg-[#f0f0f0] py-3.5 text-sm font-semibold text-gray-600"
+            className="flex-1 rounded-xl bg-[#f0f0f0] dark:bg-bg-elevated py-3.5 text-sm font-semibold text-gray-600 dark:text-ink-soft"
           >
             Cancel
           </button>
@@ -525,7 +525,7 @@ export default function OrderManagementPage() {
 
       {/* Status filter */}
       <div className="mt-5">
-        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.8px] text-gray-400">
+        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.8px] text-gray-400 dark:text-ink-soft">
           Status
         </p>
         <div className="flex flex-wrap gap-1.5">
@@ -539,7 +539,7 @@ export default function OrderManagementPage() {
                 type="button"
                 onClick={() => setStatusFilter(item)}
                 className={`rounded-full px-3 py-1.5 text-xs capitalize ${
-                  active ? "bg-orange-500 font-bold text-white" : "bg-[#ececec] text-gray-600"
+                  active ? "bg-orange-500 font-bold text-white" : "bg-[#ececec] text-gray-600 dark:text-ink-soft"
                 }`}
               >
                 {item === "all" ? "All" : item}
@@ -552,7 +552,7 @@ export default function OrderManagementPage() {
 
       {/* Date filter */}
       <div className="mt-3">
-        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.8px] text-gray-400">
+        <p className="mb-1.5 text-[11px] font-bold uppercase tracking-[0.8px] text-gray-400 dark:text-ink-soft">
           Date
         </p>
         <div className="flex flex-wrap gap-1.5">
@@ -564,7 +564,7 @@ export default function OrderManagementPage() {
                 type="button"
                 onClick={() => setDateFilter(key)}
                 className={`rounded-full px-3 py-1.5 text-xs ${
-                  active ? "bg-orange-500 font-bold text-white" : "bg-[#ececec] text-gray-600"
+                  active ? "bg-orange-500 font-bold text-white" : "bg-[#ececec] text-gray-600 dark:text-ink-soft"
                 }`}
               >
                 {label}
@@ -575,7 +575,7 @@ export default function OrderManagementPage() {
       </div>
 
       {!loading && !error && (
-        <p className="mb-3 mt-4 text-[13px] text-gray-400">
+        <p className="mb-3 mt-4 text-[13px] text-gray-400 dark:text-ink-soft">
           {filteredOrders.length} order{filteredOrders.length !== 1 ? "s" : ""}
         </p>
       )}
@@ -583,7 +583,7 @@ export default function OrderManagementPage() {
       {actionError && (
         <p
           role="alert"
-          className="mb-3 mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+          className="mb-3 mt-4 rounded-xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm font-medium text-red-700 dark:text-clay"
         >
           {actionError}
         </p>
@@ -591,13 +591,13 @@ export default function OrderManagementPage() {
 
       <div className="mt-2">
         {loading ? (
-          <p className="py-10 text-center text-gray-500">Loading orders...</p>
+          <p className="py-10 text-center text-gray-500 dark:text-ink-soft">Loading orders...</p>
         ) : error ? (
-          <p role="alert" className="py-10 text-center font-semibold text-red-600">
+          <p role="alert" className="py-10 text-center font-semibold text-red-600 dark:text-clay">
             Failed to load orders
           </p>
         ) : filteredOrders.length === 0 ? (
-          <div className="flex flex-col items-center py-10 text-gray-500">
+          <div className="flex flex-col items-center py-10 text-gray-500 dark:text-ink-soft">
             <span className="text-4xl">🧾</span>
             <p className="mt-2.5 text-sm">No orders found</p>
           </div>

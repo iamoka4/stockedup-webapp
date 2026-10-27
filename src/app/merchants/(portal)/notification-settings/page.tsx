@@ -66,11 +66,11 @@ function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative h-[26px] w-[46px] shrink-0 rounded-full transition-colors disabled:opacity-60 ${
-        checked ? "bg-[#FE7C09]" : "bg-[#E0E0E0]"
+        checked ? "bg-[#FE7C09]" : "bg-[#E0E0E0] dark:bg-bg-elevated"
       }`}
     >
       <span
-        className={`absolute left-0.5 top-0.5 size-5.5 rounded-full bg-white shadow transition-transform ${
+        className={`absolute left-0.5 top-0.5 size-5.5 rounded-full bg-white dark:bg-bg-raised shadow transition-transform ${
           checked ? "translate-x-5" : "translate-x-0"
         }`}
       />
@@ -129,7 +129,7 @@ export default function MerchantNotificationSettingsPage() {
 
   return (
     // -mb-24 / pb-24 lets the page background run behind the fixed tab bar.
-    <div className="-mb-24 min-h-screen bg-[#F5F6FA] px-5 pb-24 pt-8">
+    <div className="-mb-24 min-h-screen bg-[#F5F6FA] dark:bg-bg px-5 pb-24 pt-8">
       <div className="mx-auto max-w-2xl">
         {/* Title */}
         <div className="mb-6 flex items-center gap-3">
@@ -137,30 +137,30 @@ export default function MerchantNotificationSettingsPage() {
             type="button"
             onClick={() => router.back()}
             aria-label="Go back"
-            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white text-[#1A1A2E] shadow-sm"
+            className="flex size-10 shrink-0 items-center justify-center rounded-full bg-white dark:bg-bg-raised text-[#1A1A2E] dark:text-ink shadow-sm"
           >
             <VendorIcon name="arrowLeft" className="size-5" />
           </button>
-          <h1 className="text-[26px] font-bold text-[#1A1A2E]">Notifications</h1>
+          <h1 className="text-[26px] font-bold text-[#1A1A2E] dark:text-ink">Notifications</h1>
         </div>
 
         {error && (
           <div
             role="alert"
-            className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="mb-4 rounded-2xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm text-red-700 dark:text-clay"
           >
             {error}
           </div>
         )}
 
         {/* Master toggle */}
-        <div className="rounded-2xl bg-white px-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+        <div className="rounded-2xl bg-white dark:bg-bg-raised px-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
           <div className="flex items-center justify-between py-4">
             <div className="mr-3 flex flex-1 items-center">
               <span className="mr-3.5 text-[22px]">🔔</span>
               <div className="flex-1">
-                <p className="text-[15px] font-semibold text-[#1A1A2E]">Push Notifications</p>
-                <p className="mt-0.5 text-xs text-[#999]">
+                <p className="text-[15px] font-semibold text-[#1A1A2E] dark:text-ink">Push Notifications</p>
+                <p className="mt-0.5 text-xs text-[#999] dark:text-ink-soft">
                   {masterEnabled
                     ? "You'll be notified about orders and platform updates"
                     : "Tap to enable notifications"}
@@ -184,19 +184,19 @@ export default function MerchantNotificationSettingsPage() {
         {/* Per-type preferences */}
         {masterEnabled && !loading && (
           <>
-            <p className="mb-2 ml-1 mt-5 text-[13px] font-semibold uppercase tracking-[0.8px] text-[#888]">
+            <p className="mb-2 ml-1 mt-5 text-[13px] font-semibold uppercase tracking-[0.8px] text-[#888] dark:text-ink-soft">
               Notification Types
             </p>
 
-            <div className="rounded-2xl bg-white px-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
+            <div className="rounded-2xl bg-white dark:bg-bg-raised px-4 shadow-[0_2px_8px_rgba(0,0,0,0.05)]">
               {PREFERENCE_ROWS.map((item, idx) => (
                 <div key={item.key}>
                   <div className="flex items-center justify-between py-4">
                     <div className="mr-3 flex flex-1 items-center">
                       <span className="mr-3.5 text-[22px]">{item.icon}</span>
                       <div className="flex-1">
-                        <p className="text-[15px] font-semibold text-[#1A1A2E]">{item.label}</p>
-                        <p className="mt-0.5 text-xs text-[#999]">{item.description}</p>
+                        <p className="text-[15px] font-semibold text-[#1A1A2E] dark:text-ink">{item.label}</p>
+                        <p className="mt-0.5 text-xs text-[#999] dark:text-ink-soft">{item.description}</p>
                       </div>
                     </div>
                     <Switch
@@ -206,12 +206,12 @@ export default function MerchantNotificationSettingsPage() {
                       label={item.label}
                     />
                   </div>
-                  {idx < PREFERENCE_ROWS.length - 1 && <div className="ml-13 h-px bg-[#F0F0F0]" />}
+                  {idx < PREFERENCE_ROWS.length - 1 && <div className="ml-13 h-px bg-[#F0F0F0] dark:bg-bg-elevated" />}
                 </div>
               ))}
             </div>
 
-            <p className="mt-3 text-center text-xs text-[#BDBDBD]">
+            <p className="mt-3 text-center text-xs text-[#BDBDBD] dark:text-ink-soft">
               You can change these anytime in your settings.
             </p>
           </>

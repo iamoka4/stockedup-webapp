@@ -25,7 +25,7 @@ export function VendorTypeTabs({ active }: { active: VendorTypeTab }) {
           <span
             key={key}
             aria-current="page"
-            className={`${base} bg-white font-bold text-brand`}
+            className={`${base} bg-white dark:bg-bg-raised font-bold text-brand`}
           >
             <Icon size={16} />
             {label}

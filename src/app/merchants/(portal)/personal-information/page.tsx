@@ -10,7 +10,7 @@ import { errorMessage } from "@/components/vendor/ui";
 
 function SectionLabel({ children }: { children: ReactNode }) {
   return (
-    <h2 className="mb-3 ml-1 mt-6 text-[13px] font-bold uppercase tracking-wide text-gray-400">
+    <h2 className="mb-3 ml-1 mt-6 text-[13px] font-bold uppercase tracking-wide text-gray-400 dark:text-ink-soft">
       {children}
     </h2>
   );
@@ -26,10 +26,10 @@ function InfoRow({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-[#f0f0f0] py-3.5 last:border-b-0">
+    <div className="flex items-center justify-between gap-3 border-b border-[#f0f0f0] dark:border-line py-3.5 last:border-b-0">
       <div className="min-w-0 flex-1">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#999]">{label}</p>
-        <div className="mt-1 break-words text-[15px] font-semibold text-[#222]">{children}</div>
+        <p className="text-xs font-semibold uppercase tracking-wide text-[#999] dark:text-ink-soft">{label}</p>
+        <div className="mt-1 break-words text-[15px] font-semibold text-[#222] dark:text-ink">{children}</div>
       </div>
       {action}
     </div>
@@ -37,12 +37,12 @@ function InfoRow({
 }
 
 const Value = ({ text }: { text?: string | null }) =>
-  text?.trim() ? <>{text}</> : <span className="font-normal text-[#bbb]">Not set</span>;
+  text?.trim() ? <>{text}</> : <span className="font-normal text-[#bbb] dark:text-ink-soft">Not set</span>;
 
 const SoonBadge = () => (
   <span
     title="Coming soon"
-    className="shrink-0 rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-500"
+    className="shrink-0 rounded-full bg-gray-100 dark:bg-bg-elevated px-2.5 py-1 text-[11px] font-semibold text-gray-500 dark:text-ink-soft"
   >
     Contact support
   </span>
@@ -137,19 +137,19 @@ export default function MerchantPersonalInformationPage() {
 
   return (
     // -mb-24 / pb-24 lets the page background run behind the fixed tab bar.
-    <div className="-mb-24 min-h-screen bg-[#f8f9fa] pb-24">
+    <div className="-mb-24 min-h-screen bg-[#f8f9fa] dark:bg-bg pb-24">
       {/* Header */}
-      <div className="border-b border-[#f0f0f0] bg-white px-4 pb-3 pt-4">
+      <div className="border-b border-[#f0f0f0] dark:border-line bg-white dark:bg-bg-raised px-4 pb-3 pt-4">
         <div className="mx-auto flex max-w-xl items-center justify-between">
           <button
             type="button"
             onClick={() => router.back()}
             aria-label="Go back"
-            className="flex size-9 items-center justify-center rounded-full bg-[#f5f5f5] text-[#555]"
+            className="flex size-9 items-center justify-center rounded-full bg-[#f5f5f5] dark:bg-bg-elevated text-[#555] dark:text-ink-soft"
           >
             <VendorIcon name="arrowLeft" className="size-5" />
           </button>
-          <h1 className="text-lg font-extrabold text-[#111]">Personal Information</h1>
+          <h1 className="text-lg font-extrabold text-[#111] dark:text-ink">Personal Information</h1>
           <span className="w-9" />
         </div>
       </div>
@@ -160,8 +160,8 @@ export default function MerchantPersonalInformationPage() {
             <span className="size-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
           </div>
         ) : loadError || !info ? (
-          <div className="mt-8 rounded-2xl border border-red-200 bg-red-50 p-5 text-center">
-            <p role="alert" className="text-sm text-red-700">
+          <div className="mt-8 rounded-2xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint p-5 text-center">
+            <p role="alert" className="text-sm text-red-700 dark:text-clay">
               {loadError ?? "Could not load your information."}
             </p>
             <button
@@ -178,7 +178,7 @@ export default function MerchantPersonalInformationPage() {
         ) : (
           <>
             {/* Profile summary */}
-            <div className="mt-6 flex items-center gap-4 rounded-2xl border border-[#e0e0e0] bg-white p-4">
+            <div className="mt-6 flex items-center gap-4 rounded-2xl border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised p-4">
               {info.shop_logo ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -192,17 +192,17 @@ export default function MerchantPersonalInformationPage() {
                 </span>
               )}
               <div className="min-w-0">
-                <p className="truncate text-lg font-extrabold text-[#1a1a1a]">
+                <p className="truncate text-lg font-extrabold text-[#1a1a1a] dark:text-ink">
                   {info.name || "Merchant"}
                 </p>
-                <p className="mt-0.5 truncate text-[13px] text-[#888]">{info.shop_name}</p>
+                <p className="mt-0.5 truncate text-[13px] text-[#888] dark:text-ink-soft">{info.shop_name}</p>
               </div>
             </div>
 
             {saved && (
               <div
                 role="status"
-                className="mt-4 rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-semibold text-green-700"
+                className="mt-4 rounded-2xl border border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint px-4 py-3 text-sm font-semibold text-green-700 dark:text-leaf"
               >
                 Your details have been updated.
               </div>
@@ -210,7 +210,7 @@ export default function MerchantPersonalInformationPage() {
             {saveError && (
               <div
                 role="alert"
-                className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+                className="mt-4 rounded-2xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm text-red-700 dark:text-clay"
               >
                 {saveError}
               </div>
@@ -218,7 +218,7 @@ export default function MerchantPersonalInformationPage() {
 
             {/* Personal */}
             <SectionLabel>Personal</SectionLabel>
-            <div className="rounded-2xl border border-[#e0e0e0] bg-white px-4">
+            <div className="rounded-2xl border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised px-4">
               <InfoRow label="Full name">
                 {editing ? (
                   <input
@@ -241,7 +241,7 @@ export default function MerchantPersonalInformationPage() {
 
             {/* Shop */}
             <SectionLabel>Shop</SectionLabel>
-            <div className="rounded-2xl border border-[#e0e0e0] bg-white px-4">
+            <div className="rounded-2xl border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised px-4">
               <InfoRow label="Shop name">
                 <Value text={info.shop_name} />
               </InfoRow>
@@ -281,7 +281,7 @@ export default function MerchantPersonalInformationPage() {
                     type="button"
                     onClick={cancelEdit}
                     disabled={saving}
-                    className="min-h-12 flex-1 rounded-[14px] border-2 border-brand bg-white font-bold text-brand disabled:opacity-60"
+                    className="min-h-12 flex-1 rounded-[14px] border-2 border-brand bg-white dark:bg-bg-raised font-bold text-brand disabled:opacity-60"
                   >
                     Cancel
                   </button>
@@ -290,7 +290,7 @@ export default function MerchantPersonalInformationPage() {
                 <button
                   type="button"
                   onClick={startEdit}
-                  className="min-h-12 w-full rounded-[14px] border-2 border-brand bg-white font-bold text-brand"
+                  className="min-h-12 w-full rounded-[14px] border-2 border-brand bg-white dark:bg-bg-raised font-bold text-brand"
                 >
                   Edit details
                 </button>

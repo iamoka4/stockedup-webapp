@@ -43,17 +43,17 @@ const STATUS_TABS = ["all", "approved", "pending", "rejected"] as const;
 type StatusTab = (typeof STATUS_TABS)[number];
 
 const STATUS_STYLES: Record<string, string> = {
-  approved: "bg-green-100 text-green-600",
-  pending: "bg-yellow-100 text-yellow-600",
-  rejected: "bg-red-100 text-red-600",
+  approved: "bg-green-100 dark:bg-leaf-tint text-green-600 dark:text-leaf",
+  pending: "bg-yellow-100 dark:bg-brand-tint text-yellow-600 dark:text-brand",
+  rejected: "bg-red-100 dark:bg-clay-tint text-red-600 dark:text-clay",
 };
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024; // matches upload-product.php
 
 const inputCls =
-  "w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-3 text-sm text-gray-900 outline-none focus:border-brand";
-const labelCls = "mb-1.5 block text-[13px] font-bold text-gray-800";
-const miniLabelCls = "mb-1 block text-[11px] font-semibold text-gray-400";
+  "w-full rounded-xl border border-gray-200 dark:border-line bg-gray-50 dark:bg-bg px-3.5 py-3 text-sm text-gray-900 dark:text-ink outline-none focus:border-brand";
+const labelCls = "mb-1.5 block text-[13px] font-bold text-gray-800 dark:text-ink";
+const miniLabelCls = "mb-1 block text-[11px] font-semibold text-gray-400 dark:text-ink-soft";
 
 const naira = (n: number) => `₦${Number(n ?? 0).toLocaleString("en-NG")}`;
 
@@ -214,7 +214,7 @@ function AddonGroupsEditor({
   return (
     <div>
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[13px] font-bold text-gray-800">Addon Groups (optional)</span>
+        <span className="text-[13px] font-bold text-gray-800 dark:text-ink">Addon Groups (optional)</span>
         <button
           type="button"
           onClick={addGroup}
@@ -223,13 +223,13 @@ function AddonGroupsEditor({
           + Add Group
         </button>
       </div>
-      <p className="mt-1.5 text-xs leading-4.25 text-gray-400">
+      <p className="mt-1.5 text-xs leading-4.25 text-gray-400 dark:text-ink-soft">
         Group extras customers choose from at checkout — e.g. &ldquo;Choose your protein&rdquo; or
         &ldquo;Add-ons&rdquo;. Each option can carry its own price.
       </p>
 
       {groups.map((group) => (
-        <div key={group.localId} className="mt-2.5 rounded-xl border border-gray-200 bg-gray-50 p-3">
+        <div key={group.localId} className="mt-2.5 rounded-xl border border-gray-200 dark:border-line bg-gray-50 dark:bg-bg p-3">
           <div className="flex items-center gap-2">
             <input
               className={inputCls}
@@ -241,14 +241,14 @@ function AddonGroupsEditor({
               type="button"
               onClick={() => removeGroup(group.localId)}
               aria-label="Remove group"
-              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-red-100 text-sm text-red-600"
+              className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-red-100 dark:bg-clay-tint text-sm text-red-600 dark:text-clay"
             >
               🗑
             </button>
           </div>
 
           <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-2">
-            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-gray-600">
+            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-gray-600 dark:text-ink-soft">
               <input
                 type="checkbox"
                 className="size-4 accent-orange-500"
@@ -257,7 +257,7 @@ function AddonGroupsEditor({
               />
               Required
             </label>
-            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-gray-600">
+            <label className="flex items-center gap-2 text-[12.5px] font-semibold text-gray-600 dark:text-ink-soft">
               <input
                 type="checkbox"
                 className="size-4 accent-orange-500"
@@ -293,7 +293,7 @@ function AddonGroupsEditor({
             </div>
           </div>
 
-          <p className="mb-1.5 mt-3 text-xs font-bold text-gray-600">Options</p>
+          <p className="mb-1.5 mt-3 text-xs font-bold text-gray-600 dark:text-ink-soft">Options</p>
           <div className="space-y-2">
             {group.options.map((opt) => (
               <div key={opt.localId} className="flex items-center gap-2">
@@ -329,7 +329,7 @@ function AddonGroupsEditor({
                   type="button"
                   onClick={() => removeOption(group.localId, opt.localId)}
                   aria-label="Remove option"
-                  className="flex size-7 shrink-0 items-center justify-center rounded-md bg-red-100 text-xs text-red-600"
+                  className="flex size-7 shrink-0 items-center justify-center rounded-md bg-red-100 dark:bg-clay-tint text-xs text-red-600 dark:text-clay"
                 >
                   ✕
                 </button>
@@ -340,7 +340,7 @@ function AddonGroupsEditor({
           <button
             type="button"
             onClick={() => addOption(group.localId)}
-            className="mt-2 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-bold text-brand-deep"
+            className="mt-2 rounded-lg border border-gray-200 dark:border-line bg-white dark:bg-bg-raised px-2.5 py-1.5 text-xs font-bold text-brand-deep"
           >
             + Add Option
           </button>
@@ -397,10 +397,10 @@ function ProductModal({
         aria-modal="true"
         aria-labelledby="product-modal-title"
         onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[92vh] w-full max-w-lg flex-col rounded-t-3xl bg-white sm:rounded-3xl"
+        className="flex max-h-[92vh] w-full max-w-lg flex-col rounded-t-3xl bg-white dark:bg-bg-raised sm:rounded-3xl"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-gray-100 px-5 py-4">
-          <h2 id="product-modal-title" className="text-lg font-extrabold text-gray-900">
+        <div className="flex shrink-0 items-center justify-between border-b border-gray-100 dark:border-line px-5 py-4">
+          <h2 id="product-modal-title" className="text-lg font-extrabold text-gray-900 dark:text-ink">
             {isEdit
               ? isRestaurant ? "Edit Menu Item" : "Edit Product"
               : isRestaurant ? "Add New Menu Item" : "Add New Product"}
@@ -409,7 +409,7 @@ function ProductModal({
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex size-9 items-center justify-center rounded-full bg-gray-100 text-gray-600"
+            className="flex size-9 items-center justify-center rounded-full bg-gray-100 dark:bg-bg-elevated text-gray-600 dark:text-ink-soft"
           >
             ✕
           </button>
@@ -417,7 +417,7 @@ function ProductModal({
 
         <div className="flex-1 space-y-4 overflow-y-auto px-5 py-4">
           {/* Image */}
-          <label className="flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-[1.5px] border-dashed border-gray-200 bg-gray-50">
+          <label className="flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-2xl border-[1.5px] border-dashed border-gray-200 dark:border-line bg-gray-50 dark:bg-bg">
             {imagePreview ? (
               <img src={imagePreview} alt="" className="size-full object-cover" />
             ) : (
@@ -511,9 +511,9 @@ function ProductModal({
           <div>
             <label className={labelCls}>Category</label>
             {catsLoading ? (
-              <p className="py-2 text-[13px] text-gray-500">Loading categories…</p>
+              <p className="py-2 text-[13px] text-gray-500 dark:text-ink-soft">Loading categories…</p>
             ) : catsError ? (
-              <p className="py-2 text-[13px] text-red-600">Failed to load categories</p>
+              <p className="py-2 text-[13px] text-red-600 dark:text-clay">Failed to load categories</p>
             ) : (
               <select
                 className={inputCls}
@@ -572,7 +572,7 @@ function ProductModal({
                   value={form.extras}
                   onChange={(e) => setForm((f) => ({ ...f, extras: e.target.value }))}
                 />
-                <p className="mt-1.5 text-xs leading-4.25 text-gray-400">
+                <p className="mt-1.5 text-xs leading-4.25 text-gray-400 dark:text-ink-soft">
                   Free-text note shown on the item — for priced, selectable extras customers actually
                   add to their order, use Addon Groups below instead.
                 </p>
@@ -589,18 +589,18 @@ function ProductModal({
         {error && (
           <p
             role="alert"
-            className="mx-5 mb-3 shrink-0 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700"
+            className="mx-5 mb-3 shrink-0 rounded-xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-2.5 text-sm font-medium text-red-700 dark:text-clay"
           >
             {error}
           </p>
         )}
 
-        <div className="flex shrink-0 gap-3 border-t border-gray-100 p-5">
+        <div className="flex shrink-0 gap-3 border-t border-gray-100 dark:border-line p-5">
           <button
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="flex-1 rounded-xl border-[1.5px] border-gray-200 py-3.5 text-[15px] font-bold text-gray-600 disabled:opacity-60"
+            className="flex-1 rounded-xl border-[1.5px] border-gray-200 dark:border-line py-3.5 text-[15px] font-bold text-gray-600 dark:text-ink-soft disabled:opacity-60"
           >
             Cancel
           </button>
@@ -942,9 +942,9 @@ function ProductsView() {
   // ── Render ─────────────────────────────────────────────────────────────────
   const stats = [
     { label: "Total", value: counts?.total ?? 0, color: "text-indigo-500" },
-    { label: "Approved", value: counts?.approved ?? 0, color: "text-green-600" },
-    { label: "Pending", value: counts?.pending ?? 0, color: "text-yellow-600" },
-    { label: "Rejected", value: counts?.rejected ?? 0, color: "text-red-600" },
+    { label: "Approved", value: counts?.approved ?? 0, color: "text-green-600 dark:text-leaf" },
+    { label: "Pending", value: counts?.pending ?? 0, color: "text-yellow-600 dark:text-brand" },
+    { label: "Rejected", value: counts?.rejected ?? 0, color: "text-red-600 dark:text-clay" },
   ];
 
   const noun = isRestaurant ? "dishes" : "products";
@@ -958,7 +958,7 @@ function ProductsView() {
           <h1 className="font-display text-xl font-bold">
             {isRestaurant ? "Menu Items" : "Product Catalogue"}
           </h1>
-          <p className="mt-0.5 text-xs text-gray-400">
+          <p className="mt-0.5 text-xs text-gray-400 dark:text-ink-soft">
             {counts?.total ?? 0} {noun} listed
           </p>
         </div>
@@ -986,12 +986,12 @@ function ProductsView() {
 
       {/* Banners */}
       {profileError && (
-        <p role="alert" className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+        <p role="alert" className="mt-4 rounded-xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm font-medium text-red-700 dark:text-clay">
           Couldn&rsquo;t load your shop profile: {profileError}
         </p>
       )}
       {profile && !businessType && (
-        <p role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+        <p role="alert" className="mt-4 rounded-xl border border-amber-200 dark:border-brand bg-amber-50 dark:bg-brand-tint px-4 py-3 text-sm font-medium text-amber-800 dark:text-brand">
           Couldn&rsquo;t determine your business type, so adding and editing is disabled.
         </p>
       )}
@@ -1000,8 +1000,8 @@ function ProductsView() {
           role={notice.type === "error" ? "alert" : "status"}
           className={`mt-4 rounded-xl border px-4 py-3 text-sm font-medium ${
             notice.type === "error"
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-green-200 bg-green-50 text-green-700"
+              ? "border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint text-red-700 dark:text-clay"
+              : "border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint text-green-700 dark:text-leaf"
           }`}
         >
           {notice.text}
@@ -1011,24 +1011,24 @@ function ProductsView() {
       {/* Stats */}
       <div className="mt-5 grid grid-cols-4 gap-2">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-xl border border-gray-100 bg-white py-2.5 text-center">
+          <div key={s.label} className="rounded-xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised py-2.5 text-center">
             <p className={`text-xl font-extrabold ${s.color}`}>{s.value}</p>
-            <p className="mt-0.5 text-[10px] font-semibold text-gray-400">{s.label}</p>
+            <p className="mt-0.5 text-[10px] font-semibold text-gray-400 dark:text-ink-soft">{s.label}</p>
           </div>
         ))}
       </div>
 
       {/* Search */}
-      <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-gray-100 bg-white px-3.5 py-2.5">
-        <span className="text-sm text-gray-400">🔍</span>
+      <div className="mt-3 flex items-center gap-2.5 rounded-xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised px-3.5 py-2.5">
+        <span className="text-sm text-gray-400 dark:text-ink-soft">🔍</span>
         <input
-          className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 outline-none placeholder:text-gray-400"
+          className="min-w-0 flex-1 bg-transparent text-sm text-gray-900 dark:text-ink outline-none placeholder:text-gray-400 dark:placeholder:text-ink-soft"
           placeholder={isRestaurant ? "Search menu items..." : "Search products..."}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
         {search && (
-          <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-sm text-gray-400">
+          <button type="button" onClick={() => setSearch("")} aria-label="Clear search" className="text-sm text-gray-400 dark:text-ink-soft">
             ✕
           </button>
         )}
@@ -1044,7 +1044,7 @@ function ProductsView() {
             className={`rounded-full border px-4 py-1.5 text-[13px] font-semibold capitalize ${
               statusFilter === tab
                 ? "border-brand bg-brand text-white"
-                : "border-gray-200 bg-gray-100 text-gray-600"
+                : "border-gray-200 dark:border-line bg-gray-100 dark:bg-bg-elevated text-gray-600 dark:text-ink-soft"
             }`}
           >
             {tab}
@@ -1055,23 +1055,23 @@ function ProductsView() {
       {/* List */}
       <div className="mt-4">
         {loading ? (
-          <p className="py-10 text-center text-gray-500">
+          <p className="py-10 text-center text-gray-500 dark:text-ink-soft">
             {isRestaurant ? "Loading your menu..." : "Loading your products..."}
           </p>
         ) : error ? (
-          <p role="alert" className="py-10 text-center font-semibold text-red-600">
+          <p role="alert" className="py-10 text-center font-semibold text-red-600 dark:text-clay">
             Failed to load {isRestaurant ? "menu items" : "products"}
-            <span className="mt-1 block text-xs font-normal text-gray-500">{error}</span>
+            <span className="mt-1 block text-xs font-normal text-gray-500 dark:text-ink-soft">{error}</span>
           </p>
         ) : filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <span className="text-5xl">📦</span>
-            <p className="text-[17px] font-bold text-gray-800">
+            <p className="text-[17px] font-bold text-gray-800 dark:text-ink">
               {search || statusFilter !== "all"
                 ? "No products match"
                 : isRestaurant ? "No menu items yet" : "No products yet"}
             </p>
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 dark:text-ink-soft">
               {search || statusFilter !== "all"
                 ? "Try a different search or filter"
                 : `Tap + Add to list your first ${isRestaurant ? "dish" : "product"}`}
@@ -1095,17 +1095,17 @@ function ProductsView() {
               return (
                 <div
                   key={p.id}
-                  className="flex overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm"
+                  className="flex overflow-hidden rounded-2xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised shadow-sm"
                 >
                   <img
                     src={resolveImage(p.image)}
                     alt=""
-                    className="min-h-27.5 w-[100px] shrink-0 self-stretch bg-gray-100 object-cover"
+                    className="min-h-27.5 w-[100px] shrink-0 self-stretch bg-gray-100 dark:bg-bg-elevated object-cover"
                   />
                   <div className="flex min-w-0 flex-1 flex-col justify-between gap-2 p-3">
                     <div>
                       <div className="flex items-start justify-between gap-2">
-                        <p className="min-w-0 flex-1 truncate text-sm font-bold text-gray-900">{p.name}</p>
+                        <p className="min-w-0 flex-1 truncate text-sm font-bold text-gray-900 dark:text-ink">{p.name}</p>
                         <span
                           className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
                             STATUS_STYLES[status] ?? STATUS_STYLES.pending
@@ -1116,14 +1116,14 @@ function ProductsView() {
                       </div>
                       <p className="mt-1 text-base font-extrabold text-brand-deep">{naira(p.price)}</p>
                       <div className="mt-1.5 flex flex-wrap gap-2">
-                        <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">
+                        <span className="rounded-md bg-gray-100 dark:bg-bg-elevated px-2 py-0.5 text-[11px] text-gray-600 dark:text-ink-soft">
                           {isRestaurant ? "Portions" : "Stock"}: {p.stock}
                         </span>
                         {p.unit && (
-                          <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">{p.unit}</span>
+                          <span className="rounded-md bg-gray-100 dark:bg-bg-elevated px-2 py-0.5 text-[11px] text-gray-600 dark:text-ink-soft">{p.unit}</span>
                         )}
                         {p.category && (
-                          <span className="rounded-md bg-gray-100 px-2 py-0.5 text-[11px] text-gray-600">{p.category}</span>
+                          <span className="rounded-md bg-gray-100 dark:bg-bg-elevated px-2 py-0.5 text-[11px] text-gray-600 dark:text-ink-soft">{p.category}</span>
                         )}
                       </div>
                     </div>
@@ -1140,7 +1140,7 @@ function ProductsView() {
                         type="button"
                         onClick={() => setDeleteTarget(p)}
                         disabled={isThisDeleting}
-                        className="rounded-lg border-[1.5px] border-red-600 bg-red-100 px-3 py-1.5 text-xs font-bold text-red-600 disabled:opacity-60"
+                        className="rounded-lg border-[1.5px] border-red-600 bg-red-100 dark:bg-clay-tint px-3 py-1.5 text-xs font-bold text-red-600 dark:text-clay disabled:opacity-60"
                       >
                         {isThisDeleting ? "Deleting..." : "🗑 Delete"}
                       </button>
@@ -1183,11 +1183,11 @@ function ProductsView() {
           onClick={() => !deletingId && setDeleteTarget(null)}
         >
           <div
-            className="w-full max-w-xs rounded-3xl bg-white p-6 shadow-xl"
+            className="w-full max-w-xs rounded-3xl bg-white dark:bg-bg-raised p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="text-center text-xl font-bold">Delete Product</h3>
-            <p className="mb-6 mt-2 text-center text-sm text-gray-600">
+            <p className="mb-6 mt-2 text-center text-sm text-gray-600 dark:text-ink-soft">
               Are you sure you want to delete &ldquo;{deleteTarget.name}&rdquo;? This cannot be undone.
             </p>
             <div className="flex gap-3">
@@ -1203,7 +1203,7 @@ function ProductsView() {
                 type="button"
                 onClick={() => setDeleteTarget(null)}
                 disabled={deletingId !== null}
-                className="min-h-12 flex-1 rounded-xl border-2 border-gray-200 bg-white font-semibold text-gray-600"
+                className="min-h-12 flex-1 rounded-xl border-2 border-gray-200 dark:border-line bg-white dark:bg-bg-raised font-semibold text-gray-600 dark:text-ink-soft"
               >
                 Cancel
               </button>

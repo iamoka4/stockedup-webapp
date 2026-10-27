@@ -16,16 +16,16 @@ import { errorMessage } from "@/components/vendor/ui";
 import { BackHeader, WalletIcon } from "@/components/vendor/wallet-ui";
 
 const inputCls =
-  "w-full rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-3 text-[15px] text-gray-900 outline-none focus:border-brand";
-const labelCls = "mb-1.5 block text-[13px] font-bold text-gray-800";
+  "w-full rounded-xl border border-gray-200 dark:border-line bg-gray-50 dark:bg-bg px-3.5 py-3 text-[15px] text-gray-900 dark:text-ink outline-none focus:border-brand";
+const labelCls = "mb-1.5 block text-[13px] font-bold text-gray-800 dark:text-ink";
 
 type Notice = { type: "success" | "error"; title: string; text?: string };
 
 function InfoRow({ label, value }: { label: string; value?: string | null }) {
   return (
     <div className="flex items-center justify-between gap-3 py-0.5">
-      <span className="text-[13px] font-medium text-gray-400">{label}</span>
-      <span className="text-right text-[13px] font-bold text-gray-900">{value}</span>
+      <span className="text-[13px] font-medium text-gray-400 dark:text-ink-soft">{label}</span>
+      <span className="text-right text-[13px] font-bold text-gray-900 dark:text-ink">{value}</span>
     </div>
   );
 }
@@ -179,8 +179,8 @@ export default function BankAccountPage() {
           role={notice.type === "error" ? "alert" : "status"}
           className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
             notice.type === "error"
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-green-200 bg-green-50 text-green-700"
+              ? "border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint text-red-700 dark:text-clay"
+              : "border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint text-green-700 dark:text-leaf"
           }`}
         >
           <strong>{notice.title}</strong>
@@ -191,28 +191,28 @@ export default function BankAccountPage() {
       {loadError && (
         <p
           role="alert"
-          className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+          className="mt-4 rounded-xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm font-medium text-red-700 dark:text-clay"
         >
           {loadError}
         </p>
       )}
 
       {loading ? (
-        <p className="py-14 text-center text-sm text-gray-500">Loading…</p>
+        <p className="py-14 text-center text-sm text-gray-500 dark:text-ink-soft">Loading…</p>
       ) : (
         <div className="mt-5 space-y-4">
           {/* Pending review card */}
           {hasPendingRequest && pendingRequest && (
-            <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+            <div className="space-y-3 rounded-2xl border border-amber-200 dark:border-brand bg-amber-50 dark:bg-brand-tint p-4">
               <div className="flex items-start gap-3">
-                <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-amber-100 dark:bg-brand-tint text-amber-600 dark:text-brand">
                   <WalletIcon name="clock" />
                 </span>
                 <div className="flex-1">
-                  <p className="text-sm font-extrabold text-amber-800">
+                  <p className="text-sm font-extrabold text-amber-800 dark:text-brand">
                     {justSubmitted ? "Submitted for review" : "Awaiting review"}
                   </p>
-                  <p className="mt-0.5 text-xs leading-4.25 text-amber-700">
+                  <p className="mt-0.5 text-xs leading-4.25 text-amber-700 dark:text-brand">
                     Your current bank account below stays active until this is approved
                   </p>
                 </div>
@@ -226,23 +226,23 @@ export default function BankAccountPage() {
 
           {/* Saved (currently active) account */}
           {hasSavedAccount && (
-            <div className="space-y-3 rounded-2xl border border-green-200 bg-white p-4">
+            <div className="space-y-3 rounded-2xl border border-green-200 dark:border-leaf bg-white dark:bg-bg-raised p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-green-100 text-green-700">
+                  <span className="flex size-10.5 shrink-0 items-center justify-center rounded-full bg-green-100 dark:bg-leaf-tint text-green-700 dark:text-leaf">
                     <WalletIcon name="briefcase" />
                   </span>
                   <div>
-                    <p className="text-sm font-extrabold text-gray-900">Linked Bank Account</p>
-                    <p className="mt-px text-xs text-gray-500">Verified with Paystack</p>
+                    <p className="text-sm font-extrabold text-gray-900 dark:text-ink">Linked Bank Account</p>
+                    <p className="mt-px text-xs text-gray-500 dark:text-ink-soft">Verified with Paystack</p>
                   </div>
                 </div>
-                <span className="flex items-center gap-1 rounded-full bg-green-100 px-2 py-1 text-[11px] font-bold text-green-700">
+                <span className="flex items-center gap-1 rounded-full bg-green-100 dark:bg-leaf-tint px-2 py-1 text-[11px] font-bold text-green-700 dark:text-leaf">
                   <WalletIcon name="check" className="size-2.75" />
                   Verified
                 </span>
               </div>
-              <div className="h-px bg-green-50" />
+              <div className="h-px bg-green-50 dark:bg-leaf-tint" />
               <InfoRow label="Bank" value={bankDetails?.bank_name} />
               <InfoRow label="Account Name" value={bankDetails?.account_name} />
               <InfoRow label="Account Number" value={bankDetails?.account_number} />
@@ -262,11 +262,11 @@ export default function BankAccountPage() {
 
           {/* Update form — hidden entirely while a request is pending (one pending request at a time) */}
           {showUpdateForm && !hasPendingRequest && (
-            <div className="space-y-3.5 rounded-2xl border border-gray-100 bg-white p-4">
-              <h2 className="text-base font-extrabold text-gray-900">
+            <div className="space-y-3.5 rounded-2xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised p-4">
+              <h2 className="text-base font-extrabold text-gray-900 dark:text-ink">
                 {hasSavedAccount ? "Update Bank Account" : "Add Bank Account"}
               </h2>
-              <p className="text-[13px] leading-4.75 text-gray-500">
+              <p className="text-[13px] leading-4.75 text-gray-500 dark:text-ink-soft">
                 Select your bank and enter your account number. Your account name will be verified
                 automatically.
                 {hasSavedAccount
@@ -282,10 +282,10 @@ export default function BankAccountPage() {
                   onClick={() => setBankModalOpen(true)}
                   className={`${inputCls} relative flex min-h-12.5 items-center pr-10 text-left`}
                 >
-                  <span className={`truncate ${bankName ? "text-gray-900" : "text-gray-400"}`}>
+                  <span className={`truncate ${bankName ? "text-gray-900 dark:text-ink" : "text-gray-400 dark:text-ink-soft"}`}>
                     {bankName || "Select a bank..."}
                   </span>
-                  <WalletIcon name="chevron-down" className="absolute right-3.5 size-5 text-gray-400" />
+                  <WalletIcon name="chevron-down" className="absolute right-3.5 size-5 text-gray-400 dark:text-ink-soft" />
                 </button>
               </div>
 
@@ -308,10 +308,10 @@ export default function BankAccountPage() {
                     />
                   )}
                   {resolved && !resolving && (
-                    <WalletIcon name="check-circle" className="absolute right-3.5 top-3.5 size-4.5 text-green-600" />
+                    <WalletIcon name="check-circle" className="absolute right-3.5 top-3.5 size-4.5 text-green-600 dark:text-leaf" />
                   )}
                 </div>
-                {resolveError && <p className="mt-1.5 text-xs font-medium text-red-600">{resolveError}</p>}
+                {resolveError && <p className="mt-1.5 text-xs font-medium text-red-600 dark:text-clay">{resolveError}</p>}
               </div>
 
               {/* Account name (auto-resolved) */}
@@ -319,14 +319,14 @@ export default function BankAccountPage() {
                 <label className={labelCls}>Account Name</label>
                 <div
                   className={`${inputCls} flex min-h-12.5 items-center ${
-                    resolved ? "border-green-200 bg-green-50" : ""
+                    resolved ? "border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint" : ""
                   }`}
                 >
                   <span
                     className={
                       resolved
-                        ? "text-sm font-bold text-green-700"
-                        : "text-sm italic text-gray-400"
+                        ? "text-sm font-bold text-green-700 dark:text-leaf"
+                        : "text-sm italic text-gray-400 dark:text-ink-soft"
                     }
                   >
                     {resolving ? "Verifying..." : accountName || "Will be verified automatically"}
@@ -335,7 +335,7 @@ export default function BankAccountPage() {
               </div>
 
               {/* Info */}
-              <div className="flex items-start gap-2.5 rounded-xl border border-blue-200 bg-blue-50 p-3 text-blue-700">
+              <div className="flex items-start gap-2.5 rounded-xl border border-blue-200 bg-blue-50 dark:bg-indigo-tint p-3 text-blue-700">
                 <WalletIcon name="shield" className="mt-0.5 size-3.75 shrink-0 text-blue-500" />
                 <p className="flex-1 text-[13px] leading-4.75">
                   Your account details are verified securely with Paystack, then reviewed before
@@ -363,10 +363,10 @@ export default function BankAccountPage() {
 
           {/* No account, nothing pending */}
           {!hasSavedAccount && !hasPendingRequest && !showUpdateForm && (
-            <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-gray-100 bg-white p-8 text-center">
+            <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised p-8 text-center">
               <WalletIcon name="alert-circle" className="size-10 text-amber-400" />
-              <p className="text-base font-bold text-gray-800">No bank account linked</p>
-              <p className="text-[13px] text-gray-400">Add a bank account to enable withdrawals</p>
+              <p className="text-base font-bold text-gray-800 dark:text-ink">No bank account linked</p>
+              <p className="text-[13px] text-gray-400 dark:text-ink-soft">Add a bank account to enable withdrawals</p>
               <button
                 type="button"
                 onClick={() => setShowUpdateForm(true)}
@@ -380,10 +380,10 @@ export default function BankAccountPage() {
 
           {/* No account yet, but a first-time request is pending */}
           {!hasSavedAccount && hasPendingRequest && (
-            <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-gray-100 bg-white p-8 text-center">
-              <WalletIcon name="clock" className="size-10 text-amber-600" />
-              <p className="text-base font-bold text-gray-800">Account under review</p>
-              <p className="text-[13px] text-gray-400">You&apos;ll be able to withdraw once it&apos;s approved</p>
+            <div className="flex flex-col items-center gap-2.5 rounded-2xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised p-8 text-center">
+              <WalletIcon name="clock" className="size-10 text-amber-600 dark:text-brand" />
+              <p className="text-base font-bold text-gray-800 dark:text-ink">Account under review</p>
+              <p className="text-[13px] text-gray-400 dark:text-ink-soft">You&apos;ll be able to withdraw once it&apos;s approved</p>
             </div>
           )}
         </div>
@@ -400,27 +400,27 @@ export default function BankAccountPage() {
             aria-modal="true"
             aria-labelledby="bank-modal-title"
             onClick={(e) => e.stopPropagation()}
-            className="flex max-h-[85vh] min-h-[50vh] w-full max-w-lg flex-col rounded-t-[20px] bg-white sm:rounded-[20px]"
+            className="flex max-h-[85vh] min-h-[50vh] w-full max-w-lg flex-col rounded-t-[20px] bg-white dark:bg-bg-raised sm:rounded-[20px]"
           >
-            <div className="flex shrink-0 items-center justify-between border-b border-gray-100 p-4">
-              <h2 id="bank-modal-title" className="text-base font-extrabold text-gray-900">
+            <div className="flex shrink-0 items-center justify-between border-b border-gray-100 dark:border-line p-4">
+              <h2 id="bank-modal-title" className="text-base font-extrabold text-gray-900 dark:text-ink">
                 Select Bank
               </h2>
               <button
                 type="button"
                 onClick={() => setBankModalOpen(false)}
                 aria-label="Close"
-                className="p-1 text-gray-500"
+                className="p-1 text-gray-500 dark:text-ink-soft"
               >
                 <WalletIcon name="x" />
               </button>
             </div>
 
-            <div className="m-4 flex shrink-0 items-center rounded-xl border border-gray-200 bg-gray-100 px-3">
-              <WalletIcon name="search" className="mr-2 size-4.5 text-gray-400" />
+            <div className="m-4 flex shrink-0 items-center rounded-xl border border-gray-200 dark:border-line bg-gray-100 dark:bg-bg-elevated px-3">
+              <WalletIcon name="search" className="mr-2 size-4.5 text-gray-400 dark:text-ink-soft" />
               <input
                 autoFocus
-                className="h-12 min-w-0 flex-1 bg-transparent text-[15px] text-gray-900 outline-none placeholder:text-gray-400"
+                className="h-12 min-w-0 flex-1 bg-transparent text-[15px] text-gray-900 dark:text-ink outline-none placeholder:text-gray-400 dark:placeholder:text-ink-soft"
                 placeholder="Search banks..."
                 value={bankSearch}
                 onChange={(e) => setBankSearch(e.target.value)}
@@ -429,7 +429,7 @@ export default function BankAccountPage() {
 
             <ul className="flex-1 overflow-y-auto pb-4">
               {filteredBanks.length === 0 ? (
-                <li className="mt-6 text-center text-sm text-gray-500">No banks found</li>
+                <li className="mt-6 text-center text-sm text-gray-500 dark:text-ink-soft">No banks found</li>
               ) : (
                 filteredBanks.map((item) => (
                   <li key={item.value}>
@@ -445,7 +445,7 @@ export default function BankAccountPage() {
                     >
                       <span
                         className={`text-[15px] ${
-                          bankCode === item.value ? "font-bold text-brand-deep" : "text-gray-800"
+                          bankCode === item.value ? "font-bold text-brand-deep" : "text-gray-800 dark:text-ink"
                         }`}
                       >
                         {item.label}

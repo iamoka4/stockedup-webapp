@@ -78,7 +78,7 @@ function NotificationModal({
       onClick={onClose}
     >
       <div
-        className="flex w-full max-w-sm flex-col items-center rounded-3xl bg-white p-6 shadow-2xl"
+        className="flex w-full max-w-sm flex-col items-center rounded-3xl bg-white dark:bg-bg-raised p-6 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <span
@@ -88,11 +88,11 @@ function NotificationModal({
           <VendorIcon name={icon.icon} className="size-7" />
         </span>
 
-        <h2 className="mb-1.5 text-center text-[17px] font-bold text-[#1A1A2E]">{item.title}</h2>
-        <p className="mb-4 text-xs text-[#BDBDBD]">{timeAgo(item.created_at)}</p>
+        <h2 className="mb-1.5 text-center text-[17px] font-bold text-[#1A1A2E] dark:text-ink">{item.title}</h2>
+        <p className="mb-4 text-xs text-[#BDBDBD] dark:text-ink-soft">{timeAgo(item.created_at)}</p>
 
         <div className="mb-6 max-h-[220px] w-full overflow-y-auto">
-          <p className="whitespace-pre-line text-center text-sm leading-5.5 text-[#555]">
+          <p className="whitespace-pre-line text-center text-sm leading-5.5 text-[#555] dark:text-ink-soft">
             {item.body}
           </p>
         </div>
@@ -111,7 +111,7 @@ function NotificationModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-[14px] border-[1.5px] border-[#E8E8E8] py-3 text-[15px] font-semibold text-[#888]"
+            className="rounded-[14px] border-[1.5px] border-[#E8E8E8] dark:border-line py-3 text-[15px] font-semibold text-[#888] dark:text-ink-soft"
           >
             Dismiss
           </button>
@@ -135,8 +135,8 @@ function NotificationRow({
     <button
       type="button"
       onClick={() => onPress(item)}
-      className={`relative flex w-full items-center px-4 py-3.5 text-left transition hover:bg-[#fafafa] ${
-        item.is_read ? "bg-white" : "bg-[#FFFBF7]"
+      className={`relative flex w-full items-center px-4 py-3.5 text-left transition hover:bg-[#fafafa] dark:hover:bg-bg-elevated ${
+        item.is_read ? "bg-white dark:bg-bg-raised" : "bg-[#FFFBF7] dark:bg-[#ff7c0914]"
       }`}
     >
       {!item.is_read && (
@@ -151,17 +151,17 @@ function NotificationRow({
       <span className="min-w-0 flex-1">
         <span
           className={`mb-0.75 block truncate text-sm ${
-            item.is_read ? "font-medium text-[#444]" : "font-bold text-[#1A1A2E]"
+            item.is_read ? "font-medium text-[#444] dark:text-ink-soft" : "font-bold text-[#1A1A2E] dark:text-ink"
           }`}
         >
           {item.title}
         </span>
-        <span className="mb-1.25 line-clamp-2 block text-[13px] leading-4.5 text-[#777]">
+        <span className="mb-1.25 line-clamp-2 block text-[13px] leading-4.5 text-[#777] dark:text-ink-soft">
           {item.body}
         </span>
-        <span className="block text-[11px] text-[#BDBDBD]">{timeAgo(item.created_at)}</span>
+        <span className="block text-[11px] text-[#BDBDBD] dark:text-ink-soft">{timeAgo(item.created_at)}</span>
       </span>
-      <VendorIcon name="chevron" className="ml-1.5 size-4 shrink-0 text-[#D0D0D0]" />
+      <VendorIcon name="chevron" className="ml-1.5 size-4 shrink-0 text-[#D0D0D0] dark:text-ink-soft" />
     </button>
   );
 }
@@ -242,7 +242,7 @@ export default function MerchantNotificationsPage() {
 
   if (loading) {
     return (
-      <div className="-mb-24 flex min-h-screen items-center justify-center bg-[#F5F6FA] pb-24">
+      <div className="-mb-24 flex min-h-screen items-center justify-center bg-[#F5F6FA] dark:bg-bg pb-24">
         <span className="size-8 animate-spin rounded-full border-2 border-brand border-t-transparent" />
       </div>
     );
@@ -250,7 +250,7 @@ export default function MerchantNotificationsPage() {
 
   return (
     // -mb-24 / pb-24 lets the page background run behind the fixed tab bar.
-    <div className="-mb-24 min-h-screen bg-[#F5F6FA] pb-24">
+    <div className="-mb-24 min-h-screen bg-[#F5F6FA] dark:bg-bg pb-24">
       {/* Header */}
       <div className="rounded-b-3xl bg-brand px-4 pb-5 pt-10">
         <div className="mx-auto flex max-w-2xl items-center">
@@ -290,7 +290,7 @@ export default function MerchantNotificationsPage() {
         {error && (
           <div
             role="alert"
-            className="mx-4 mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="mx-4 mt-4 rounded-2xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm text-red-700 dark:text-clay"
           >
             {error}
           </div>
@@ -298,19 +298,19 @@ export default function MerchantNotificationsPage() {
 
         {notifications.length === 0 ? (
           <div className="flex flex-col items-center px-10 pt-20 text-center">
-            <span className="mb-5 flex size-24 items-center justify-center rounded-full bg-[#F5F5F5] text-[#ccc]">
+            <span className="mb-5 flex size-24 items-center justify-center rounded-full bg-[#F5F5F5] dark:bg-bg-elevated text-[#ccc] dark:text-ink-soft">
               <VendorIcon name="bellOff" className="size-12" strokeWidth={1.5} />
             </span>
-            <p className="mb-2 text-xl font-bold text-[#1A1A2E]">No notifications yet</p>
-            <p className="text-sm leading-5 text-[#999]">
+            <p className="mb-2 text-xl font-bold text-[#1A1A2E] dark:text-ink">No notifications yet</p>
+            <p className="text-sm leading-5 text-[#999] dark:text-ink-soft">
               Order updates, promotions, and alerts will appear here.
             </p>
           </div>
         ) : (
-          <div className="mt-4 overflow-hidden rounded-2xl bg-white">
+          <div className="mt-4 overflow-hidden rounded-2xl bg-white dark:bg-bg-raised">
             {notifications.map((n, i) => (
               <div key={n.id}>
-                {i > 0 && <div className="ml-18 h-px bg-[#F0F0F0]" />}
+                {i > 0 && <div className="ml-18 h-px bg-[#F0F0F0] dark:bg-bg-elevated" />}
                 <NotificationRow item={n} onPress={handlePress} />
               </div>
             ))}

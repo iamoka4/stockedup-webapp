@@ -54,7 +54,7 @@ export default function AnalyticsReportPage() {
   const highlightIdx = monthly.length === 12 ? new Date().getMonth() : monthly.length - 1;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-bg">
       {/* Header */}
       <div className="bg-brand px-5 pb-6 pt-10 text-white">
         <div className="mx-auto max-w-3xl">
@@ -88,7 +88,7 @@ export default function AnalyticsReportPage() {
         <div
           role="tablist"
           aria-label="Report period"
-          className="my-4 flex rounded-xl bg-white p-1 shadow-sm"
+          className="my-4 flex rounded-xl bg-white dark:bg-bg-raised p-1 shadow-sm"
         >
           {PERIOD_OPTIONS.map(({ key, label }) => {
             const active = period === key;
@@ -100,7 +100,7 @@ export default function AnalyticsReportPage() {
                 aria-selected={active}
                 onClick={() => setPeriod(key)}
                 className={`flex-1 rounded-[10px] py-2.5 text-xs transition sm:text-sm ${
-                  active ? "bg-brand font-bold text-white" : "font-medium text-gray-500 hover:text-gray-800"
+                  active ? "bg-brand font-bold text-white" : "font-medium text-gray-500 dark:text-ink-soft hover:text-gray-800 dark:hover:text-ink"
                 }`}
               >
                 {label}
@@ -110,8 +110,8 @@ export default function AnalyticsReportPage() {
         </div>
 
         {error && !data ? (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
-            <p className="text-sm text-red-500">{error}</p>
+          <div className="rounded-2xl bg-white dark:bg-bg-raised p-8 text-center shadow-sm">
+            <p className="text-sm text-red-500 dark:text-clay">{error}</p>
             <button
               type="button"
               onClick={() => load(period)}
@@ -157,10 +157,10 @@ export default function AnalyticsReportPage() {
             </div>
 
             {/* Monthly revenue */}
-            <section className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="mb-5 text-base font-bold text-gray-800">Monthly Revenue</h2>
+            <section className="mt-4 rounded-2xl bg-white dark:bg-bg-raised p-5 shadow-sm">
+              <h2 className="mb-5 text-base font-bold text-gray-800 dark:text-ink">Monthly Revenue</h2>
               {monthly.length === 0 ? (
-                <p className="py-10 text-center text-sm text-gray-400">No revenue data yet.</p>
+                <p className="py-10 text-center text-sm text-gray-400 dark:text-ink-soft">No revenue data yet.</p>
               ) : (
                 <div className="flex h-40 items-end justify-between gap-1.5 sm:gap-3">
                   {monthly.map((item, i) => {
@@ -168,7 +168,7 @@ export default function AnalyticsReportPage() {
                     const isLast = i === highlightIdx;
                     return (
                       <div key={`${item.month}-${i}`} className="flex flex-1 flex-col items-center justify-end">
-                        <span className="mb-1 h-3 text-center text-[9px] text-gray-500 sm:text-[10px]">
+                        <span className="mb-1 h-3 text-center text-[9px] text-gray-500 dark:text-ink-soft sm:text-[10px]">
                           {compactNaira(item.revenue)}
                         </span>
                         <div
@@ -176,7 +176,7 @@ export default function AnalyticsReportPage() {
                           style={{ height: h }}
                           title={`${item.month}: ${naira(item.revenue)}`}
                         />
-                        <span className="mt-1 text-[10px] text-gray-400">{item.month}</span>
+                        <span className="mt-1 text-[10px] text-gray-400 dark:text-ink-soft">{item.month}</span>
                       </div>
                     );
                   })}
@@ -185,8 +185,8 @@ export default function AnalyticsReportPage() {
             </section>
 
             {/* Orders breakdown */}
-            <section className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-base font-bold text-gray-800">Orders Breakdown</h2>
+            <section className="mt-4 rounded-2xl bg-white dark:bg-bg-raised p-5 shadow-sm">
+              <h2 className="mb-4 text-base font-bold text-gray-800 dark:text-ink">Orders Breakdown</h2>
               <div className="space-y-3.5">
                 <BreakdownRow label="Pending" count={data?.pending_orders ?? 0} total={totalOrders} color="#FF9500" />
                 <BreakdownRow label="Completed" count={data?.completed_orders ?? 0} total={totalOrders} color="#34C759" />
@@ -196,8 +196,8 @@ export default function AnalyticsReportPage() {
             </section>
 
             {/* Product overview */}
-            <section className="mt-4 rounded-2xl bg-white p-5 shadow-sm">
-              <h2 className="mb-4 text-base font-bold text-gray-800">Product Overview</h2>
+            <section className="mt-4 rounded-2xl bg-white dark:bg-bg-raised p-5 shadow-sm">
+              <h2 className="mb-4 text-base font-bold text-gray-800 dark:text-ink">Product Overview</h2>
               <div className="grid grid-cols-3 gap-2 text-center">
                 <ProductStat
                   icon="package"
@@ -240,15 +240,15 @@ function MetricCard({
   note: string;
 }) {
   return (
-    <div className="rounded-2xl border-l-4 bg-white p-4 shadow-sm" style={{ borderLeftColor: color }}>
+    <div className="rounded-2xl border-l-4 bg-white dark:bg-bg-raised p-4 shadow-sm" style={{ borderLeftColor: color }}>
       <span
         className="mb-2.5 flex size-10 items-center justify-center rounded-[10px]"
         style={{ backgroundColor: `${color}1A`, color }}
       >
         <VendorIcon name={icon} className="size-5" />
       </span>
-      <p className="truncate text-xl font-bold text-gray-800">{value}</p>
-      <p className="mt-0.5 text-xs text-gray-500">{title}</p>
+      <p className="truncate text-xl font-bold text-gray-800 dark:text-ink">{value}</p>
+      <p className="mt-0.5 text-xs text-gray-500 dark:text-ink-soft">{title}</p>
       <p className="mt-0.5 text-[11px] font-semibold" style={{ color }}>
         {note}
       </p>
@@ -272,12 +272,12 @@ function BreakdownRow({
     <div className="flex items-center justify-between gap-2">
       <div className="flex w-24 items-center gap-2">
         <span className="size-2.5 rounded-full" style={{ backgroundColor: color }} />
-        <span className="text-sm font-medium text-gray-800">{label}</span>
+        <span className="text-sm font-medium text-gray-800 dark:text-ink">{label}</span>
       </div>
       <div className="flex flex-1 items-center justify-end gap-2">
-        <span className="w-8 text-right text-sm font-bold text-gray-800">{count}</span>
+        <span className="w-8 text-right text-sm font-bold text-gray-800 dark:text-ink">{count}</span>
         <div
-          className="h-1.5 max-w-[100px] flex-1 rounded-full bg-gray-100"
+          className="h-1.5 max-w-[100px] flex-1 rounded-full bg-gray-100 dark:bg-bg-elevated"
           role="progressbar"
           aria-valuenow={Math.round(percent)}
           aria-valuemin={0}
@@ -286,7 +286,7 @@ function BreakdownRow({
         >
           <div className="h-1.5 rounded-full" style={{ width: `${percent}%`, backgroundColor: color }} />
         </div>
-        <span className="w-9 text-right text-xs text-gray-500">{Math.round(percent)}%</span>
+        <span className="w-9 text-right text-xs text-gray-500 dark:text-ink-soft">{Math.round(percent)}%</span>
       </div>
     </div>
   );
@@ -311,7 +311,7 @@ function ProductStat({
       <span className="text-3xl font-bold" style={{ color }}>
         {value}
       </span>
-      <span className="text-xs text-gray-500">{label}</span>
+      <span className="text-xs text-gray-500 dark:text-ink-soft">{label}</span>
     </div>
   );
 }
@@ -321,11 +321,11 @@ function AnalyticsSkeleton() {
     <div className="animate-pulse" aria-busy="true" aria-label="Loading analytics">
       <div className="grid grid-cols-2 gap-3">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-36 rounded-2xl bg-white" />
+          <div key={i} className="h-36 rounded-2xl bg-white dark:bg-bg-raised" />
         ))}
       </div>
-      <div className="mt-4 h-56 rounded-2xl bg-white" />
-      <div className="mt-4 h-48 rounded-2xl bg-white" />
+      <div className="mt-4 h-56 rounded-2xl bg-white dark:bg-bg-raised" />
+      <div className="mt-4 h-48 rounded-2xl bg-white dark:bg-bg-raised" />
     </div>
   );
 }

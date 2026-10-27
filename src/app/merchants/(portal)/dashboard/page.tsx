@@ -84,12 +84,12 @@ function StatCard({
   fill?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-[#e0e0e0] bg-white p-4">
+    <div className="flex flex-col items-center rounded-2xl border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised p-4">
       <span style={{ color }}>
         <VendorIcon name={icon} className="size-7" fill={fill} />
       </span>
-      <span className="mt-2 text-2xl font-bold text-[#222]">{value}</span>
-      <span className="mt-1 text-center text-xs text-[#999]">{label}</span>
+      <span className="mt-2 text-2xl font-bold text-[#222] dark:text-ink">{value}</span>
+      <span className="mt-1 text-center text-xs text-[#999] dark:text-ink-soft">{label}</span>
     </div>
   );
 }
@@ -99,13 +99,13 @@ function OrderCard({ order, scheduled = false }: { order: Order; scheduled?: boo
   return (
     <Link
       href={scheduled ? "/merchants/orders?tab=Scheduled" : "/merchants/orders"}
-      className="mb-3 block rounded-[14px] border border-[#e0e0e0] bg-white p-4"
+      className="mb-3 block rounded-[14px] border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised p-4"
     >
-      <div className="mb-3 flex justify-between border-b border-[#f0f0f0] pb-3">
+      <div className="mb-3 flex justify-between border-b border-[#f0f0f0] dark:border-line pb-3">
         <div className="min-w-0 flex-1">
-          <p className="mb-1 text-base font-bold text-[#222]">#{order.order_uid || order.order_id}</p>
-          <p className="mb-0.5 text-sm text-[#666]">{order.customer_name}</p>
-          <p className="text-xs text-[#999]">
+          <p className="mb-1 text-base font-bold text-[#222] dark:text-ink">#{order.order_uid || order.order_id}</p>
+          <p className="mb-0.5 text-sm text-[#666] dark:text-ink-soft">{order.customer_name}</p>
+          <p className="text-xs text-[#999] dark:text-ink-soft">
             {count} item{count !== 1 ? "s" : ""}
           </p>
         </div>
@@ -124,7 +124,7 @@ function OrderCard({ order, scheduled = false }: { order: Order; scheduled?: boo
             Deliver at: {order.scheduled_for}
           </span>
         ) : (
-          <span className="flex items-center gap-1.5 text-xs text-[#999]">
+          <span className="flex items-center gap-1.5 text-xs text-[#999] dark:text-ink-soft">
             <VendorIcon name="calendar" className="size-3.5" />
             {order.date}
           </span>
@@ -254,7 +254,7 @@ export default function MerchantHomePage() {
 
   return (
     // -mb-24 / pb-24 lets the grey page background run behind the fixed tab bar.
-    <div className="-mb-24 min-h-screen bg-[#f8f9fa] pb-24">
+    <div className="-mb-24 min-h-screen bg-[#f8f9fa] dark:bg-bg pb-24">
       {/* ── Header ── */}
       <div className="rounded-b-[28px] bg-brand px-5 pb-6 pt-10">
         <div className="mx-auto flex max-w-2xl items-center">
@@ -281,7 +281,7 @@ export default function MerchantHomePage() {
         {ordersError && (
           <div
             role="alert"
-            className="mx-3.75 mt-3.75 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            className="mx-3.75 mt-3.75 rounded-2xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm text-red-700 dark:text-clay"
           >
             {ordersError}
           </div>
@@ -332,7 +332,7 @@ export default function MerchantHomePage() {
 
         {/* ── Quick Actions ── */}
         <div className="mt-6 px-3.75">
-          <h2 className="mb-4 text-lg font-bold text-[#222]">Quick Actions</h2>
+          <h2 className="mb-4 text-lg font-bold text-[#222] dark:text-ink">Quick Actions</h2>
           <div className="grid grid-cols-4 gap-2">
             {QUICK_ACTIONS.map((a) => {
               const body = (
@@ -340,10 +340,10 @@ export default function MerchantHomePage() {
                   <span className="flex size-17 items-center justify-center rounded-full bg-brand/10 text-brand sm:size-20">
                     <VendorIcon name={a.icon} className="size-8 sm:size-9" strokeWidth={1.7} />
                   </span>
-                  <span className="mt-2.5 text-center text-[13px] font-bold leading-tight text-[#222] sm:text-sm">
+                  <span className="mt-2.5 text-center text-[13px] font-bold leading-tight text-[#222] dark:text-ink sm:text-sm">
                     {a.title}
                   </span>
-                  {!a.ready && <span className="mt-0.5 text-[10px] text-[#999]">Soon</span>}
+                  {!a.ready && <span className="mt-0.5 text-[10px] text-[#999] dark:text-ink-soft">Soon</span>}
                 </>
               );
               const base = "flex flex-col items-center";
@@ -363,23 +363,23 @@ export default function MerchantHomePage() {
         {/* ── Recent Orders ── */}
         <div className="mt-6 px-3.75">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-[#222]">Recent Orders</h2>
+            <h2 className="text-lg font-bold text-[#222] dark:text-ink">Recent Orders</h2>
             <Link href="/merchants/orders" className="text-sm font-semibold text-brand">
               See All
             </Link>
           </div>
 
           {ordersLoading ? (
-            <div className="rounded-2xl border border-[#e0e0e0] bg-white p-10 text-center">
-              <p className="mt-4 text-lg font-semibold text-[#333]">Loading orders...</p>
+            <div className="rounded-2xl border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised p-10 text-center">
+              <p className="mt-4 text-lg font-semibold text-[#333] dark:text-ink">Loading orders...</p>
             </div>
           ) : orders.length === 0 ? (
-            <div className="flex flex-col items-center rounded-2xl border border-[#e0e0e0] bg-white p-10 text-center">
-              <span className="text-[#ddd]">
+            <div className="flex flex-col items-center rounded-2xl border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised p-10 text-center">
+              <span className="text-[#ddd] dark:text-ink-soft">
                 <VendorIcon name="packageEmpty" className="size-15" strokeWidth={1.4} />
               </span>
-              <p className="mt-4 text-lg font-semibold text-[#333]">No Orders Yet</p>
-              <p className="mt-2 text-sm text-[#999]">
+              <p className="mt-4 text-lg font-semibold text-[#333] dark:text-ink">No Orders Yet</p>
+              <p className="mt-2 text-sm text-[#999] dark:text-ink-soft">
                 You&apos;ll see your orders here when customers place them
               </p>
             </div>
@@ -392,15 +392,15 @@ export default function MerchantHomePage() {
         {hasSchedulingSupport && (
           <div className="mt-6 px-3.75">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="text-lg font-bold text-[#222]">Upcoming Scheduled Orders</h2>
+              <h2 className="text-lg font-bold text-[#222] dark:text-ink">Upcoming Scheduled Orders</h2>
               <Link href="/merchants/orders?tab=Scheduled" className="text-sm font-semibold text-brand">
                 See All
               </Link>
             </div>
 
             {scheduledOrders.length === 0 ? (
-              <div className="flex items-center justify-center rounded-[14px] border border-[#e0e0e0] bg-white p-5">
-                <p className="text-[13px] text-[#888]">No upcoming scheduled orders</p>
+              <div className="flex items-center justify-center rounded-[14px] border border-[#e0e0e0] dark:border-line bg-white dark:bg-bg-raised p-5">
+                <p className="text-[13px] text-[#888] dark:text-ink-soft">No upcoming scheduled orders</p>
               </div>
             ) : (
               scheduledOrders

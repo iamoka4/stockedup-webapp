@@ -97,7 +97,7 @@ export function VendorListingCard({
             </span>
           )}
 
-          <div className="absolute -bottom-5 left-4 size-12 rounded-lg bg-white p-0.5 shadow-md">
+          <div className="absolute -bottom-5 left-4 size-12 rounded-lg bg-white dark:bg-bg-raised p-0.5 shadow-md">
             {item.logo ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -116,7 +116,7 @@ export function VendorListingCard({
           {/* Decorative, same as mobile (not interactive yet) */}
           <span
             aria-hidden
-            className="absolute -bottom-4 right-4 grid size-8 place-items-center rounded-full bg-white text-ink-soft shadow-md"
+            className="absolute -bottom-4 right-4 grid size-8 place-items-center rounded-full bg-white dark:bg-bg-raised text-ink-soft shadow-md"
           >
             <Heart size={16} />
           </span>
@@ -246,7 +246,7 @@ export function VendorListing({
                     aria-pressed={viewMode === mode}
                     className={`rounded-md p-[5px] ${
                       viewMode === mode
-                        ? "bg-white text-brand shadow-sm"
+                        ? "bg-white dark:bg-bg-raised text-brand shadow-sm"
                         : "text-ink-soft/70"
                     }`}
                   >
@@ -303,7 +303,7 @@ export function VendorListing({
 
       <div className="mx-auto max-w-6xl px-4 pb-10 pt-4">
         {isError && cityItems.length === 0 ? (
-          <p className="py-20 text-center text-sm text-red-500">
+          <p className="py-20 text-center text-sm text-red-500 dark:text-clay">
             {copy.errorText}
           </p>
         ) : isFetching && cityItems.length === 0 ? (

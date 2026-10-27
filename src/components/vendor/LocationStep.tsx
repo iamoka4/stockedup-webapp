@@ -122,11 +122,11 @@ export function LocationStep({
       {pin && (
         <div className="flex justify-center">
           {detected ? (
-            <span className="rounded-full border border-green-200 bg-green-50 px-4 py-1.5 text-sm font-semibold text-green-800">
+            <span className="rounded-full border border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint px-4 py-1.5 text-sm font-semibold text-green-800 dark:text-leaf">
               📍 {detected.label}
             </span>
           ) : (
-            <span className="rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-semibold text-amber-800">
+            <span className="rounded-full border border-amber-200 dark:border-brand bg-amber-50 dark:bg-brand-tint px-4 py-1.5 text-sm font-semibold text-amber-800 dark:text-brand">
               ⚠ Area not yet supported
             </span>
           )}

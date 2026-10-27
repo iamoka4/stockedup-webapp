@@ -50,7 +50,7 @@ export function Field({
       {children}
       {hint && !error && <span className="mt-1 block text-xs text-ink-soft">{hint}</span>}
       {error && (
-        <span role="alert" className="mt-1 block text-xs text-red-600">
+        <span role="alert" className="mt-1 block text-xs text-red-600 dark:text-clay">
           {error}
         </span>
       )}
@@ -113,7 +113,7 @@ export function ErrorBanner({ message }: { message: string | null }) {
   return (
     <div
       role="alert"
-      className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+      className="rounded-2xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm text-red-700 dark:text-clay"
     >
       {message}
     </div>

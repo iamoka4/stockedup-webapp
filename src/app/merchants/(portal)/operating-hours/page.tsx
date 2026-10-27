@@ -63,13 +63,13 @@ export default function OperatingHoursPage() {
   }
 
   if (loading) {
-    return <p className="py-20 text-center text-sm text-gray-500">Loading…</p>;
+    return <p className="py-20 text-center text-sm text-gray-500 dark:text-ink-soft">Loading…</p>;
   }
 
   if (error) {
     return (
       <div className="flex flex-col items-center gap-3 px-8 py-20 text-center">
-        <p className="text-sm text-[#FF3B30]">{error}</p>
+        <p className="text-sm text-[#FF3B30] dark:text-clay">{error}</p>
         <button
           type="button"
           onClick={load}
@@ -85,9 +85,9 @@ export default function OperatingHoursPage() {
   if (data?.business_type === "grocery") {
     return (
       <div className="flex flex-col items-center gap-3 px-8 py-20 text-center">
-        <VendorIcon name="clock" className="size-12 text-[#ccc]" />
-        <p className="text-base font-bold text-[#333]">Not applicable for grocery vendors</p>
-        <p className="max-w-sm text-[13px] leading-4.75 text-[#888]">
+        <VendorIcon name="clock" className="size-12 text-[#ccc] dark:text-ink-soft" />
+        <p className="text-base font-bold text-[#333] dark:text-ink">Not applicable for grocery vendors</p>
+        <p className="max-w-sm text-[13px] leading-4.75 text-[#888] dark:text-ink-soft">
           Grocery stores use a single daily opening and closing time, set from your Shop Info
           settings, rather than a weekly schedule.
         </p>
@@ -110,15 +110,15 @@ export default function OperatingHoursPage() {
           type="button"
           onClick={() => router.back()}
           aria-label="Back"
-          className="flex size-9 items-center justify-center rounded-[10px] bg-[#F3F3F3] text-lg text-[#222]"
+          className="flex size-9 items-center justify-center rounded-[10px] bg-[#F3F3F3] text-lg text-[#222] dark:text-ink"
         >
           ←
         </button>
-        <h1 className="text-lg font-extrabold text-[#222]">Operating Hours</h1>
+        <h1 className="text-lg font-extrabold text-[#222] dark:text-ink">Operating Hours</h1>
         <span className="size-9" />
       </div>
 
-      <p className="mb-4 mt-5 text-[13px] leading-4.75 text-[#777]">
+      <p className="mb-4 mt-5 text-[13px] leading-4.75 text-[#777] dark:text-ink-soft">
         Set your hours for each day of the week. Customers will see your store as closed outside
         these times.
       </p>
@@ -128,8 +128,8 @@ export default function OperatingHoursPage() {
           role={notice.type === "error" ? "alert" : "status"}
           className={`mb-3 rounded-xl border px-4 py-3 text-sm font-medium ${
             notice.type === "error"
-              ? "border-red-200 bg-red-50 text-red-700"
-              : "border-green-200 bg-green-50 text-green-700"
+              ? "border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint text-red-700 dark:text-clay"
+              : "border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint text-green-700 dark:text-leaf"
           }`}
         >
           {notice.text}
@@ -139,12 +139,12 @@ export default function OperatingHoursPage() {
       {hours.map((day) => (
         <div
           key={day.day_of_week}
-          className="mb-3 rounded-[14px] border border-[#eee] bg-white p-3.5"
+          className="mb-3 rounded-[14px] border border-[#eee] dark:border-line bg-white dark:bg-bg-raised p-3.5"
         >
           <div className="flex items-center justify-between">
-            <p className="text-[15px] font-bold text-[#222]">{day.day_name}</p>
+            <p className="text-[15px] font-bold text-[#222] dark:text-ink">{day.day_name}</p>
             <div className="flex items-center gap-2">
-              <span className="text-[13px] font-semibold text-[#666]">
+              <span className="text-[13px] font-semibold text-[#666] dark:text-ink-soft">
                 {day.is_closed ? "Closed" : "Open"}
               </span>
               <Toggle
@@ -158,7 +158,7 @@ export default function OperatingHoursPage() {
           {!day.is_closed && (
             <div className="mt-3 flex items-center gap-2.5 border-t border-[#f2f2f2] pt-3">
               <label className="min-w-0 flex-1 rounded-[10px] bg-[#F7F7F7] px-3 py-2.5">
-                <span className="mb-0.5 block text-[11px] text-[#999]">Opens</span>
+                <span className="mb-0.5 block text-[11px] text-[#999] dark:text-ink-soft">Opens</span>
                 <input
                   type="time"
                   value={toInputValue(day.opening_time)}
@@ -166,16 +166,16 @@ export default function OperatingHoursPage() {
                     e.target.value &&
                     updateDay(day.day_of_week, { opening_time: fromInputValue(e.target.value) })
                   }
-                  className="w-full bg-transparent text-[15px] font-bold text-[#222] outline-none"
+                  className="w-full bg-transparent text-[15px] font-bold text-[#222] dark:text-ink outline-none"
                 />
               </label>
 
-              <span className="text-[#bbb]" aria-hidden>
+              <span className="text-[#bbb] dark:text-ink-soft" aria-hidden>
                 →
               </span>
 
               <label className="min-w-0 flex-1 rounded-[10px] bg-[#F7F7F7] px-3 py-2.5">
-                <span className="mb-0.5 block text-[11px] text-[#999]">Closes</span>
+                <span className="mb-0.5 block text-[11px] text-[#999] dark:text-ink-soft">Closes</span>
                 <input
                   type="time"
                   value={toInputValue(day.closing_time)}
@@ -183,7 +183,7 @@ export default function OperatingHoursPage() {
                     e.target.value &&
                     updateDay(day.day_of_week, { closing_time: fromInputValue(e.target.value) })
                   }
-                  className="w-full bg-transparent text-[15px] font-bold text-[#222] outline-none"
+                  className="w-full bg-transparent text-[15px] font-bold text-[#222] dark:text-ink outline-none"
                 />
               </label>
             </div>

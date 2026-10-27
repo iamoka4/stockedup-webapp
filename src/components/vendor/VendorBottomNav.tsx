@@ -35,7 +35,7 @@ export function VendorBottomNav() {
   return (
     <nav
       aria-label="Merchant navigation"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 bg-white"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-gray-200 dark:border-line bg-white dark:bg-bg-raised"
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
     >
       <ul className="mx-auto grid max-w-2xl grid-cols-4">

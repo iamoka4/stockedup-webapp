@@ -20,7 +20,7 @@ const FLOW = [
 function Chevron({ open }: { open: boolean }) {
   return (
     <svg
-      className={`size-5 shrink-0 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`}
+      className={`size-5 shrink-0 text-gray-400 dark:text-ink-soft transition-transform ${open ? "rotate-180" : ""}`}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -60,8 +60,8 @@ function ContactCard({
         {title.startsWith("Call") ? "📞" : title.startsWith("WhatsApp") ? "💬" : "✉️"}
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block text-[14.5px] font-bold text-gray-900">{title}</span>
-        <span className="block truncate text-xs text-gray-500">{sub}</span>
+        <span className="block text-[14.5px] font-bold text-gray-900 dark:text-ink">{title}</span>
+        <span className="block truncate text-xs text-gray-500 dark:text-ink-soft">{sub}</span>
       </span>
     </a>
   );
@@ -70,18 +70,18 @@ function ContactCard({
 function PolicyItem({ title, content, defaultOpen }: { title: string; content: string; defaultOpen?: boolean }) {
   const [open, setOpen] = useState(!!defaultOpen);
   return (
-    <div className="mb-2.5 overflow-hidden rounded-xl border border-line bg-white">
+    <div className="mb-2.5 overflow-hidden rounded-xl border border-line bg-white dark:bg-bg-raised">
       <button
         type="button"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         className="flex w-full items-center justify-between gap-3 p-4 text-left"
       >
-        <span className="text-sm font-bold text-gray-900">{title}</span>
+        <span className="text-sm font-bold text-gray-900 dark:text-ink">{title}</span>
         <Chevron open={open} />
       </button>
       {open && (
-        <div className="whitespace-pre-line bg-gray-50 px-4 pb-4 pt-2 text-sm leading-6 text-gray-600">
+        <div className="whitespace-pre-line bg-gray-50 dark:bg-bg px-4 pb-4 pt-2 text-sm leading-6 text-gray-600 dark:text-ink-soft">
           {content}
         </div>
       )}
@@ -101,27 +101,27 @@ function FaqCard({
   const [openQ, setOpenQ] = useState<string | null>(null);
   return (
     <div
-      className="mb-3.5 overflow-hidden rounded-2xl border border-line bg-white"
+      className="mb-3.5 overflow-hidden rounded-2xl border border-line bg-white dark:bg-bg-raised"
       style={{ borderTop: `4px solid ${color}` }}
     >
-      <h3 className="border-b border-gray-100 p-4 text-sm font-extrabold" style={{ color }}>
+      <h3 className="border-b border-gray-100 dark:border-line p-4 text-sm font-extrabold" style={{ color }}>
         {label}
       </h3>
       {faqs.map((f, i) => {
         const open = openQ === f.q;
         return (
-          <div key={f.q} className={i < faqs.length - 1 ? "border-b border-gray-100" : ""}>
+          <div key={f.q} className={i < faqs.length - 1 ? "border-b border-gray-100 dark:border-line" : ""}>
             <button
               type="button"
               onClick={() => setOpenQ(open ? null : f.q)}
               aria-expanded={open}
               className="flex w-full items-start justify-between gap-3 px-4 py-3.5 text-left"
             >
-              <span className="text-sm font-semibold leading-5 text-gray-900">{f.q}</span>
+              <span className="text-sm font-semibold leading-5 text-gray-900 dark:text-ink">{f.q}</span>
               <Chevron open={open} />
             </button>
             {open && (
-              <div className="mx-4 mb-4 whitespace-pre-line rounded-xl bg-gray-50 p-3.5 text-sm leading-6 text-gray-600">
+              <div className="mx-4 mb-4 whitespace-pre-line rounded-xl bg-gray-50 dark:bg-bg p-3.5 text-sm leading-6 text-gray-600 dark:text-ink-soft">
                 {f.a}
               </div>
             )}
@@ -163,12 +163,12 @@ export default function SupportPage() {
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-6 lg:grid-cols-[360px_1fr] lg:items-start">
         {/* Sidebar */}
         <aside className="space-y-4 lg:sticky lg:top-6">
-          <div className="rounded-xl border-l-4 border-brand bg-brand/10 p-3.5 text-[13px] leading-5 text-gray-700">
+          <div className="rounded-xl border-l-4 border-brand bg-brand/10 p-3.5 text-[13px] leading-5 text-gray-700 dark:text-ink-soft">
             Vendor support is available Monday – Saturday, 8 am – 8 pm WAT. We respond within 30 minutes.
           </div>
 
-          <div className="rounded-2xl border border-line bg-white p-4">
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400">
+          <div className="rounded-2xl border border-line bg-white dark:bg-bg-raised p-4">
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.12em] text-gray-400 dark:text-ink-soft">
               Contact vendor support
             </p>
             <ContactCard href={`tel:${PHONE}`} color="#34C759" title="Call Vendor Support" sub="+234 810 443 6235 — For urgent issues" />
@@ -176,11 +176,11 @@ export default function SupportPage() {
             <ContactCard href={`mailto:${EMAIL}`} color="#007AFF" title="Email Vendor Support" sub={EMAIL} />
           </div>
 
-          <div className="rounded-2xl border border-line bg-white p-4">
-            <p className="mb-3.5 text-sm font-extrabold text-gray-900">📦 How Every Order Works</p>
+          <div className="rounded-2xl border border-line bg-white dark:bg-bg-raised p-4">
+            <p className="mb-3.5 text-sm font-extrabold text-gray-900 dark:text-ink">📦 How Every Order Works</p>
             <ol className="space-y-2.5">
               {FLOW.map((t, i) => (
-                <li key={t} className="flex items-center gap-2.5 text-[13px] text-gray-700">
+                <li key={t} className="flex items-center gap-2.5 text-[13px] text-gray-700 dark:text-ink-soft">
                   <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-brand text-[11px] font-extrabold text-white">
                     {i + 1}
                   </span>
@@ -188,7 +188,7 @@ export default function SupportPage() {
                 </li>
               ))}
             </ol>
-            <p className="mt-3 rounded-lg bg-red-50 p-2.5 text-xs font-semibold leading-4 text-red-500">
+            <p className="mt-3 rounded-lg bg-red-50 dark:bg-clay-tint p-2.5 text-xs font-semibold leading-4 text-red-500 dark:text-clay">
               You do not contact buyers directly. All buyer communication is handled by our team.
             </p>
           </div>
@@ -210,7 +210,7 @@ export default function SupportPage() {
                 className={`rounded-xl border px-5 py-2.5 text-sm font-semibold transition ${
                   tab === id
                     ? "border-brand bg-brand text-white"
-                    : "border-gray-200 bg-white text-gray-600 hover:border-brand"
+                    : "border-gray-200 dark:border-line bg-white dark:bg-bg-raised text-gray-600 dark:text-ink-soft hover:border-brand"
                 }`}
               >
                 {label}
@@ -223,7 +223,7 @@ export default function SupportPage() {
               <span className="mb-3 inline-block rounded-full bg-brand/10 px-3.5 py-1.5 text-xs font-semibold text-brand">
                 Effective: 1 January 2026 · Last updated: February 2026
               </span>
-              <div className="mb-3 rounded-xl border-l-4 border-brand bg-white p-4 text-sm leading-6 text-gray-600">
+              <div className="mb-3 rounded-xl border-l-4 border-brand bg-white dark:bg-bg-raised p-4 text-sm leading-6 text-gray-600 dark:text-ink-soft">
                 This policy outlines your rights and responsibilities as a vendor on StockedUp Africa. Our
                 team handles all buyer interactions, packaging, and delivery — your core responsibility is
                 preparing accurate, quality orders and having them ready for our staff pickup.
@@ -231,8 +231,8 @@ export default function SupportPage() {
               {REFUND_SECTIONS.map((s, i) => (
                 <PolicyItem key={s.title} title={s.title} content={s.content} defaultOpen={i === 0} />
               ))}
-              <div className="mt-2 rounded-2xl border border-line bg-white p-6 text-center">
-                <p className="text-sm text-gray-600">
+              <div className="mt-2 rounded-2xl border border-line bg-white dark:bg-bg-raised p-6 text-center">
+                <p className="text-sm text-gray-600 dark:text-ink-soft">
                   Questions about a specific refund deduction or dispute? Contact our vendor team directly.
                 </p>
                 <a
@@ -250,7 +250,7 @@ export default function SupportPage() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search questions…"
-                className="mb-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm outline-none focus:border-brand"
+                className="mb-3 w-full rounded-xl border border-gray-200 dark:border-line bg-white dark:bg-bg-raised px-4 py-3 text-sm outline-none focus:border-brand"
               />
               <div className="mb-4 flex flex-wrap gap-2">
                 {(["all", ...FAQ_CATEGORIES.map((_, i) => i)] as (number | "all")[]).map((c) => (
@@ -261,7 +261,7 @@ export default function SupportPage() {
                     className={`rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium transition ${
                       cat === c
                         ? "border-brand bg-brand text-white"
-                        : "border-gray-200 bg-white text-gray-600 hover:border-brand"
+                        : "border-gray-200 dark:border-line bg-white dark:bg-bg-raised text-gray-600 dark:text-ink-soft hover:border-brand"
                     }`}
                   >
                     {c === "all" ? "All" : FAQ_CATEGORIES[c].label}
@@ -271,15 +271,15 @@ export default function SupportPage() {
 
               {visible.length === 0 ? (
                 <div className="py-14 text-center">
-                  <p className="text-[17px] font-semibold text-gray-800">No matching questions</p>
-                  <p className="mt-1.5 text-sm text-gray-400">Try different keywords or contact our support team.</p>
+                  <p className="text-[17px] font-semibold text-gray-800 dark:text-ink">No matching questions</p>
+                  <p className="mt-1.5 text-sm text-gray-400 dark:text-ink-soft">Try different keywords or contact our support team.</p>
                 </div>
               ) : (
                 visible.map(({ c, faqs }) => <FaqCard key={c.label} label={c.label} color={c.color} faqs={faqs} />)
               )}
 
-              <div className="mt-2 rounded-2xl border border-line bg-white p-6 text-center">
-                <p className="text-sm text-gray-600">
+              <div className="mt-2 rounded-2xl border border-line bg-white dark:bg-bg-raised p-6 text-center">
+                <p className="text-sm text-gray-600 dark:text-ink-soft">
                   Still have a question not covered here? Our vendor support team is ready to help.
                 </p>
                 <a
@@ -294,7 +294,7 @@ export default function SupportPage() {
             </div>
           )}
 
-          <div className="mt-4 rounded-xl border-l-4 border-brand bg-brand/10 p-3.5 text-[13px] leading-5 text-gray-700">
+          <div className="mt-4 rounded-xl border-l-4 border-brand bg-brand/10 p-3.5 text-[13px] leading-5 text-gray-700 dark:text-ink-soft">
             For disputes about refund deductions, payout issues, or account suspensions, always email {EMAIL}{" "}
             with your Vendor ID for the fastest resolution.
           </div>

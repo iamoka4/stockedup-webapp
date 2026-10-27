@@ -6,11 +6,11 @@ import { submitReview, type Order } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api/client";
 
 const LABELS: Record<number, { text: string; emoji: string; color: string }> = {
-  1: { text: "Poor", emoji: "😞", color: "text-red-600 bg-red-50" },
-  2: { text: "Fair", emoji: "😐", color: "text-orange-600 bg-orange-50" },
-  3: { text: "Good", emoji: "🙂", color: "text-yellow-700 bg-yellow-50" },
-  4: { text: "Very Good", emoji: "😊", color: "text-green-600 bg-green-50" },
-  5: { text: "Excellent", emoji: "🤩", color: "text-green-700 bg-green-50" },
+  1: { text: "Poor", emoji: "😞", color: "text-red-600 dark:text-clay bg-red-50 dark:bg-clay-tint" },
+  2: { text: "Fair", emoji: "😐", color: "text-orange-600 dark:text-brand bg-orange-50 dark:bg-brand-tint" },
+  3: { text: "Good", emoji: "🙂", color: "text-yellow-700 dark:text-brand bg-yellow-50 dark:bg-brand-tint" },
+  4: { text: "Very Good", emoji: "😊", color: "text-green-600 dark:text-leaf bg-green-50 dark:bg-leaf-tint" },
+  5: { text: "Excellent", emoji: "🤩", color: "text-green-700 dark:text-leaf bg-green-50 dark:bg-leaf-tint" },
 };
 
 function Stars({
@@ -184,7 +184,7 @@ export function RatingSheet({
             <div className="overflow-y-auto p-5">
               {step === "vendor" ? (
                 <>
-                  <div className="mb-5 rounded-xl border border-green-200 bg-green-50 p-3 text-center text-sm font-semibold text-green-700">
+                  <div className="mb-5 rounded-xl border border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint p-3 text-center text-sm font-semibold text-green-700 dark:text-leaf">
                     📦 Order delivered successfully
                   </div>
 

@@ -11,7 +11,7 @@ import type { ShopLocation } from "@/components/vendor/ShopLocationPicker";
 const ShopLocationPicker = dynamic(() => import("@/components/vendor/ShopLocationPicker"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[420px] items-center justify-center rounded-2xl border border-line bg-white text-sm text-gray-400">
+    <div className="flex h-[420px] items-center justify-center rounded-2xl border border-line bg-white dark:bg-bg-raised text-sm text-gray-400 dark:text-ink-soft">
       Loading map…
     </div>
   ),
@@ -62,8 +62,8 @@ export default function ShopLocationPage() {
           <Link href="/merchants/menu" className="text-xs font-semibold text-brand hover:underline">
             ← Menu
           </Link>
-          <h1 className="font-display mt-1 text-3xl font-extrabold text-gray-900">Shop Location</h1>
-          <p className="mt-1 text-sm text-gray-500">Set where our staff collects your prepared orders</p>
+          <h1 className="font-display mt-1 text-3xl font-extrabold text-gray-900 dark:text-ink">Shop Location</h1>
+          <p className="mt-1 text-sm text-gray-500 dark:text-ink-soft">Set where our staff collects your prepared orders</p>
         </div>
 
         <div className="rounded-xl bg-[#EBF5FB] p-3 text-[13px] leading-5 text-[#0070C0]">
@@ -75,8 +75,8 @@ export default function ShopLocationPage() {
             role="status"
             className={`rounded-xl border p-3 text-[13px] ${
               notice.type === "success"
-                ? "border-green-200 bg-green-50 text-green-800"
-                : "border-red-200 bg-red-50 text-red-700"
+                ? "border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint text-green-800 dark:text-leaf"
+                : "border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint text-red-700 dark:text-clay"
             }`}
           >
             {notice.text}
@@ -85,7 +85,7 @@ export default function ShopLocationPage() {
 
         {loading ? (
           <div className="flex justify-center py-24">
-            <div className="size-9 animate-spin rounded-full border-4 border-gray-200 border-t-brand" />
+            <div className="size-9 animate-spin rounded-full border-4 border-gray-200 dark:border-line border-t-brand" />
           </div>
         ) : (
           <ShopLocationPicker

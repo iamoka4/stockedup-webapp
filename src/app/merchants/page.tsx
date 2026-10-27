@@ -31,7 +31,7 @@ export default function MerchantsPage() {
             href={PLAY_STORE_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex rounded-full bg-white px-7 py-3.5 font-bold text-brand-deep transition hover:bg-brand-tint"
+            className="inline-flex rounded-full bg-white dark:bg-bg-raised px-7 py-3.5 font-bold text-brand-deep transition hover:bg-brand-tint"
           >
             Get the app now
           </a>

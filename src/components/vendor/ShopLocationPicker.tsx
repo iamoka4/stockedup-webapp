@@ -148,13 +148,13 @@ export default function ShopLocationPicker({ initialLocation, onConfirm, confirm
 
   return (
     <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-      <div className="relative z-0 h-[420px] overflow-hidden rounded-2xl border border-line bg-gray-100 lg:h-[560px]">
+      <div className="relative z-0 h-[420px] overflow-hidden rounded-2xl border border-line bg-gray-100 dark:bg-bg-elevated lg:h-[560px]">
         <div ref={containerRef} className="size-full" />
       </div>
 
-      <div className="space-y-4 self-start rounded-2xl border border-line bg-white p-5">
-        <h2 className="text-lg font-bold text-gray-900">Pin your shop</h2>
-        <p className="text-[13px] leading-5 text-gray-500">
+      <div className="space-y-4 self-start rounded-2xl border border-line bg-white dark:bg-bg-raised p-5">
+        <h2 className="text-lg font-bold text-gray-900 dark:text-ink">Pin your shop</h2>
+        <p className="text-[13px] leading-5 text-gray-500 dark:text-ink-soft">
           {pin
             ? "Drag the pin or click elsewhere on the map to fine-tune your exact shop position."
             : "Click the map or use your current location to place your shop pin."}
@@ -170,17 +170,17 @@ export default function ShopLocationPicker({ initialLocation, onConfirm, confirm
         </button>
 
         {pin && (
-          <div className="rounded-xl bg-gray-50 p-3.5">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400">Coordinates</p>
-            <p className="mt-1 text-sm font-semibold text-gray-800">
+          <div className="rounded-xl bg-gray-50 dark:bg-bg p-3.5">
+            <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-ink-soft">Coordinates</p>
+            <p className="mt-1 text-sm font-semibold text-gray-800 dark:text-ink">
               {pin.latitude.toFixed(5)}, {pin.longitude.toFixed(5)}
             </p>
-            <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-gray-400">City</p>
+            <p className="mt-3 text-[11px] font-bold uppercase tracking-widest text-gray-400 dark:text-ink-soft">City</p>
             <span
               className={`mt-1.5 inline-block rounded-full border px-4 py-1.5 text-sm font-semibold ${
                 unsupported
-                  ? "border-yellow-200 bg-yellow-50 text-yellow-800"
-                  : "border-green-200 bg-green-50 text-green-800"
+                  ? "border-yellow-200 dark:border-brand bg-yellow-50 dark:bg-brand-tint text-yellow-800 dark:text-brand"
+                  : "border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint text-green-800 dark:text-leaf"
               }`}
             >
               {cityLoading ? "Checking…" : unsupported ? "⚠ Area not yet supported" : `📍 ${cityLabel(city!)}`}
@@ -188,7 +188,7 @@ export default function ShopLocationPicker({ initialLocation, onConfirm, confirm
           </div>
         )}
 
-        {error && <p className="rounded-xl bg-red-50 p-3 text-[13px] leading-5 text-red-700">{error}</p>}
+        {error && <p className="rounded-xl bg-red-50 dark:bg-clay-tint p-3 text-[13px] leading-5 text-red-700 dark:text-clay">{error}</p>}
 
         <button
           type="button"

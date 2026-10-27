@@ -102,14 +102,14 @@ export default function ReferralAnalyticsPage() {
   const bothFailed = !loading && !analytics && !referral;
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-bg">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-5 pb-5 pt-10">
+      <div className="border-b border-gray-200 dark:border-line bg-white dark:bg-bg-raised px-5 pb-5 pt-10">
         <div className="mx-auto max-w-3xl">
           <button
             type="button"
             onClick={() => router.back()}
-            className="mb-3 flex items-center gap-1 text-sm font-medium text-gray-500 hover:text-gray-800"
+            className="mb-3 flex items-center gap-1 text-sm font-medium text-gray-500 dark:text-ink-soft hover:text-gray-800 dark:hover:text-ink"
           >
             <VendorIcon name="chevron" className="size-4 rotate-180" />
             Back
@@ -117,13 +117,13 @@ export default function ReferralAnalyticsPage() {
           <div className="flex items-start justify-between gap-3">
             <div>
               <h1 className="font-display text-3xl font-extrabold">Referral Analytics</h1>
-              <p className="mt-1 text-sm text-gray-500">Your referral performance</p>
+              <p className="mt-1 text-sm text-gray-500 dark:text-ink-soft">Your referral performance</p>
             </div>
             <button
               type="button"
               onClick={load}
               disabled={loading}
-              className="rounded-xl border border-line px-3.5 py-2 text-sm font-semibold text-gray-700 transition hover:border-brand disabled:opacity-60"
+              className="rounded-xl border border-line px-3.5 py-2 text-sm font-semibold text-gray-700 dark:text-ink-soft transition hover:border-brand disabled:opacity-60"
             >
               {loading ? "Refreshing..." : "Refresh"}
             </button>
@@ -134,16 +134,16 @@ export default function ReferralAnalyticsPage() {
       <div className="mx-auto max-w-3xl px-4 pb-10 pt-5">
         {loading && !analytics && !referral ? (
           <div className="animate-pulse space-y-4" aria-busy="true" aria-label="Loading referral data">
-            <div className="h-80 rounded-2xl bg-white" />
+            <div className="h-80 rounded-2xl bg-white dark:bg-bg-raised" />
             <div className="grid grid-cols-2 gap-3">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="h-24 rounded-xl bg-white" />
+                <div key={i} className="h-24 rounded-xl bg-white dark:bg-bg-raised" />
               ))}
             </div>
           </div>
         ) : bothFailed ? (
-          <div className="rounded-2xl bg-white p-8 text-center shadow-sm">
-            <p className="text-sm text-red-500">{analyticsError ?? referralError}</p>
+          <div className="rounded-2xl bg-white dark:bg-bg-raised p-8 text-center shadow-sm">
+            <p className="text-sm text-red-500 dark:text-clay">{analyticsError ?? referralError}</p>
             <button
               type="button"
               onClick={load}
@@ -155,7 +155,7 @@ export default function ReferralAnalyticsPage() {
         ) : (
           <>
             {/* Referral link + QR */}
-            <section className="rounded-2xl border border-line bg-white p-5">
+            <section className="rounded-2xl border border-line bg-white dark:bg-bg-raised p-5">
               {referral ? (
                 <div className="flex flex-col items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -164,10 +164,10 @@ export default function ReferralAnalyticsPage() {
                     alt="Your shop referral QR code"
                     className="size-44 object-contain"
                   />
-                  <p className="mt-3 max-w-full truncate text-sm text-gray-600" title={referral.referral_link}>
+                  <p className="mt-3 max-w-full truncate text-sm text-gray-600 dark:text-ink-soft" title={referral.referral_link}>
                     {referral.referral_link}
                   </p>
-                  <p className="mt-1 text-xs text-gray-400">
+                  <p className="mt-1 text-xs text-gray-400 dark:text-ink-soft">
                     Customers who scan or tap your link land on your shop.
                   </p>
 
@@ -193,7 +193,7 @@ export default function ReferralAnalyticsPage() {
                 </div>
               ) : (
                 <div className="py-6 text-center">
-                  <p className="text-sm text-red-500">{referralError ?? "Couldn't load your referral link"}</p>
+                  <p className="text-sm text-red-500 dark:text-clay">{referralError ?? "Couldn't load your referral link"}</p>
                   <button type="button" onClick={load} className="mt-3 text-sm font-semibold text-brand">
                     Try again
                   </button>
@@ -204,7 +204,7 @@ export default function ReferralAnalyticsPage() {
             {/* Funnel */}
             {funnel ? (
               <>
-                <h2 className="mb-3 ml-1 mt-7 text-base font-bold text-gray-800">Funnel</h2>
+                <h2 className="mb-3 ml-1 mt-7 text-base font-bold text-gray-800 dark:text-ink">Funnel</h2>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <StatCard label="QR Scans" value={funnel.total_qr_scans} />
                   <StatCard label="Link Clicks" value={funnel.total_referral_link_clicks} />
@@ -221,7 +221,7 @@ export default function ReferralAnalyticsPage() {
             {/* Conversion rates */}
             {rates && (
               <>
-                <h2 className="mb-3 ml-1 mt-7 text-base font-bold text-gray-800">Conversion Rates</h2>
+                <h2 className="mb-3 ml-1 mt-7 text-base font-bold text-gray-800 dark:text-ink">Conversion Rates</h2>
                 <div className="grid grid-cols-2 gap-3">
                   <StatCard label="Scan/Click → Signup" value={`${rates.scan_or_click_to_signup_pct}%`} />
                   <StatCard label="Signup → First Order" value={`${rates.signup_to_first_order_pct}%`} />
@@ -232,15 +232,15 @@ export default function ReferralAnalyticsPage() {
             {/* By source */}
             {bySource.length > 0 && (
               <>
-                <h2 className="mb-3 ml-1 mt-7 text-base font-bold text-gray-800">Where visits come from</h2>
-                <div className="divide-y divide-gray-100 rounded-2xl border border-line bg-white">
+                <h2 className="mb-3 ml-1 mt-7 text-base font-bold text-gray-800 dark:text-ink">Where visits come from</h2>
+                <div className="divide-y divide-gray-100 dark:divide-line rounded-2xl border border-line bg-white dark:bg-bg-raised">
                   {bySource.map((row, i) => (
                     <div key={`${row.source}-${row.event_type}-${i}`} className="flex items-center justify-between px-4 py-3">
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-ink">
                           {SOURCE_LABELS[row.source] ?? row.source}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 dark:text-ink-soft">
                           {row.event_type === "qr_scan" ? "QR scans" : "Link clicks"}
                         </p>
                       </div>
@@ -271,15 +271,15 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="rounded-xl bg-brand/10 p-4">
       <p className="truncate text-[22px] font-bold text-brand">{value}</p>
-      <p className="mt-1 text-xs text-gray-500">{label}</p>
+      <p className="mt-1 text-xs text-gray-500 dark:text-ink-soft">{label}</p>
     </div>
   );
 }
 
 function InlineError({ message, onRetry }: { message: string; onRetry: () => void }) {
   return (
-    <div className="mt-7 rounded-2xl bg-white p-6 text-center">
-      <p className="text-sm text-red-500">{message}</p>
+    <div className="mt-7 rounded-2xl bg-white dark:bg-bg-raised p-6 text-center">
+      <p className="text-sm text-red-500 dark:text-clay">{message}</p>
       <button type="button" onClick={onRetry} className="mt-3 text-sm font-semibold text-brand">
         Retry
       </button>

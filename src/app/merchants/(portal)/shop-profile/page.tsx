@@ -58,7 +58,7 @@ export default function ShopProfilePage() {
       {saved && (
         <div
           role="status"
-          className="rounded-2xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800"
+          className="rounded-2xl border border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint px-4 py-3 text-sm text-green-800 dark:text-leaf"
         >
           Shop profile saved.
         </div>

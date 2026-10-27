@@ -120,7 +120,7 @@ export default function WalletPage() {
     <section className="mx-auto max-w-3xl px-4 py-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-xl font-extrabold text-gray-900">Wallet</h1>
+        <h1 className="font-display text-xl font-extrabold text-gray-900 dark:text-ink">Wallet</h1>
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -133,7 +133,7 @@ export default function WalletPage() {
           <Link
             href="/merchants/wallet/bank-account"
             aria-label="Wallet settings"
-            className="flex size-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200"
+            className="flex size-9 items-center justify-center rounded-full bg-gray-100 dark:bg-bg-elevated text-gray-600 dark:text-ink-soft transition hover:bg-gray-200 dark:hover:bg-bg-elevated"
           >
             <WalletIcon name="settings" />
           </Link>
@@ -143,7 +143,7 @@ export default function WalletPage() {
       {error && (
         <p
           role="alert"
-          className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+          className="mt-4 rounded-xl border border-red-200 dark:border-clay bg-red-50 dark:bg-clay-tint px-4 py-3 text-sm font-medium text-red-700 dark:text-clay"
         >
           {error}
         </p>
@@ -176,7 +176,7 @@ export default function WalletPage() {
         {/* Breakdown: Total Earned + Pending */}
         <div className="mb-4 flex items-center rounded-2xl bg-black/15 p-3.5">
           <div className="flex flex-1 items-center gap-2">
-            <span className="size-2 rounded-full bg-white" />
+            <span className="size-2 rounded-full bg-white dark:bg-bg-raised" />
             <div>
               <p className="mb-0.5 text-[10px] font-semibold text-white/65">Total Earned</p>
               <p className="text-sm font-extrabold">
@@ -227,7 +227,7 @@ export default function WalletPage() {
           )}
           <Link
             href="/merchants/wallet/bank-account"
-            className={`${actionBtn} bg-white text-brand-deep`}
+            className={`${actionBtn} bg-white dark:bg-bg-raised text-brand-deep`}
           >
             <WalletIcon name="plus-circle" className="size-3.75" />
             {hasBankAccount ? "Update Bank" : "Add Bank"}
@@ -239,7 +239,7 @@ export default function WalletPage() {
       {!loading && !hasBankAccount && (
         <Link
           href="/merchants/wallet/bank-account"
-          className="mt-3 flex items-center gap-2 rounded-xl border border-amber-200 bg-amber-100 p-3 text-[13px] font-semibold text-amber-800"
+          className="mt-3 flex items-center gap-2 rounded-xl border border-amber-200 dark:border-brand bg-amber-100 dark:bg-brand-tint p-3 text-[13px] font-semibold text-amber-800 dark:text-brand"
         >
           <WalletIcon name="alert-circle" className="size-4 shrink-0" />
           <span className="flex-1">Add a bank account to enable withdrawals</span>
@@ -249,15 +249,15 @@ export default function WalletPage() {
 
       {/* Transactions */}
       <div className="mt-6">
-        <h2 className="mb-3 text-[17px] font-extrabold text-gray-900">Transaction History</h2>
+        <h2 className="mb-3 text-[17px] font-extrabold text-gray-900 dark:text-ink">Transaction History</h2>
 
         {loading ? (
-          <p className="py-8 text-center text-sm text-gray-500">Loading transactions...</p>
+          <p className="py-8 text-center text-sm text-gray-500 dark:text-ink-soft">Loading transactions...</p>
         ) : transactions.length === 0 ? (
           <div className="flex flex-col items-center gap-2 py-10 text-center">
             <WalletIcon name="inbox" className="size-11 text-gray-300" />
-            <p className="text-base font-bold text-gray-800">No transactions yet</p>
-            <p className="text-[13px] text-gray-400">Your earnings and withdrawals will appear here</p>
+            <p className="text-base font-bold text-gray-800 dark:text-ink">No transactions yet</p>
+            <p className="text-[13px] text-gray-400 dark:text-ink-soft">Your earnings and withdrawals will appear here</p>
           </div>
         ) : (
           <>
@@ -267,20 +267,20 @@ export default function WalletPage() {
                 return (
                   <div
                     key={item.ref_id}
-                    className="flex items-center gap-3 rounded-2xl border border-gray-100 bg-white p-3.5"
+                    className="flex items-center gap-3 rounded-2xl border border-gray-100 dark:border-line bg-white dark:bg-bg-raised p-3.5"
                   >
                     <span
                       className={`flex size-10 shrink-0 items-center justify-center rounded-full ${
-                        isCredit ? "bg-green-100 text-green-600" : "bg-red-100 text-red-600"
+                        isCredit ? "bg-green-100 dark:bg-leaf-tint text-green-600 dark:text-leaf" : "bg-red-100 dark:bg-clay-tint text-red-600 dark:text-clay"
                       }`}
                     >
                       <WalletIcon name={isCredit ? "arrow-down-left" : "arrow-up-right"} className="size-4.5" />
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="mb-0.5 truncate text-sm font-semibold text-gray-900">{item.description}</p>
-                      <p className="text-xs text-gray-400">{formatDate(item.created_at)}</p>
+                      <p className="mb-0.5 truncate text-sm font-semibold text-gray-900 dark:text-ink">{item.description}</p>
+                      <p className="text-xs text-gray-400 dark:text-ink-soft">{formatDate(item.created_at)}</p>
                     </div>
-                    <p className={`text-[15px] font-extrabold ${isCredit ? "text-green-600" : "text-red-600"}`}>
+                    <p className={`text-[15px] font-extrabold ${isCredit ? "text-green-600 dark:text-leaf" : "text-red-600 dark:text-clay"}`}>
                       {isCredit ? "+" : "-"}
                       {formatAmount(item.amount)}
                     </p>

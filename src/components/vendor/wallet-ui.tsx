@@ -217,11 +217,11 @@ export function BackHeader({
       <Link
         href={backHref}
         aria-label="Back"
-        className="flex size-9 items-center justify-center rounded-full bg-gray-100 text-gray-600 transition hover:bg-gray-200"
+        className="flex size-9 items-center justify-center rounded-full bg-gray-100 dark:bg-bg-elevated text-gray-600 dark:text-ink-soft transition hover:bg-gray-200 dark:hover:bg-bg-elevated"
       >
         <WalletIcon name="arrow-left" />
       </Link>
-      <h1 className="font-display text-lg font-extrabold text-gray-900">{title}</h1>
+      <h1 className="font-display text-lg font-extrabold text-gray-900 dark:text-ink">{title}</h1>
       {right ?? <span className="size-9" />}
     </div>
   );

@@ -179,29 +179,29 @@ export default function MerchantMenuPage() {
   ];
 
   function Row({ item }: { item: MenuItem }) {
-    const rowBase = `flex items-center gap-3.5 rounded-2xl border p-3.5 ${item.highlight ? "border-amber-400 bg-[#FFFDF5]" : "border-line bg-white"
+    const rowBase = `flex items-center gap-3.5 rounded-2xl border p-3.5 ${item.highlight ? "border-amber-400 bg-[#FFFDF5] dark:bg-[#ffb80014]" : "border-line bg-white dark:bg-bg-raised"
       }`;
 
     const body = (
       <>
         <span
-          className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${item.highlight ? "bg-[#FFF9E6] text-amber-500" : "bg-brand text-white"
+          className={`flex size-12 shrink-0 items-center justify-center rounded-xl ${item.highlight ? "bg-[#FFF9E6] dark:bg-[#ffb80026] text-amber-500" : "bg-brand text-white"
             }`}
         >
           <VendorIcon name={item.icon} />
         </span>
         <span className="min-w-0 flex-1">
           <span
-            className={`block text-[15px] font-bold ${item.highlight ? "text-[#B8860B]" : "text-gray-900"
+            className={`block text-[15px] font-bold ${item.highlight ? "text-[#B8860B] dark:text-[#ffc94d]" : "text-gray-900 dark:text-ink"
               }`}
           >
             {item.title}
           </span>
-          <span className="mt-0.5 block text-xs leading-4 text-gray-500">{item.subtitle}</span>
+          <span className="mt-0.5 block text-xs leading-4 text-gray-500 dark:text-ink-soft">{item.subtitle}</span>
         </span>
         <span className="flex shrink-0 items-center gap-2">
           {!item.ready ? (
-            <span className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] font-semibold text-gray-500">
+            <span className="rounded-full bg-gray-100 dark:bg-bg-elevated px-2.5 py-1 text-[11px] font-semibold text-gray-500 dark:text-ink-soft">
               Soon
             </span>
           ) : (
@@ -214,7 +214,7 @@ export default function MerchantMenuPage() {
               </span>
             )
           )}
-          <VendorIcon name="chevron" className="size-5 text-gray-400" />
+          <VendorIcon name="chevron" className="size-5 text-gray-400 dark:text-ink-soft" />
         </span>
       </>
     );
@@ -246,19 +246,19 @@ export default function MerchantMenuPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[#f8f9fa] dark:bg-bg">
       {/* Header */}
-      <div className="border-b border-gray-200 bg-white px-5 pb-5 pt-10">
+      <div className="border-b border-gray-200 dark:border-line bg-white dark:bg-bg-raised px-5 pb-5 pt-10">
         <div className="mx-auto max-w-3xl">
           <h1 className="font-display text-3xl font-extrabold">Menu</h1>
-          <p className="mt-1 text-sm text-gray-500">Manage your vendor account</p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-ink-soft">Manage your vendor account</p>
         </div>
       </div>
 
       <div className="mx-auto max-w-3xl px-4 pb-6">
         {sections.map((section) => (
           <div key={section.title}>
-            <h2 className="mb-3 ml-1 mt-6 text-[13px] font-bold uppercase tracking-wide text-gray-400">
+            <h2 className="mb-3 ml-1 mt-6 text-[13px] font-bold uppercase tracking-wide text-gray-400 dark:text-ink-soft">
               {section.title}
             </h2>
             <div className="space-y-2.5">
@@ -271,7 +271,7 @@ export default function MerchantMenuPage() {
 
         {/* App info */}
         <div className="mt-8 text-center">
-          <p className="text-[13px] font-medium text-gray-400">StockedUp Africa</p>
+          <p className="text-[13px] font-medium text-gray-400 dark:text-ink-soft">StockedUp Africa</p>
           <p className="mt-1 text-[11px] text-gray-300">© 2026 All rights reserved</p>
         </div>
 
@@ -280,7 +280,7 @@ export default function MerchantMenuPage() {
           type="button"
           onClick={() => setConfirmOpen(true)}
           disabled={loggingOut}
-          className="mx-auto mt-4 flex items-center justify-center gap-2 py-3.5 text-base font-semibold text-red-500 disabled:opacity-60"
+          className="mx-auto mt-4 flex items-center justify-center gap-2 py-3.5 text-base font-semibold text-red-500 dark:text-clay disabled:opacity-60"
         >
           <VendorIcon name="logout" className="size-5" />
           {loggingOut ? "Logging out..." : "Logout"}
@@ -297,7 +297,7 @@ export default function MerchantMenuPage() {
           onClick={() => !loggingOut && setConfirmOpen(false)}
         >
           <div
-            className="w-full max-w-xs rounded-3xl bg-white p-6 shadow-xl"
+            className="w-full max-w-xs rounded-3xl bg-white dark:bg-bg-raised p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h3 className="mb-6 text-center text-xl font-bold">Confirm Log Out?</h3>
@@ -314,7 +314,7 @@ export default function MerchantMenuPage() {
                 type="button"
                 onClick={() => setConfirmOpen(false)}
                 disabled={loggingOut}
-                className="min-h-12 flex-1 rounded-xl border-2 border-brand bg-white font-semibold text-brand"
+                className="min-h-12 flex-1 rounded-xl border-2 border-brand bg-white dark:bg-bg-raised font-semibold text-brand"
               >
                 No
               </button>
