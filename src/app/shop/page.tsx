@@ -55,8 +55,8 @@ function mealCategoryImage(
 // Homepage, section for section (matches the mobile Home screen):
 //   Promo banner -> Categories -> Restock Your Kitchen (grocery vendors) ->
 //   Refill Your Belly (restaurants) -> Quick Mart Picks (supermarkets) ->
-//   What Are You Having Today? (restaurant meals) -> Trending Drinks ->
-//   What's Everyone Buying? (Popular Demand) -> Explore Our Meal Categories ->
+//   Explore Our Meal Categories -> What Are You Having Today? (restaurant
+//   meals) -> Trending Drinks -> What's Everyone Buying? (Popular Demand) ->
 //   Best Sellers.
 export default async function ShopPage() {
   const [
@@ -162,16 +162,7 @@ export default async function ShopPage() {
         initialItems={supermarkets}
       />
 
-      {/* 7. What Are You Having Today?: restaurant meals (no drinks) */}
-      <RestaurantMealsSection initialProducts={products} />
-
-      {/* 8. Trending Drinks */}
-      <TrendingDrinksSection initialProducts={products} />
-
-      {/* 9. What's Everyone Buying? */}
-      <PopularDemandSection initialProducts={products} />
-
-      {/* 10. Explore Our Meal Categories: image comes from a product in the category */}
+      {/* 7. Explore Our Meal Categories: right after Quick Mart Picks */}
       {meals.length > 0 && (
         <section className="py-6">
           <h2 className="mb-4 font-display text-lg font-bold text-ink sm:text-xl">
@@ -216,6 +207,15 @@ export default async function ShopPage() {
           </div>
         </section>
       )}
+
+      {/* 8. What Are You Having Today?: restaurant meals (no drinks) */}
+      <RestaurantMealsSection initialProducts={products} />
+
+      {/* 9. Trending Drinks */}
+      <TrendingDrinksSection initialProducts={products} />
+
+      {/* 10. What's Everyone Buying? */}
+      <PopularDemandSection initialProducts={products} />
 
       {/* 11. Best Sellers */}
       <HotProductsSection />
