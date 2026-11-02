@@ -10,12 +10,12 @@ const BLOBS = [
   "rounded-[42%_58%_48%_52%/58%_42%_55%_45%]",
 ];
 
-// Restaurants we always feature. Matched to live restaurants by shop name
-// (ignoring case, spacing and punctuation) so their logo comes from the
-// vendor's own profile. If one isn't found, it still shows by name.
+// Restaurants we always feature first. Matched to live restaurants by shop
+// name (ignoring case, spacing and punctuation) so their logo comes from the
+// vendor's own profile. A featured restaurant with no logo is hidden too.
 const FEATURED_RESTAURANTS = ["Chukskally Kitchen & Bar", "Jenny's Kitchen"];
 
-// Rating is only used to decide who ranks "top"; it is never displayed.
+// Rating is only used to decide the order; it is never displayed.
 type Partner = { key: string; label: string; image: string | null; rating: number };
 
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -35,29 +35,25 @@ const fromListing = (v: VendorListingItem, kind: string): Partner => ({
   rating: v.rating?.average ?? 0,
 });
 
-// Display only: these are the partners we're proud to work with, not a
+// Display only: these are the brands we're proud to work with, not a
 // storefront, so nothing here links anywhere and nothing is location-filtered.
-function PartnerGrid({ partners }: { partners: Partner[] }) {
+// Two rows that fill column by column, so businesses sit in pairs and the
+// whole thing scrolls horizontally.
+function PartnerRail({ partners }: { partners: Partner[] }) {
   return (
-    <ul className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4">
+    <ul className="grid auto-cols-[9.5rem] grid-flow-col grid-rows-2 gap-x-4 gap-y-10 overflow-x-auto overscroll-x-contain px-1 pb-4 [scrollbar-width:thin] md:auto-cols-[11rem]">
       {partners.map((p, i) => (
         <li key={p.key} className="flex flex-col items-center">
           <div
             className={`size-32 overflow-hidden bg-brand-tint md:size-36 ${BLOBS[i % BLOBS.length]}`}
           >
-            {p.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={p.image}
-                alt=""
-                loading="lazy"
-                className="size-full object-cover"
-              />
-            ) : (
-              <span className="grid size-full place-items-center font-display text-4xl font-bold text-brand-deep">
-                {p.label.charAt(0).toUpperCase()}
-              </span>
-            )}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={p.image ?? ""}
+              alt=""
+              loading="lazy"
+              className="size-full object-cover"
+            />
           </div>
           <span className="-mt-3 max-w-full truncate rounded-lg bg-brand-tint px-2.5 py-1 text-sm font-bold text-brand-deep">
             {p.label}
@@ -85,59 +81,55 @@ export function TopVendors({
     .map((r) => fromListing(r, "restaurant"))
     .filter((p) => p.label);
 
-  // The featured restaurants, resolved to live vendors where possible.
-  const pinned: Partner[] = FEATURED_RESTAURANTS.map((name) => {
+  // The featured restaurants, resolved to live vendors. If one isn't found,
+  // it is skipped (it would have no logo).
+  const pinned: Partner[] = FEATURED_RESTAURANTS.flatMap((name) => {
     const target = norm(name);
-    return (
+    const found =
       restaurantPartners.find((p) => norm(p.label) === target) ??
-      restaurantPartners.find((p) => norm(p.label).includes(target)) ?? {
-        key: `featured-${target}`,
-        label: name,
-        image: null,
-        rating: 0,
-      }
-    );
+      restaurantPartners.find((p) => norm(p.label).includes(target));
+    return found ? [found] : [];
   });
   const pinnedKeys = new Set(pinned.map((p) => p.key));
 
-  // Everyone else: best rated first, and only businesses with a logo.
-  const withLogo = (list: Partner[]) =>
+  // Best rated first, skipping anything already pinned.
+  const byRating = (list: Partner[]) =>
     list
-      .filter((p) => p.label && p.image && !pinnedKeys.has(p.key))
+      .filter((p) => p.label && !pinnedKeys.has(p.key))
       .sort((a, b) => b.rating - a.rating);
 
-  const groups = [
-    {
-      title: "Restaurants",
-      partners: [...pinned, ...withLogo(restaurantPartners)].slice(0, 4),
-    },
-    {
-      title: "Stores & supermarkets",
-      partners: withLogo([
-        ...groceries.map(fromGrocery),
-        ...supermarkets.map((s) => fromListing(s, "supermarket")),
-      ]).slice(0, 4),
-    },
-  ].filter((g) => g.partners.length > 0);
+  // Every business in one list: featured restaurants, then the rest of the
+  // restaurants, then stores and supermarkets. Only businesses with a logo
+  // are shown, and a business listed under two types appears once.
+  const seen = new Set<string>();
+  const brands = [
+    ...pinned,
+    ...byRating(restaurantPartners),
+    ...byRating([
+      ...groceries.map(fromGrocery),
+      ...supermarkets.map((s) => fromListing(s, "supermarket")),
+    ]),
+  ].filter((p) => {
+    const id = norm(p.label);
+    if (!id || !p.image || seen.has(id)) return false;
+    seen.add(id);
+    return true;
+  });
+
+  if (brands.length === 0) return null;
 
   return (
     <section className="mx-auto max-w-6xl px-6 pt-16 pb-6 md:pt-20">
       <h2 className="text-center font-display text-3xl font-bold tracking-tight sm:text-4xl md:text-5xl">
-        Top businesses on StockedUp
+        Brands on StockedUp
       </h2>
 
-      <div className="mt-12 space-y-14">
-        {groups.map((g) => (
-          <div key={g.title}>
-            <h3 className="mb-8 text-center font-display text-xl font-bold text-brand-deep sm:text-2xl">
-              {g.title}
-            </h3>
-            <PartnerGrid partners={g.partners} />
-          </div>
-        ))}
+      {/* Horizontal scroll: every business with a logo, two per column */}
+      <div className="mt-12">
+        <PartnerRail partners={brands} />
       </div>
 
-      <div className="mt-10 text-center">
+      <div className="mt-6 text-center">
         <Link
           href="/explore"
           className="inline-flex rounded-full bg-brand px-7 py-3.5 font-bold text-white transition hover:bg-brand-deep"

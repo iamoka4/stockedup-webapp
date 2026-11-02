@@ -4,11 +4,13 @@ import { getCategories } from "@/lib/api/categories";
 import { getVendors } from "@/lib/api/vendors";
 import { getProducts } from "@/lib/api/products";
 import { getPromoSlides } from "@/lib/api/promo";
+import { getPromoPopups, type PromoPopupItem } from "@/lib/api/promo-popups";
 import { getRestaurants, getSupermarkets } from "@/lib/api/vendor-listing";
 import type { VendorListingItem } from "@/lib/api/vendor-listing";
 import type { Product } from "@/lib/api/types";
 import type { PromoSlide } from "@/lib/api/promo";
 import { PromoBanner } from "@/components/home/PromoBanner";
+import { PromoPopup } from "@/components/home/PromoPopup";
 import { CategoryScroller } from "@/components/home/CategoryScroller";
 import { PopularVendorsSection } from "@/components/home/PopularVendorsSection";
 import { VendorListingRail } from "@/components/home/VendorListingRail";
@@ -53,11 +55,11 @@ function mealCategoryImage(
 }
 
 // Homepage, section for section (matches the mobile Home screen):
-//   Promo banner -> Categories -> Restock Your Kitchen (grocery vendors) ->
-//   Refill Your Belly (restaurants) -> Quick Mart Picks (supermarkets) ->
-//   Explore Our Meal Categories -> What Are You Having Today? (restaurant
-//   meals) -> Trending Drinks -> What's Everyone Buying? (Popular Demand) ->
-//   Best Sellers.
+//   Promo popup (on load) -> Promo banner -> Categories -> Restock Your
+//   Kitchen (grocery vendors) -> Refill Your Belly (restaurants) -> Quick Mart
+//   Picks (supermarkets) -> Explore Our Meal Categories -> What Are You Having
+//   Today? (restaurant meals) -> Trending Drinks -> What's Everyone Buying?
+//   (Popular Demand) -> Best Sellers.
 export default async function ShopPage() {
   const [
     { categories },
@@ -67,6 +69,7 @@ export default async function ShopPage() {
     promoSlides,
     restaurants,
     supermarkets,
+    promoPopups,
   ] = await Promise.all([
     // Grocery categories only, so restaurant ones don't leak into this row.
     getCategories("grocery").catch((err) => {
@@ -98,6 +101,11 @@ export default async function ShopPage() {
       console.error("[shop] supermarkets failed:", err);
       return [] as VendorListingItem[];
     }),
+    // Same rule: a popup failure just means no popup.
+    getPromoPopups().catch((err) => {
+      console.error("[shop] promo popups failed:", err);
+      return [] as PromoPopupItem[];
+    }),
   ]);
 
   // Only vendors in the default city, no fallback to other cities.
@@ -118,6 +126,9 @@ export default async function ShopPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
+      {/* Opens as soon as the page loads, once per browser session per promo */}
+      <PromoPopup promos={promoPopups} />
+
       {promoSlides.length > 0 && (
         <div>
           <PromoBanner slides={promoSlides} />
