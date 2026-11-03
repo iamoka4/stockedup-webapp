@@ -46,7 +46,7 @@ export function PromoPopup({ promos }: { promos: PromoPopupItem[] }) {
 
   return (
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-black/60 p-6"
+      className="fixed inset-0 z-[100] grid place-items-center bg-black/60 p-6"
       role="dialog"
       aria-modal="true"
       onClick={close}
@@ -65,8 +65,15 @@ export function PromoPopup({ promos }: { promos: PromoPopupItem[] }) {
         </button>
 
         {current.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={current.image} alt={current.title} className="w-full" />
+          href ? (
+            <Link href={href} onClick={close}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={current.image} alt={current.title} className="w-full" />
+            </Link>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={current.image} alt={current.title} className="w-full" />
+          )
         ) : (
           <div className="flex flex-col items-center px-7 pb-8 pt-12 text-center">
             {current.badge && (
