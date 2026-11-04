@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { ThemeScript } from "@/components/ThemeScript";
+import MetaPixel from "@/components/MetaPixel";
 import { SITE_NAME, SITE_URL } from "@/lib/config";
 
 const fraunces = Fraunces({
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body
         className={`${fraunces.variable} ${inter.variable} ${spaceGrotesk.variable} antialiased`}
       >
+        <MetaPixel />
         <ThemeProvider>
           <Providers>
             <ServiceWorkerRegistration />
