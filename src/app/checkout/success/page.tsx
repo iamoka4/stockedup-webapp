@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { verifyPayment } from "@/lib/api/payments";
+import { trackPurchaseOnce } from "@/lib/metaPixel";
 
 type PaymentStatus = "checking" | "success" | "failed";
 
@@ -24,6 +25,13 @@ function SuccessContent() {
   const [message, setMessage] = useState(
     "Confirming your payment..."
   );
+
+  // Meta Pixel: Purchase, once per confirmed order.
+  useEffect(() => {
+    if (status === "success" && orderId) {
+      trackPurchaseOnce(orderId);
+    }
+  }, [status, orderId]);
 
   useEffect(() => {
     let cancelled = false;

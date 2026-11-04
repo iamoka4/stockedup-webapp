@@ -8,6 +8,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart, removeCartItem } from "@/lib/api/cart";
 import { useCart } from "@/lib/hooks/useCart";
 import { trackEvent } from "@/lib/analytics";
+import { fbqTrack } from "@/lib/metaPixel";
 import type { AddonGroup, AddonOption, SelectedAddon } from "@/lib/api/types";
 
 // Change this if your cart route is different.
@@ -53,6 +54,20 @@ export function AddToCartPanel({
     typeof stock === "number" && stock > 0
       ? Math.min(stock, MAX_QTY_LIMIT)
       : MAX_QTY_LIMIT;
+
+  // ── Meta Pixel: ViewContent (once per product page view) ─────────────────
+  const viewTrackedRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (viewTrackedRef.current === productId) return;
+    viewTrackedRef.current = productId;
+    fbqTrack("ViewContent", {
+      content_ids: [String(productId)],
+      content_type: "product",
+      content_name: name,
+      value: Number(price),
+      currency: "NGN",
+    });
+  }, [productId, name, price]);
 
   // ── Edit mode: ?editCartId=123 ───────────────────────────────────────────
   const editCartId = Number(searchParams.get("editCartId")) || null;
@@ -254,6 +269,15 @@ export function AddToCartPanel({
           name,
           price: Number(price),
           quantity,
+        });
+
+        // Meta Pixel standard event (also fires for "Buy now", which adds first).
+        fbqTrack("AddToCart", {
+          content_ids: [String(productId)],
+          content_type: "product",
+          content_name: name,
+          value: grandTotal,
+          currency: "NGN",
         });
       }
 

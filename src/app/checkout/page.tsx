@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
 import { MapPin } from "lucide-react";
@@ -9,6 +9,7 @@ import { useAuth } from "@/lib/auth/AuthContext";
 import { useAuthModalStore } from "@/store/authModalStore";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
 import { AREA_GROUPS } from "@/lib/constants/cityCoords";
+import { fbqTrack, savePendingPurchase } from "@/lib/metaPixel";
 import { useDeliveryFees } from "./useDeliveryFees";
 import { useCheckoutQuote } from "./useCheckoutQuote";
 import { AddressPanel } from "./AddressPanel";
@@ -162,6 +163,22 @@ export default function CheckoutPage() {
       .catch(() => {});
   }, [user]);
 
+  // Meta Pixel: InitiateCheckout, once per visit, when a logged-in customer
+  // lands on checkout with items in the cart.
+  const checkoutTrackedRef = useRef(false);
+  useEffect(() => {
+    if (checkoutTrackedRef.current) return;
+    if (!user || !cart || cart.items.length === 0) return;
+    checkoutTrackedRef.current = true;
+    fbqTrack("InitiateCheckout", {
+      content_ids: cart.items.map((i) => String(i.product_id)),
+      content_type: "product",
+      num_items: cart.items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0),
+      value: subtotal,
+      currency: "NGN",
+    });
+  }, [user, cart, subtotal]);
+
   const handleVendorClosedChange = useCallback((closed: boolean) => {
     setIsVendorClosed(closed);
   }, []);
@@ -261,6 +278,14 @@ export default function CheckoutPage() {
       .join(", ");
 
     const idempotency_key = generateIdempotencyKey();
+
+    // Meta Pixel: remember what is being paid so the success page can report
+    // the Purchase with the right value (the success page doesn't know the total).
+    savePendingPurchase({
+      value: Math.round(total),
+      content_ids: cart.items.map((i) => String(i.product_id)),
+      num_items: cart.items.reduce((sum, i) => sum + (Number(i.quantity) || 0), 0),
+    });
 
     try {
       const result = await initializePayment(
