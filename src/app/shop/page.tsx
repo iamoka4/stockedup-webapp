@@ -14,6 +14,7 @@ import { PromoPopup } from "@/components/home/PromoPopup";
 import { CategoryScroller } from "@/components/home/CategoryScroller";
 import { PopularVendorsSection } from "@/components/home/PopularVendorsSection";
 import { VendorListingRail } from "@/components/home/VendorListingRail";
+import { MealCategoriesSection } from "@/components/home/MealCategoriesSection";
 import {
   RestaurantMealsSection,
   TrendingDrinksSection,
@@ -21,7 +22,6 @@ import {
 } from "@/components/home/CityProductRails";
 import { HotProductsSection } from "@/components/home/HotProductsSection";
 import { DEFAULT_CITY } from "@/lib/config";
-import { pickMealCategoryImage } from "@/lib/utils/categoryMatch";
 
 // Must be a literal here: Next.js can't read a re-exported revalidate value.
 export const revalidate = 60;
@@ -34,32 +34,12 @@ export const metadata: Metadata = {
 
 const normalizeCity = (s: string) => s.toLowerCase().replace(/\s+/g, "");
 
-// Loose shape: the API may return category_name or name.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type MealCategory = Record<string, any>;
-
-// Image for a meal category: a hand-picked product's photo where one is set
-// (breakfast, soups, combos), otherwise the first matching product's photo.
-function mealCategoryImage(
-  c: MealCategory,
-  mealProducts: Product[],
-): string | null {
-  const name = c.category_name ?? c.name ?? "";
-  // The API's own category image is just the uploads folder (no file name),
-  // so only use it if it points at a real file.
-  const own =
-    typeof c.image === "string" && c.image && !c.image.endsWith("/")
-      ? c.image
-      : null;
-  return pickMealCategoryImage(name, mealProducts) ?? own;
-}
-
 // Homepage, section for section (matches the mobile Home screen):
 //   Promo popup (on load) -> Promo banner -> Categories -> Restock Your
 //   Kitchen (grocery vendors) -> Refill Your Belly (restaurants) -> Quick Mart
-//   Picks (supermarkets) -> Explore Our Meal Categories -> What Are You Having
-//   Today? (restaurant meals) -> Trending Drinks -> What's Everyone Buying?
-//   (Popular Demand) -> Best Sellers.
+//   Picks (supermarkets) -> Explore Our Meal Categories (city filtered) ->
+//   What Are You Having Today? (restaurant meals) -> Trending Drinks ->
+//   What's Everyone Buying? (Popular Demand) -> Best Sellers.
 export default async function ShopPage() {
   const [
     { categories },
@@ -113,17 +93,6 @@ export default async function ShopPage() {
     (v) => normalizeCity(v.city || "") === normalizeCity(DEFAULT_CITY),
   );
 
-  // Meal categories, each with an image taken from one of its products.
-  // The explicit MealCategory types stop TypeScript from narrowing the
-  // spread result to `{ image: string | null }`.
-  const mealProducts = products.filter((p) => p.business_type === "restaurant");
-  const meals: MealCategory[] = ((mealCategories ?? []) as MealCategory[]).map(
-    (c): MealCategory => ({
-      ...c,
-      image: mealCategoryImage(c, mealProducts),
-    }),
-  );
-
   return (
     <div className="mx-auto max-w-6xl px-4 py-6">
       {/* Opens as soon as the page loads, once per browser session per promo */}
@@ -173,51 +142,12 @@ export default async function ShopPage() {
         initialItems={supermarkets}
       />
 
-      {/* 7. Explore Our Meal Categories: right after Quick Mart Picks */}
-      {meals.length > 0 && (
-        <section className="py-6">
-          <h2 className="mb-4 font-display text-lg font-bold text-ink sm:text-xl">
-            Explore Our Meal Categories
-          </h2>
-          <div className="scrollbar-none flex snap-x gap-3 overflow-x-auto pb-2 [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-            {meals.map((c) => {
-              const name: string = c.category_name ?? c.name ?? "Category";
-              return (
-                <div
-                  key={c.id}
-                  className="w-[44vw] max-w-65 shrink-0 snap-start sm:w-56 lg:w-64"
-                >
-                  <Link
-                    href={`/food?category=${encodeURIComponent(name)}`}
-                    className="group block rounded-2xl border border-line bg-bg-raised p-2.5"
-                  >
-                    <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-brand-tint">
-                      {c.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={c.image}
-                          alt={name}
-                          loading="lazy"
-                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <span className="grid size-full place-items-center text-4xl">
-                          🍽️
-                        </span>
-                      )}
-                      <div className="absolute inset-x-0 bottom-0 bg-black/45 px-3 py-2.5">
-                        <p className="line-clamp-1 font-body text-[15px] font-bold text-white">
-                          {name}
-                        </p>
-                      </div>
-                    </div>
-                  </Link>
-                </div>
-              );
-            })}
-          </div>
-        </section>
-      )}
+      {/* 7. Explore Our Meal Categories: only categories with meals in the
+          selected city, images taken from that city's products */}
+      <MealCategoriesSection
+        categories={mealCategories}
+        initialProducts={products}
+      />
 
       {/* 8. What Are You Having Today?: restaurant meals (no drinks) */}
       <RestaurantMealsSection initialProducts={products} />
