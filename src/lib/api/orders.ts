@@ -51,11 +51,20 @@ export function getOrderTrackingLocation(orderId: number): Promise<TrackingLocat
 }
 
 // ── Reviews (submit-review.php) ────────────────────────────────────────────
+export interface ProductReviewPayload {
+  product_id: number;
+  rating: number;
+  /** Optional written review, max 1000 chars (enforced by submit-review.php). */
+  review_text: string;
+}
+
 export interface ReviewPayload {
   order_id: number;
   vendor_id: number | null;
   vendor_rating: number | null;
-  product_reviews: { product_id: number; rating: number; review_text: string }[];
+  /** Optional written vendor review, max 1000 chars. Empty when no vendor rating given. */
+  vendor_comment?: string;
+  product_reviews: ProductReviewPayload[];
 }
 
 export function submitReview(payload: ReviewPayload): Promise<unknown> {

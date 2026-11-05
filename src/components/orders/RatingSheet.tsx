@@ -5,6 +5,9 @@ import { ArrowLeft, X } from "lucide-react";
 import { submitReview, type Order } from "@/lib/api/orders";
 import { ApiError } from "@/lib/api/client";
 
+// Matches the 1000-character limit enforced by submit-review.php
+const MAX_REVIEW_LENGTH = 1000;
+
 const LABELS: Record<number, { text: string; emoji: string; color: string }> = {
   1: { text: "Poor", emoji: "😞", color: "text-red-600 dark:text-clay bg-red-50 dark:bg-clay-tint" },
   2: { text: "Fair", emoji: "😐", color: "text-orange-600 dark:text-brand bg-orange-50 dark:bg-brand-tint" },
@@ -52,10 +55,39 @@ function LabelPill({ rating }: { rating: number }) {
   );
 }
 
+/** Optional written review box shown under a rating. */
+function ReviewBox({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (text: string) => void;
+  placeholder: string;
+}) {
+  return (
+    <div className="mt-3 w-full">
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value.slice(0, MAX_REVIEW_LENGTH))}
+        maxLength={MAX_REVIEW_LENGTH}
+        rows={3}
+        placeholder={placeholder}
+        aria-label={placeholder}
+        className="w-full resize-none rounded-xl border border-line bg-bg-raised p-3 text-sm text-ink placeholder:text-ink-soft focus:border-brand focus:outline-none"
+      />
+      <p className="mt-1 text-right text-[11px] text-ink-soft">
+        {value.length}/{MAX_REVIEW_LENGTH}
+      </p>
+    </div>
+  );
+}
+
 /**
  * Two-step rating flow, same as the mobile app: rate the vendor (optional),
- * then rate every product. A bottom sheet on phones, a centred modal on
- * larger screens. Open it by passing an order; close by passing null.
+ * then rate every product. Each rating can carry an optional written review.
+ * A bottom sheet on phones, a centred modal on larger screens. Open it by
+ * passing an order; close by passing null.
  */
 export function RatingSheet({
   order,
@@ -68,7 +100,9 @@ export function RatingSheet({
 }) {
   const [step, setStep] = useState<"vendor" | "products" | "done">("vendor");
   const [vendorRating, setVendorRating] = useState(0);
+  const [vendorComment, setVendorComment] = useState("");
   const [productRatings, setProductRatings] = useState<Record<number, number>>({});
+  const [productComments, setProductComments] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -78,7 +112,9 @@ export function RatingSheet({
   useEffect(() => {
     setStep("vendor");
     setVendorRating(0);
+    setVendorComment("");
     setProductRatings({});
+    setProductComments({});
     setError(null);
   }, [orderId]);
 
@@ -109,10 +145,11 @@ export function RatingSheet({
         order_id: order.order_id,
         vendor_id: order.vendor_id,
         vendor_rating: vendorRating || null,
+        vendor_comment: vendorRating > 0 ? vendorComment.trim() : "",
         product_reviews: order.items.map((i) => ({
           product_id: i.product_id,
           rating: productRatings[i.product_id] ?? 0,
-          review_text: "",
+          review_text: (productComments[i.product_id] ?? "").trim(),
         })),
       });
       setStep("done");
@@ -138,7 +175,7 @@ export function RatingSheet({
             <span className="text-6xl">🎉</span>
             <h2 className="mt-4 font-display text-2xl font-bold text-ink">Thank you!</h2>
             <p className="mt-2 text-sm text-ink-soft">
-              Your feedback helps other buyers make better choices.
+              Your feedback helps other buyers make better choices. Reviews appear once approved.
             </p>
             <button
               type="button"
@@ -194,6 +231,13 @@ export function RatingSheet({
                     <p className="mb-4 mt-1 text-xs text-ink-soft">This is optional — you can skip</p>
                     <Stars rating={vendorRating} onRate={setVendorRating} large />
                     <LabelPill rating={vendorRating} />
+                    {vendorRating > 0 && (
+                      <ReviewBox
+                        value={vendorComment}
+                        onChange={setVendorComment}
+                        placeholder="Tell others about this vendor (optional)"
+                      />
+                    )}
                   </div>
 
                   <div className="mt-5 flex gap-3">
@@ -207,7 +251,7 @@ export function RatingSheet({
                     <button
                       type="button"
                       onClick={() => setStep("products")}
-                      className="flex-[2] rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-deep"
+                      className="flex-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-deep"
                     >
                       Next → Rate products
                     </button>
@@ -252,6 +296,15 @@ export function RatingSheet({
                               }
                             />
                             <LabelPill rating={r} />
+                            {r > 0 && (
+                              <ReviewBox
+                                value={productComments[item.product_id] ?? ""}
+                                onChange={(text) =>
+                                  setProductComments((prev) => ({ ...prev, [item.product_id]: text }))
+                                }
+                                placeholder="Write a review (optional)"
+                              />
+                            )}
                           </div>
                         </div>
                       );
