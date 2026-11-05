@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Star } from "lucide-react";
 import { getVendorDetails } from "@/lib/api/vendors";
+import { getStoreReviews, type StoreReviewsData } from "@/lib/api/reviews";
 import { StampBadge } from "@/components/StampBadge";
 import VendorRefCapture from "@/components/vendor/VendorRefCapture";
 import { VendorProductGrid } from "./VendorProductGrid";
+import { VendorReviews } from "./VendorReviews";
 import { DEFAULT_CITY } from "@/lib/config";
 import { extractVendorId } from "@/lib/utils/slug";
 
@@ -23,6 +25,18 @@ async function fetchVendor(id: string) {
     // Logged server-side (this runs during SSR) so a failed backend call
     // shows up in the `npm run dev` terminal instead of silently 404ing.
     console.error(`[vendor ${id}] fetchVendor failed:`, err);
+    return null;
+  }
+}
+
+// Public first page of store reviews. Used for the header rating and to
+// server-render the reviews list. The client component refetches with the
+// buyer's session to find out whether they can leave a review.
+async function fetchStoreReviews(vendorId: number): Promise<StoreReviewsData | null> {
+  try {
+    return await getStoreReviews(vendorId, 1, 10);
+  } catch (err) {
+    console.error(`[vendor ${vendorId}] fetchStoreReviews failed:`, err);
     return null;
   }
 }
@@ -50,7 +64,15 @@ export default async function VendorDetailPage({ params }: Props) {
   const data = await fetchVendor(id);
   if (!data) notFound();
 
-  const { vendor, products, reviews } = data;
+  const { vendor, products } = data;
+  const storeReviews = await fetchStoreReviews(vendor.id);
+
+  // The header rating follows the store-reviews summary (same as the mobile app),
+  // so what buyers rate on the order screen shows up here. Falls back to the vendor record.
+  const avgRating =
+    Number(storeReviews ? storeReviews.average_rating : vendor.average_rating) || 0;
+  const totalReviews =
+    Number(storeReviews ? storeReviews.total_reviews : vendor.total_reviews) || 0;
 
   return (
     <div>
@@ -78,10 +100,13 @@ export default async function VendorDetailPage({ params }: Props) {
               <StampBadge tone={vendor.vendor_status?.status === "open" ? "leaf" : "clay"}>
                 {vendor.vendor_status?.status === "open" ? "Open now" : "Closed"}
               </StampBadge>
-              <StampBadge tone="brand">
-                <Star size={11} fill="currentColor" strokeWidth={0} />
-                {vendor.average_rating.toFixed(1)} ({vendor.total_reviews})
-              </StampBadge>
+              {/* Tap the rating to jump to the reviews section */}
+              <a href="#reviews" aria-label="Jump to reviews">
+                <StampBadge tone="brand">
+                  <Star size={11} fill="currentColor" strokeWidth={0} />
+                  {avgRating.toFixed(1)} ({totalReviews})
+                </StampBadge>
+              </a>
               <span className="text-xs text-ink-soft">Joined {vendor.date_joined}</span>
             </div>
             {vendor.description && (
@@ -98,26 +123,7 @@ export default async function VendorDetailPage({ params }: Props) {
         <VendorProductGrid products={products} vendorId={vendor.id} />
       </div>
 
-      {reviews.data.length > 0 && (
-        <div className="mx-auto max-w-6xl px-4 pb-12">
-          <h2 className="mb-4 font-display text-xl font-semibold text-ink">Reviews</h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {reviews.data.map((review) => (
-              <div key={review.id} className="rounded-2xl border border-line bg-bg-raised p-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-ink">{review.reviewer_name}</span>
-                  <StampBadge tone="brand">
-                    <Star size={11} fill="currentColor" strokeWidth={0} />
-                    {review.rating}
-                  </StampBadge>
-                </div>
-                <p className="mt-2 text-sm text-ink-soft">{review.comment}</p>
-                <p className="mt-2 text-xs text-ink-soft">{review.date}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      <VendorReviews vendorId={vendor.id} initialStore={storeReviews} />
     </div>
   );
 }
