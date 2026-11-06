@@ -2,7 +2,11 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
-import { useCityFilteredProducts } from "@/lib/hooks/useCityFilteredProducts";
+import { useQuery } from "@tanstack/react-query";
+import { getProducts } from "@/lib/api/products";
+import { useUiStore } from "@/store/uiStore";
+import { cityLabel } from "@/lib/cities";
+import { DEFAULT_CITY } from "@/lib/config";
 import {
   mealCategoryMatches,
   pickMealCategoryImage,
@@ -13,6 +17,8 @@ import type { Product } from "@/lib/api/types";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MealCategory = Record<string, any>;
 
+const normalizeCity = (s: string) => s.toLowerCase().replace(/\s+/g, "");
+
 export function MealCategoriesSection({
   categories,
   initialProducts,
@@ -20,20 +26,28 @@ export function MealCategoriesSection({
   categories: MealCategory[];
   initialProducts: Product[];
 }) {
-  // Same city-filtered product list the other home rails use.
-  const { products } = useCityFilteredProducts({ initialProducts });
+  const label = cityLabel(useUiStore((s) => s.city));
+  const isDefault = normalizeCity(label) === normalizeCity(DEFAULT_CITY);
 
-  const meals = useMemo(() => {
-    const restaurantProducts = products.filter(
+  // Products of the SELECTED city only. The server-fetched list is for the
+  // default city, so it is only used as the starting data when that city is
+  // selected. For any other city nothing is shown until its own products load.
+  const { data: products } = useQuery({
+    queryKey: ["meal-category-products", normalizeCity(label)],
+    queryFn: () => getProducts({ city: label }),
+    initialData: isDefault ? initialProducts : undefined,
+    staleTime: 60_000,
+  });
+
+   const meals = useMemo(() => {
+    const restaurantProducts = (products ?? []).filter(
       (p) => p.business_type === "restaurant",
     );
     const withImage = restaurantProducts.filter((p) => p.image);
 
     return (categories ?? [])
-      .map((c) => {
+      .map((c): MealCategory => {
         const name: string = c.category_name ?? c.name ?? "Category";
-        // The API's own category image is just the uploads folder (no file
-        // name), so only use it if it points at a real file.
         const own =
           typeof c.image === "string" && c.image && !c.image.endsWith("/")
             ? c.image
@@ -44,6 +58,7 @@ export function MealCategoriesSection({
           hasProducts: restaurantProducts.some((p) =>
             mealCategoryMatches(p.category, name),
           ),
+          // Image only from this city's products (no fallback to other cities)
           image: pickMealCategoryImage(name, withImage) ?? own,
         };
       })
