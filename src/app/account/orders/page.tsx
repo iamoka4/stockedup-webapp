@@ -22,8 +22,12 @@ import { ConfirmDialog } from "@/components/orders/ConfirmDialog";
 type Tab = "All" | "Pending" | "Accepted" | "Enroute" | "Delivered" | "Cancelled";
 const TABS: Tab[] = ["All", "Pending", "Accepted", "Enroute", "Delivered", "Cancelled"];
 
-// Same remembered-dismissals key as the mobile app uses.
-const DISMISSED_KEY = "dismissed_order_ratings";
+// Closing the rating sheet only SNOOZES the prompt for that order. It comes back after
+// this long, until the order is actually rated. (It used to be dismissed forever, so
+// every order you closed once, or closed while testing, never prompted again.)
+// New key: the old "dismissed_order_ratings" key held a permanent list and is ignored.
+const DISMISSED_KEY = "dismissed_order_ratings_v2";
+const SNOOZE_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 const STATUS_STYLES: Record<string, string> = {
   Pending: "bg-brand-warm text-brand-deep",
@@ -56,22 +60,33 @@ function resolveUploadUrl(path: string | null | undefined): string {
   return `${SITE_URL}${path}`;
 }
 
-function readDismissed(): number[] {
+/** order id -> time (ms) the prompt was last closed */
+type Snoozes = Record<string, number>;
+
+function readSnoozes(): Snoozes {
   try {
     const raw = window.localStorage.getItem(DISMISSED_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
   } catch {
-    return [];
+    return {};
   }
 }
 
-function addDismissed(orderId: number) {
+function isSnoozed(snoozes: Snoozes, orderId: number): boolean {
+  const at = snoozes[String(orderId)];
+  return typeof at === "number" && Date.now() - at < SNOOZE_MS;
+}
+
+function snoozeOrder(orderId: number) {
   try {
-    const list = readDismissed();
-    if (!list.includes(orderId)) {
-      list.push(orderId);
-      window.localStorage.setItem(DISMISSED_KEY, JSON.stringify(list));
+    const snoozes = readSnoozes();
+    // drop expired entries so the list never grows forever
+    for (const id of Object.keys(snoozes)) {
+      if (Date.now() - snoozes[id] >= SNOOZE_MS) delete snoozes[id];
     }
+    snoozes[String(orderId)] = Date.now();
+    window.localStorage.setItem(DISMISSED_KEY, JSON.stringify(snoozes));
   } catch {
     /* storage unavailable: nothing to remember */
   }
@@ -116,15 +131,15 @@ export default function OrdersPage() {
     }
   }, []);
 
-  // First load: also offer to rate the first delivered, unrated order the
-  // user hasn't dismissed before (same behaviour as the mobile app).
+  // First load: also offer to rate the newest delivered, unrated order that has not
+  // been snoozed in the last 24 hours (same behaviour as the mobile app).
   useEffect(() => {
     if (!user) return;
     fetchOrders().then((list) => {
       if (!list) return;
-      const dismissed = readDismissed();
+      const snoozes = readSnoozes();
       const toRate = list.find(
-        (o) => isDelivered(o) && o.is_rated === 0 && !dismissed.includes(o.order_id)
+        (o) => isDelivered(o) && o.is_rated === 0 && !isSnoozed(snoozes, o.order_id)
       );
       if (toRate) setRatingOrder(toRate);
     });
@@ -142,7 +157,7 @@ export default function OrdersPage() {
   }, [orders]);
 
   function dismissRating() {
-    if (ratingOrder) addDismissed(ratingOrder.order_id);
+    if (ratingOrder) snoozeOrder(ratingOrder.order_id);
     setRatingOrder(null);
   }
 

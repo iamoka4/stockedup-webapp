@@ -3,6 +3,18 @@ import type { Order } from "./types";
 
 export type { Order };
 
+/**
+ * One store in an order, flagged with whether this buyer already reviewed it
+ * (a store is reviewed only once per buyer, ever). Returned by get-orders.php.
+ * Add the matching optional fields to `Order` in ./types:
+ *   vendors?: OrderVendor[];  store_name?: string;  vendor_reviewed?: boolean;
+ */
+export interface OrderVendor {
+  vendor_id: number;
+  name: string;
+  reviewed: boolean;
+}
+
 export function getOrders(): Promise<{ orders: Order[] }> {
   return apiGet("/get-orders.php");
 }
@@ -58,11 +70,24 @@ export interface ProductReviewPayload {
   review_text: string;
 }
 
+/** A rating for ONE store in the order. Leave a store out to skip rating it. */
+export interface StoreRatingPayload {
+  vendor_id: number;
+  rating: number;
+  /** Optional written store review, max 1000 chars. */
+  comment?: string;
+}
+
 export interface ReviewPayload {
   order_id: number;
-  vendor_id: number | null;
-  vendor_rating: number | null;
-  /** Optional written vendor review, max 1000 chars. Empty when no vendor rating given. */
+  /**
+   * One entry per store being rated. A store is rated once per buyer, ever;
+   * submit-review.php silently skips stores already rated.
+   */
+  vendor_ratings?: StoreRatingPayload[];
+  /** Older single-store fields, still accepted by the server. Prefer vendor_ratings. */
+  vendor_id?: number | null;
+  vendor_rating?: number | null;
   vendor_comment?: string;
   product_reviews: ProductReviewPayload[];
 }

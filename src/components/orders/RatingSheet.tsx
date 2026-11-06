@@ -83,9 +83,14 @@ function ReviewBox({
   );
 }
 
+type Store = { vendor_id: number; name: string; reviewed: boolean };
+
 /**
- * Two-step rating flow, same as the mobile app: rate the vendor (optional),
- * then rate every product. Each rating can carry an optional written review.
+ * Two-step rating flow, same as the mobile app:
+ *   1. rate each STORE in the order that you have not rated before (optional; the step
+ *      is skipped when there is none left — a store is rated once per buyer, ever),
+ *   2. rate every product (products can be reviewed again on every order).
+ * Each rating can carry an optional written review.
  * A bottom sheet on phones, a centred modal on larger screens. Open it by
  * passing an order; close by passing null.
  */
@@ -98,9 +103,9 @@ export function RatingSheet({
   onDismiss: () => void;
   onComplete: () => void;
 }) {
-  const [step, setStep] = useState<"vendor" | "products" | "done">("vendor");
-  const [vendorRating, setVendorRating] = useState(0);
-  const [vendorComment, setVendorComment] = useState("");
+  const [step, setStep] = useState<"stores" | "products" | "done">("stores");
+  const [storeRatings, setStoreRatings] = useState<Record<number, number>>({});
+  const [storeComments, setStoreComments] = useState<Record<number, string>>({});
   const [productRatings, setProductRatings] = useState<Record<number, number>>({});
   const [productComments, setProductComments] = useState<Record<number, string>>({});
   const [submitting, setSubmitting] = useState(false);
@@ -108,11 +113,32 @@ export function RatingSheet({
 
   const orderId = order?.order_id;
 
+  // Stores in this order that the buyer has not rated yet. get-orders.php sends
+  // order.vendors (every store, flagged reviewed/not). Older responses only have
+  // vendor_id / store_name / vendor_reviewed, so fall back to those.
+  const pendingStores: Store[] = (() => {
+    if (!order) return [];
+    const o = order as Order & {
+      vendors?: { vendor_id: number; name: string; reviewed: boolean }[];
+      store_name?: string;
+      vendor_reviewed?: boolean;
+    };
+    const all: Store[] =
+      o.vendors && o.vendors.length > 0
+        ? o.vendors
+        : o.vendor_id
+          ? [{ vendor_id: o.vendor_id, name: o.store_name ?? "this store", reviewed: Boolean(o.vendor_reviewed) }]
+          : [];
+    return all.filter((st) => !st.reviewed);
+  })();
+  const hasStoreStep = pendingStores.length > 0;
+  const currentStep = step === "stores" && !hasStoreStep ? "products" : step;
+
   // Reset whenever a different order is opened.
   useEffect(() => {
-    setStep("vendor");
-    setVendorRating(0);
-    setVendorComment("");
+    setStep("stores");
+    setStoreRatings({});
+    setStoreComments({});
     setProductRatings({});
     setProductComments({});
     setError(null);
@@ -143,9 +169,14 @@ export function RatingSheet({
     try {
       await submitReview({
         order_id: order.order_id,
-        vendor_id: order.vendor_id,
-        vendor_rating: vendorRating || null,
-        vendor_comment: vendorRating > 0 ? vendorComment.trim() : "",
+        // one entry per store that was rated; unrated stores are simply left out
+        vendor_ratings: pendingStores
+          .filter((st) => (storeRatings[st.vendor_id] ?? 0) > 0)
+          .map((st) => ({
+            vendor_id: st.vendor_id,
+            rating: storeRatings[st.vendor_id],
+            comment: (storeComments[st.vendor_id] ?? "").trim(),
+          })),
         product_reviews: order.items.map((i) => ({
           product_id: i.product_id,
           rating: productRatings[i.product_id] ?? 0,
@@ -170,7 +201,7 @@ export function RatingSheet({
         aria-label="Rate your order"
         className="relative flex max-h-[88vh] w-full max-w-md flex-col overflow-hidden rounded-t-3xl bg-bg-raised shadow-xl md:rounded-3xl"
       >
-        {step === "done" ? (
+        {currentStep === "done" ? (
           <div className="flex flex-col items-center px-8 py-10 text-center">
             <span className="text-6xl">🎉</span>
             <h2 className="mt-4 font-display text-2xl font-bold text-ink">Thank you!</h2>
@@ -188,10 +219,10 @@ export function RatingSheet({
         ) : (
           <>
             <div className="flex items-center gap-3 border-b border-line px-5 py-4">
-              {step === "products" && (
+              {currentStep === "products" && hasStoreStep && (
                 <button
                   type="button"
-                  onClick={() => setStep("vendor")}
+                  onClick={() => setStep("stores")}
                   aria-label="Back"
                   className="grid size-8 place-items-center rounded-full bg-bg text-ink-soft hover:text-ink"
                 >
@@ -200,10 +231,10 @@ export function RatingSheet({
               )}
               <div className="min-w-0 flex-1">
                 <h2 className="font-display text-base font-semibold text-ink">
-                  {step === "vendor" ? "Rate your order" : "Rate products"}
+                  {currentStep === "stores" ? "Rate your order" : "Rate products"}
                 </h2>
                 <p className="text-xs text-ink-soft">
-                  {step === "vendor"
+                  {currentStep === "stores"
                     ? `#${order.order_uid}`
                     : `${ratedCount}/${order.items.length} rated`}
                 </p>
@@ -219,25 +250,50 @@ export function RatingSheet({
             </div>
 
             <div className="overflow-y-auto p-5">
-              {step === "vendor" ? (
+              {currentStep === "stores" ? (
                 <>
                   <div className="mb-5 rounded-xl border border-green-200 dark:border-leaf bg-green-50 dark:bg-leaf-tint p-3 text-center text-sm font-semibold text-green-700 dark:text-leaf">
                     📦 Order delivered successfully
                   </div>
 
-                  <div className="flex flex-col items-center rounded-2xl border border-line bg-bg p-5 text-center">
-                    <span className="grid size-14 place-items-center rounded-full bg-brand-tint text-3xl">🏪</span>
-                    <p className="mt-3 font-semibold text-ink">How was the vendor?</p>
-                    <p className="mb-4 mt-1 text-xs text-ink-soft">This is optional — you can skip</p>
-                    <Stars rating={vendorRating} onRate={setVendorRating} large />
-                    <LabelPill rating={vendorRating} />
-                    {vendorRating > 0 && (
-                      <ReviewBox
-                        value={vendorComment}
-                        onChange={setVendorComment}
-                        placeholder="Tell others about this vendor (optional)"
-                      />
-                    )}
+                  <p className="mb-3 text-center text-xs text-ink-soft">
+                    {pendingStores.length > 1
+                      ? "How was each store? This is optional — you can skip."
+                      : "How was the store? This is optional — you can skip."}
+                  </p>
+
+                  <div className="flex flex-col gap-3">
+                    {pendingStores.map((st) => {
+                      const r = storeRatings[st.vendor_id] ?? 0;
+                      return (
+                        <div
+                          key={st.vendor_id}
+                          className="flex flex-col items-center rounded-2xl border border-line bg-bg p-5 text-center"
+                        >
+                          <span className="grid size-14 place-items-center rounded-full bg-brand-tint text-3xl">🏪</span>
+                          <p className="mt-3 font-semibold text-ink">{st.name}</p>
+                          <div className="mt-3">
+                            <Stars
+                              rating={r}
+                              onRate={(rating) =>
+                                setStoreRatings((prev) => ({ ...prev, [st.vendor_id]: rating }))
+                              }
+                              large
+                            />
+                          </div>
+                          <LabelPill rating={r} />
+                          {r > 0 && (
+                            <ReviewBox
+                              value={storeComments[st.vendor_id] ?? ""}
+                              onChange={(text) =>
+                                setStoreComments((prev) => ({ ...prev, [st.vendor_id]: text }))
+                              }
+                              placeholder={`Tell others about ${st.name} (optional)`}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
                   <div className="mt-5 flex gap-3">
@@ -251,7 +307,7 @@ export function RatingSheet({
                     <button
                       type="button"
                       onClick={() => setStep("products")}
-                      className="flex-2 rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-deep"
+                      className="flex-[2] rounded-xl bg-brand py-3 text-sm font-semibold text-white hover:bg-brand-deep"
                     >
                       Next → Rate products
                     </button>
