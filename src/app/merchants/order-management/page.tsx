@@ -217,7 +217,7 @@ function OrderCard({
             {order.status}
           </span>
           {isScheduled && (
-            <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-600">
+            <span className="rounded-full border border-violet-200 bg-violet-50 px-2 py-0.5 text-[10px] font-bold text-violet-600 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300">
               📅 Scheduled
             </span>
           )}
@@ -225,7 +225,7 @@ function OrderCard({
       </div>
 
       {isScheduled && scheduledDisplay && (
-        <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 p-2 text-xs text-violet-800">
+        <div className="mt-3 flex items-center gap-1.5 rounded-lg border border-violet-200 bg-violet-50 p-2 text-xs text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300">
           <span>📅</span>
           <span>
             Delivery scheduled for <strong>{scheduledDisplay}</strong>
@@ -241,7 +241,7 @@ function OrderCard({
       </div>
 
       {items.length > 0 && (
-        <div className="mt-3 space-y-2.5 rounded-xl bg-[#f9f9f9] p-3">
+        <div className="mt-3 space-y-2.5 rounded-xl bg-[#f9f9f9] dark:bg-bg p-3">
           <p className="text-xs font-bold uppercase text-gray-400 dark:text-ink-soft">
             Order Items ({items.length})
           </p>
@@ -272,9 +272,12 @@ function OrderCard({
                 </div>
 
                 {addons.length > 0 && (
-                  <div className="ml-15.5 mt-1.5 space-y-1 rounded-lg bg-[#FFF8F0] p-2">
+                  <div className="ml-15.5 mt-1.5 space-y-1 rounded-lg bg-[#FFF8F0] dark:bg-orange-500/10 p-2">
                     {addons.map((a, aIdx) => (
-                      <div key={aIdx} className="flex justify-between gap-2 text-xs text-[#8A5A00]">
+                      <div
+                        key={aIdx}
+                        className="flex justify-between gap-2 text-xs text-[#8A5A00] dark:text-orange-300"
+                      >
                         <span className="flex-1 truncate">
                           + {a.name} ×{a.quantity}
                         </span>
@@ -298,7 +301,7 @@ function OrderCard({
       {showActions && (
         <div className="mt-3">
           {isScheduled && locked && (
-            <div className="mb-2 flex items-center gap-2 rounded-lg border border-violet-200 bg-violet-50 p-2.5 text-xs font-medium text-violet-800">
+            <div className="mb-2 flex items-center gap-2 rounded-lg border border-violet-200 bg-violet-50 p-2.5 text-xs font-medium text-violet-800 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300">
               <span>⏰</span>
               <span>Actions available at 9:00 AM when the vendor opens</span>
             </div>
@@ -365,7 +368,9 @@ function RejectModal({
                 type="button"
                 onClick={() => setReason(r)}
                 className={`flex w-full items-center gap-3 rounded-xl border-[1.5px] px-3.5 py-3 text-left transition ${
-                  active ? "border-orange-500 bg-[#fff0e6]" : "border-transparent bg-[#f8f8f8] dark:bg-bg"
+                  active
+                    ? "border-orange-500 bg-[#fff0e6] dark:bg-orange-500/10"
+                    : "border-transparent bg-[#f8f8f8] dark:bg-bg"
                 }`}
               >
                 <span
@@ -539,7 +544,9 @@ export default function OrderManagementPage() {
                 type="button"
                 onClick={() => setStatusFilter(item)}
                 className={`rounded-full px-3 py-1.5 text-xs capitalize ${
-                  active ? "bg-orange-500 font-bold text-white" : "bg-[#ececec] text-gray-600 dark:text-ink-soft"
+                  active
+                    ? "bg-orange-500 font-bold text-white"
+                    : "bg-[#ececec] dark:bg-bg-elevated text-gray-600 dark:text-ink-soft"
                 }`}
               >
                 {item === "all" ? "All" : item}
@@ -564,7 +571,9 @@ export default function OrderManagementPage() {
                 type="button"
                 onClick={() => setDateFilter(key)}
                 className={`rounded-full px-3 py-1.5 text-xs ${
-                  active ? "bg-orange-500 font-bold text-white" : "bg-[#ececec] text-gray-600 dark:text-ink-soft"
+                  active
+                    ? "bg-orange-500 font-bold text-white"
+                    : "bg-[#ececec] dark:bg-bg-elevated text-gray-600 dark:text-ink-soft"
                 }`}
               >
                 {label}
