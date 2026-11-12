@@ -33,6 +33,9 @@ const RULES = [
   ["border", /^(?:green|emerald)-(?:100|200)$/, "leaf"],
   ["border", /^(?:red|rose)-(?:100|200)$/, "clay"],
   ["border", /^(?:orange|amber|yellow)-(?:100|200)$/, "brand"],
+  ["bg", /^(?:violet|purple)-(?:50|100)$/, "indigo-tint"],
+  ["text", /^(?:violet|purple)-(?:600|700|800|900)$/, "[#c4b5fd]"],
+  ["border", /^(?:violet|purple)-(?:100|200)$/, "indigo"],
 ];
 
 const CLASS_RE =
@@ -48,6 +51,7 @@ const HEX_RULES = {
     "text-clay": ["#dc2626", "#ef4444", "#ff3b30", "#b91c1c"],
     "text-brand": ["#92400e", "#a16207", "#d97706", "#c2410c"],
     "text-[#ffc94d]": ["#b8860b"],
+    "text-[#f5c26b]": ["#8a5a00"],
   },
   border: {
     "border-line": ["#e0e0e0", "#f0f0f0", "#e8e8e8", "#e5e5e5", "#eee", "#eeeeee", "#f5f5f5", "#dad5d5", "#e5e7eb", "#ddd", "#ccc"],
@@ -64,11 +68,13 @@ const HEX_RULES = {
     "bg-bg-raised": ["#fff", "#ffffff"],
     "bg-leaf-tint": ["#ecfdf5", "#f0fdf4", "#dcfce7"],
     "bg-clay-tint": ["#fef2f2", "#fee2e2"],
-    "bg-brand-tint": ["#fef3c7", "#fffbeb", "#fff7ed"],
+    "bg-brand-tint": ["#fef3c7", "#fffbeb", "#fff0e6", "#fff8f0", "#fff7ed"],
     "bg-indigo-tint": ["#eff6ff"],
     "bg-[#ffb80014]": ["#fffdf5"],
     "bg-[#ffb80026]": ["#fff9e6"],
     "bg-[#ff7c0914]": ["#fffbf7"],
+        "bg-bg": ["#f8f9fa", "#f8f8f8", "#f5f6fa", "#fff4ee", "#f9f9f9"],
+    "bg-bg-elevated": [ /* keep everything already there */, "#ececec"],
   },
 };
 

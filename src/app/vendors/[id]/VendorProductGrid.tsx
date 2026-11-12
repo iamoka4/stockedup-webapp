@@ -8,6 +8,10 @@ import type { VendorProductSummary, Product } from "@/lib/api/types";
  * stock/description/vendor_id) than get-products.php. Adapt it here rather
  * than changing ProductCard, since the product grid/search pages use the
  * richer shape directly.
+ *
+ * `price` is already the promo price while a promotion applies, and
+ * `original_price` / `promotion` are only present then, so they must be
+ * passed through or the card cannot show the discount.
  */
 export function VendorProductGrid({
   products,
@@ -28,6 +32,8 @@ export function VendorProductGrid({
           name: p.name,
           description: "",
           price: p.price,
+          original_price: p.original_price ?? null,
+          promotion: p.promotion ?? null,
           unit: p.unit,
           category: p.category,
           stock: 1, // vendor-details doesn't return stock; treat as available

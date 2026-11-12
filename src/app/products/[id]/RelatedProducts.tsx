@@ -9,6 +9,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart } from "@/lib/api/cart";
 import { apiGet } from "@/lib/api/client";
 import { trackEvent } from "@/lib/analytics";
+import { DiscountBadge, PriceTag } from "@/components/PriceTag";
 
 // Only used to complete image paths that arrive without a host (the API
 // normally sends full https:// URLs already).
@@ -27,9 +28,6 @@ type Product = {
 };
 
 type Related = { complementary: Product[]; similar: Product[] };
-
-const formatPrice = (n: string | number) =>
-  "₦" + Number(n).toLocaleString("en-NG");
 
 const imgUrl = (path: string) =>
   path.startsWith("http") ? path : `${SITE_BASE}/${path.replace(/^\//, "")}`;
@@ -199,7 +197,7 @@ export function SuggestionRow({
                 })
               }
             >
-              <div className="aspect-square overflow-hidden rounded-xl bg-brand-tint">
+              <div className="relative aspect-square overflow-hidden rounded-xl bg-brand-tint">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={imgUrl(p.image)}
@@ -207,20 +205,18 @@ export function SuggestionRow({
                   loading="lazy"
                   className="h-full w-full object-cover"
                 />
+                <DiscountBadge price={p.price} originalPrice={p.original_price} />
               </div>
               <p className="mt-2 line-clamp-2 min-h-10 text-sm font-medium text-ink">
                 {p.name}
               </p>
             </Link>
             <div className="mt-1 flex items-center justify-between">
-              <span className="tabular text-sm text-ink-soft">
-                {formatPrice(p.price)}
-                {p.original_price ? (
-                  <span className="ml-1 text-xs line-through opacity-60">
-                    {formatPrice(p.original_price)}
-                  </span>
-                ) : null}
-              </span>
+              <PriceTag
+                price={p.price}
+                originalPrice={p.original_price}
+                className="text-sm"
+              />
               {quickAdd && p.needs_options && (
                 <Link
                   href={`/products/${p.id}`}

@@ -45,7 +45,11 @@ export interface VendorDetails {
 export interface VendorProductSummary {
   id: number;
   name: string;
+  /** What this shopper pays now: the promotional price while a promotion applies to them. */
   price: number;
+  /** The normal price. Only present while a promotion applies to this shopper. */
+  original_price?: number | null;
+  promotion?: ProductPromotion | null;
   unit: string;
   category: string;
   image_url: string;

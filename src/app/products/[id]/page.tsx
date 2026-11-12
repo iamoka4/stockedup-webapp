@@ -11,6 +11,7 @@ import { RelatedProducts } from "./RelatedProducts";
 import { Suspense } from "react";
 import { DEFAULT_CITY } from "@/lib/config";
 import { TrackProductView } from "./TrackProductView";
+import { DiscountBadge, PriceTag } from "@/components/PriceTag";
 export const revalidate = 60;
 
 interface Props {
@@ -143,26 +144,20 @@ export default async function ProductDetailPage({ params }: Props) {
           <h2 className="mb-4 font-display text-xl font-semibold text-ink">You may also like</h2>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-5">
             {related_products.map((r) => (
-              <Link
-                key={r.id}
-                href={`/products/${r.id}`}
-                className="rounded-2xl border border-line bg-bg-raised p-3"
-              >
-                <div className="aspect-square overflow-hidden rounded-xl bg-brand-tint">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={r.image} alt={r.name} className="h-full w-full object-cover" />
-                </div>
-                <p className="mt-2 line-clamp-2 text-sm font-medium text-ink">{r.name}</p>
-                <p className="tabular text-sm text-ink-soft">
-                  ₦{r.price.toLocaleString()}
-                  {r.original_price ? (
-                    <span className="ml-1 text-xs line-through opacity-60">
-                      ₦{r.original_price.toLocaleString()}
-                    </span>
-                  ) : null}
-                </p>
-              </Link>
-            ))}
+  <Link
+    key={r.id}
+    href={`/products/${r.id}`}
+    className="rounded-2xl border border-line bg-bg-raised p-3"
+  >
+    <div className="relative aspect-square overflow-hidden rounded-xl bg-brand-tint">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={r.image} alt={r.name} className="h-full w-full object-cover" />
+      <DiscountBadge price={r.price} originalPrice={r.original_price} />
+    </div>
+    <p className="mt-2 line-clamp-2 text-sm font-medium text-ink">{r.name}</p>
+    <PriceTag price={r.price} originalPrice={r.original_price} className="text-sm" />
+  </Link>
+))}
           </div>
         </div>
       )}

@@ -5,6 +5,7 @@ import { Plus } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addToCart } from "@/lib/api/cart";
 import type { Product } from "@/lib/api/types";
+import { DiscountBadge, PriceTag } from "@/components/PriceTag";
 
 export function ProductCard({
   product,
@@ -26,7 +27,7 @@ export function ProductCard({
   return (
     <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-line bg-bg-raised">
       <Link href={`/products/${product.id}`} className="block p-2.5 pb-0">
-        <div className="aspect-square w-full overflow-hidden rounded-xl bg-brand-tint">
+        <div className="relative aspect-square w-full overflow-hidden rounded-xl bg-brand-tint">
           {product.image ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -40,6 +41,8 @@ export function ProductCard({
               {product.name.charAt(0).toUpperCase()}
             </span>
           )}
+
+          <DiscountBadge price={product.price} originalPrice={product.original_price} />
         </div>
       </Link>
 
@@ -61,13 +64,11 @@ export function ProductCard({
         ) : null}
 
         <div className="mt-auto flex items-end justify-between pt-1">
-          <span
-            className={`tabular font-display font-semibold text-ink ${
-              hideCartControls ? "text-base font-extrabold" : "text-lg"
-            }`}
-          >
-            ₦{Number(product.price).toLocaleString()}
-          </span>
+          <PriceTag
+            price={product.price}
+            originalPrice={product.original_price}
+            className={hideCartControls ? "text-base font-extrabold" : "text-lg"}
+          />
 
           {!hideCartControls && (
             <button
