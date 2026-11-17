@@ -11,6 +11,7 @@ import type { Product } from "@/lib/api/types";
 import type { PromoSlide } from "@/lib/api/promo";
 import { PromoBanner } from "@/components/home/PromoBanner";
 import { PromoPopup } from "@/components/home/PromoPopup";
+import { ChristmasBundlesSection } from "@/components/home/ChristmasBundlesSection";
 import { CategoryScroller } from "@/components/home/CategoryScroller";
 import { PopularVendorsSection } from "@/components/home/PopularVendorsSection";
 import { VendorListingRail } from "@/components/home/VendorListingRail";
@@ -155,10 +156,13 @@ export default async function ShopPage() {
       {/* 9. Trending Drinks */}
       <TrendingDrinksSection initialProducts={products} />
 
-      {/* 10. What's Everyone Buying? */}
+           {/* 10. What's Everyone Buying? */}
       <PopularDemandSection initialProducts={products} />
 
-      {/* 11. Best Sellers */}
+      {/* 11. Christmas Bundles Sales: grocery Combo products only */}
+      <ChristmasBundlesSection />
+
+      {/* 12. Best Sellers */}
       <HotProductsSection />
     </div>
   );
