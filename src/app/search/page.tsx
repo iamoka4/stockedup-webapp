@@ -36,7 +36,7 @@ function Section({ title, items }: { title: string; items: SearchProduct[] }) {
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<SP> | SP;
+  searchParams: Promise<SP>;
 }) {
   const sp = await searchParams;
   const q = first(sp.q).trim();

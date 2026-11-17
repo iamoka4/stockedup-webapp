@@ -17,7 +17,7 @@ type SearchParams = { category?: string };
 export default async function FoodPage({
   searchParams,
 }: {
-  searchParams?: Promise<SearchParams> | SearchParams;
+  searchParams?: Promise<SearchParams>;
 }) {
   const { category } = (await searchParams) ?? {};
   const wanted = category?.trim();
