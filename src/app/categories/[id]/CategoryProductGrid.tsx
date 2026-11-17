@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { useCityFilteredProducts } from "@/lib/hooks/useCityFilteredProducts";
 import { cityLabel } from "@/lib/cities";
@@ -14,10 +15,17 @@ export function CategoryProductGrid({
   initialProducts: Product[];
 }) {
   const city = useUiStore((s) => s.city);
-  const { products, isFetching } = useCityFilteredProducts({
+  const { products: fetched, isFetching } = useCityFilteredProducts({
     category: categoryName,
     initialProducts,
   });
+
+  // Grocery category pages never show restaurant meals (e.g. restaurant
+  // "Chicken" or "Turkey" dishes under Live/Frozen Chicken, Frozen Turkey).
+  const products = useMemo(
+    () => fetched.filter((p) => p.business_type !== "restaurant"),
+    [fetched],
+  );
 
   return (
     <div>
